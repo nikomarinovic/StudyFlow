@@ -81,5 +81,6 @@ document.getElementById("next-week").onclick = () => {
 renderWeek();
 
 //test events
-db.exams.add({ name: "Math Exam", date: formatDate(new Date()) });
-db.exams.add({ name: "Project Reminder", date: formatDate(new Date(new Date().setDate(new Date().getDate() + 2))) });
+
+//db.exams.add({ name: "Math Exam", date: formatDate(new Date()) });
+//db.exams.add({ name: "Project Reminder", date: formatDate(new Date(new Date().setDate(new Date().getDate() + 2))) });

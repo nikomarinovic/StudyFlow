@@ -88,10 +88,55 @@
                     <h1>Upcoming Exams</h1>
                     <p id="number-of-exams">0</p>
                 </div>
-                <button class="add-exam"> <img src="../images/plus.png" alt="plus icon"> Add Exam</button>
+                <button class="add-exam" id="add-exam-button" onclick="openExamModal()"> <img src="../images/plus.png" alt="plus icon"> Add Exam</button>
             </div>
         </div>
 
+        <!-- Modal Overlay -->
+        <div id="modal-overlay" class="modal-overlay"></div>
+
+        <!-- Add exam section -->
+         <div id="add-exam-form" class="add-exam-form">
+            <h2>Add New Exam</h2>
+            <form id="exam-form">
+                <div class="input-group">
+                    <label for="exam-name">Exam Name:</label>
+                    <input type="text" id="exam-name" name="exam-name" required>
+                    <span class="input-status">!</span>
+                </div>
+
+                <div class="input-group">
+                    <label for="exam-date">Exam Date:</label>
+                    <input type="date" id="exam-date" name="exam-date" required>
+                    <span class="input-status">!</span>
+                </div>
+
+                <div class="input-group">
+                    <label for="exam-subject">Subject:</label>
+                    <input type="text" id="exam-subject" name="exam-subject" required>
+                    <span class="input-status">!</span>
+                </div>
+
+                <div class="input-group">
+                    <label for="exam-difficulty">Exam Difficulty:</label>
+                    <div id="exam-difficulty" class="difficulty-selector">
+                        <span class="dot" data-value="1"></span>
+                        <span class="dot" data-value="2"></span>
+                        <span class="dot" data-value="3"></span>
+                        <span class="dot" data-value="4"></span>
+                        <span class="dot" data-value="5"></span>
+                    </div>
+                    <input type="hidden" id="exam-difficulty-value" name="exam-difficulty" value="1">
+                    <span class="input-status">!</span>
+                </div>
+                <div class="form-buttons">
+                    <button type="submit"><img src="../images/plus.png" alt="plus icon"> Add Exam</button>
+                    <button type="button" onclick="closeExamModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Footer -->
         <footer class="footer">
             <div class="footer-content">
                 <img src="../images/open-book.png" alt="StudyFlow Logo">
