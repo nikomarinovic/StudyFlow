@@ -83,9 +83,11 @@ db.exams.add({ name: "Project Reminder", date: "2026-01-07" });
 #### [v1.0.0] – 5.1.2026.  
 > Initial release: basic UI for StudyFlow including weekly calendar layout, calendar.html, index.html, and stopwatch page. Functionality is limited; mainly interface and structure.
 
-#### [v1.1.0] – 11.1.2026.  
+#### [v1.1.0] – 10.1.2026.  
 > Added Add Exam modal UI with difficulty selector, validation visuals, and modal layout (UI only, no functionality yet).
 
+#### [v1.2.0] - 11.1.2026.
+> Added exam management, upcoming exams view, calendar UI improvements, settings enhancements, and bug fixes.
 
 ---
 
