@@ -34,6 +34,21 @@
             </div>
         </header>
 
+        <!-- Settings -->
+        <div class="delete-events-container">
+            <button id="settings-btn" title="Settings">
+                <img src="../images/settings-icon.png" alt="Settings">
+            </button>
+            <div class="settings-menu">
+                <button id="add-event" title="Add Event">
+                    <img src="../images/purple-plus.png" alt="Add Event">
+                </button>
+                <button id="delete-all-events" title="Delete All Events">
+                    <img src="../images/trash-bin.png" alt="Delete All Events">
+                </button>
+            </div>
+        </div>
+        
         <main class="calendar-page">
             <div class="weekly-calendar">
 
@@ -50,6 +65,18 @@
             </div>
         </main>
 
+        <div class="container">
+            <div class="events-view">
+                <h2>Today's Study Plan</h2>
+            </div>
+            <div class="upcoming-exams-view">
+                <div class="header-of-upcoming">
+                    <h2>Upcoming Exams:</h2>
+                    <p class="number-of-exams" id="number-of-exams">0</p>
+                </div>
+            </div>
+        </div>
+
         <footer class="footer">
             <div class="footer-content">
                 <img src="../images/open-book.png" alt="StudyFlow Logo">
@@ -63,6 +90,7 @@
         </footer>
         
         <script src="https://unpkg.com/dexie@latest/dist/dexie.min.js"></script>
+        <script src="../script/db.js"></script>
         <script src="../script/calendar.js"></script>
     </body>
 </html>

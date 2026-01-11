@@ -1,3 +1,8 @@
+html, body {
+    height: auto;        
+    min-height: 100%;      
+    overflow-y: auto;       
+}
 /* greeting section */
 .greeting-section {
     padding: 1rem;
@@ -6,7 +11,7 @@
     align-items: center;
     box-sizing: border-box;
     height: 110px;
-    border: 0.1rem solid #ccc; /* remove */
+    border: 0.1rem solid #ccc; 
     background-color: #fff;
     h1{
         font-family: "Story Script", cursive;
@@ -185,7 +190,7 @@
     display: flex;
     justify-content: space-between; 
     align-items: center;            
-    margin-bottom: 2rem;          
+    margin-bottom: 0.3rem;          
 }
 #number-of-exams {
     font-size: 2.5rem;
@@ -356,4 +361,50 @@
     background-color: lightgray;
     cursor: pointer;
     transition: background-color 0.2s;
+}
+
+/* upcoming exams container */
+.upcoming-exams {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.upcoming-exams-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 auto;
+    width: 90%;
+    max-height: 300px;     
+    overflow-y: auto;       
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    scrollbar-width: none;   
+}
+.upcoming-exams-list::-webkit-scrollbar {
+    width: 0;            
+}
+.upcoming-exams-list li {
+    padding: 0.75rem 1.5rem;
+    border-radius: 1rem;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: transform 0.2s, background-color 0.2s;
+}
+.upcoming-exams-list li:hover {
+    background-color: #e0e0e0;
+    transform: translateY(-2px);
+    cursor: pointer;
+}
+#add-exam-button {
+    margin-top: 0.5rem;
+    align-self: flex-start; 
+}
+
+.upcoming-exams-list li span {
+    display: inline-block;
+}
+.upcoming-exams-list li button {
+    font-size: 1rem;
 }

@@ -3,21 +3,19 @@
     justify-content: center;
     margin: 40px 0;
 }
-
 .weekly-calendar {
     width: 900px;
     background: white;
     border-radius: 16px;
     padding: 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
 }
-
 .calendar-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
 }
-
 .calendar-header button {
     background: #222;
     color: white;
@@ -26,9 +24,9 @@
     border-radius: 8px;
     cursor: pointer;
 }
-
 #calendar-title {
-    font-size: 20px;
+    font-family: "Story Script", cursive;
+    font-size: 28px;
     font-weight: bold;
 }
 
@@ -38,7 +36,6 @@
     grid-template-columns: repeat(7, 1fr);
     gap: 10px;
 }
-
 .day-box {
     border: 1px solid #ddd;
     border-radius: 12px;
@@ -47,12 +44,10 @@
     position: relative;
     cursor: pointer;
 }
-
 .day-name {
     font-size: 14px;
     color: #777;
 }
-
 .day-number {
     font-size: 24px;
     font-weight: bold;
@@ -63,7 +58,7 @@
     position: absolute;
     top: 8px;
     right: 8px;
-    background: #ff4d4d;
+    background: #5C3E94;
     color: white;
     font-size: 12px;
     padding: 4px 8px;
@@ -72,5 +67,223 @@
 
 /* Highlight today */
 .today {
-    border: 2px solid #4a90e2;
+    border: 3px solid #5C3E94;
+}
+
+/* events view */
+.container {
+    display: flex;
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto;  
+    gap: 5%;
+    height: 100%;
+    max-height: 350px;
+}
+.events-view {
+    border-radius: 2rem;
+    background-color: #fff;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    width: 70%;
+    h2{
+        font-family: "Story Script", cursive;
+        font-size: 200%;
+        position: relative;
+        padding: 1rem 1.5rem;
+    }
+}
+.upcoming-exams-view {
+    border-radius: 2rem;
+    background-color: #fff;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    width: 30%;
+}
+.header-of-upcoming {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center; 
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    h2 {
+        font-family: "Story Script", cursive;
+        font-size: 2rem;
+        margin: 0;
+    }
+
+    .number-of-exams {
+        font-family: "Story Script", cursive;
+        font-size: 2rem; 
+        margin: 0;
+    }
+}
+
+/* delete events */
+.delete-events-container {
+    position: fixed;    
+    top: 6rem;           
+    right: 1.5rem;          
+    z-index: 1000;  
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+}
+.delete-events-container button {
+    background: none; 
+    border: none;    
+    outline: none;   
+    cursor: pointer;
+    padding: 0.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.25s ease; 
+}
+.delete-events-container button img {
+    width: 40px;
+    display: block;
+}
+.delete-events-container button:hover,
+.delete-events-container button:focus {
+    transform: scale(1.15); 
+}
+.settings-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: max-height 0.4s ease, opacity 0.4s ease, transform 0.4s ease;
+}
+.settings-menu.active {
+    max-height: 300px; 
+    opacity: 1;
+    transform: translateY(0);
+}
+.settings-menu button:hover {
+    transform: scale(1.15);
+}
+
+/* Popup for viewing exams in calendar */
+#exam-popup {
+    position: absolute;
+    background-color: #fff;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: none;
+    z-index: 1000;
+    min-width: 300px;       /* bigger width */
+    max-width: 500px;       /* allows multiple exams nicely */
+    font-family: Arial, sans-serif;
+    color: #333;
+    transition: all 0.2s ease;
+}
+
+#exam-popup h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #5C3E94;
+}
+
+#exam-popup div.exam-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;  /* more spacing between exams */
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+#exam-popup div.exam-item:hover {
+    background-color: #e8e8e8;
+    transform: translateY(-2px);
+}
+
+#exam-popup div.exam-item .left {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+#exam-popup div.exam-item .right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+}
+
+#exam-popup div.exam-item .right button {
+    border: none;
+    background: transparent;
+    color: red;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: bold;
+    transition: transform 0.2s;
+}
+
+#exam-popup div.exam-item .right button:hover {
+    transform: scale(1.2);
+}
+
+#exam-popup hr {
+    margin: 0.75rem 0;
+    border: 0.5px solid #ccc;
+}
+
+/* upcoming exams css*/
+
+.upcoming-exams-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 auto;
+    width: 90%;
+    max-height: 300px;       
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.upcoming-exams-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: transform 0.2s, background-color 0.2s;
+}
+.upcoming-exams-list li:hover {
+    background-color: #e0e0e0;
+    transform: translateY(-2px);
+    cursor: pointer;
+}
+.upcoming-exams-list li button {
+    border: none;
+    background: transparent;
+    color: red;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 1rem;
+}
+.upcoming-exams-list li button:hover {
+    transform: scale(1.2);
+}
+.upcoming-exams-list li span {
+    font-size: 0.95rem;
+}
+.upcoming-exams-list li .right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }

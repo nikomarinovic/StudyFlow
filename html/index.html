@@ -88,7 +88,10 @@
                     <h1>Upcoming Exams</h1>
                     <p id="number-of-exams">0</p>
                 </div>
-                <button class="add-exam" id="add-exam-button" onclick="openExamModal()"> <img src="../images/plus.png" alt="plus icon"> Add Exam</button>
+                <ul id="upcoming-exams-list" class="upcoming-exams-list"></ul> 
+                <button class="add-exam" id="add-exam-button" onclick="openExamModal()"> 
+                    <img src="../images/plus.png" alt="plus icon"> Add Exam
+                </button>
             </div>
         </div>
 
@@ -101,7 +104,7 @@
             <form id="exam-form">
                 <div class="input-group">
                     <label for="exam-name">Exam Name:</label>
-                    <input type="text" id="exam-name" name="exam-name" required>
+                    <input type="text" id="exam-name" name="exam-name" placeholder="Midterm test" required>
                     <span class="input-status">!</span>
                 </div>
 
@@ -113,7 +116,7 @@
 
                 <div class="input-group">
                     <label for="exam-subject">Subject:</label>
-                    <input type="text" id="exam-subject" name="exam-subject" required>
+                    <input type="text" id="exam-subject" name="exam-subject" placeholder="Math" required>
                     <span class="input-status">!</span>
                 </div>
 
@@ -149,6 +152,9 @@
             </div>
         </footer>
 
+        <script src="https://unpkg.com/dexie@latest/dist/dexie.min.js"></script>
+        <script src="../script/db.js"></script>
         <script src="../script/index.js"></script>
+        <script src="../script/calendar.js"></script>
     </body>
 </html>
