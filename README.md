@@ -14,46 +14,49 @@ A **privacy-first weekly study planner** for students. Add exams and project rem
 
 ---
 
-## Features
+## Table of Contents
 
-- **Weekly calendar view** – Displays one week at a time with easy navigation between weeks.  
-- **Add and manage exams and project reminders** – Create, edit, and delete events.  
-- **Dynamic event badges** – Each day shows the number of scheduled events.  
-- **Click to view event details** – See full list of events for any day.  
-- **Study plan generation** – Automatically create daily study schedules leading up to exams or project deadlines.  
-- **Study tracking and scoring** – Track completed study sessions and get a study score.  
-- **Privacy-focused** – All data is stored locally using Dexie.js; no personal data is uploaded.  
-- **Responsive design** – Fully functional on desktop and mobile browsers.  
-- **Optional notifications** – Remind users of upcoming exams or study sessions.  
+- [Features](#features)
+- [Getting Started](#getting-started)
+- [Usage](#usage)
+- [Versions](#versions)
+- [License](#license)
+- [Notes](#notes)
 
 ---
 
-## Technologies Used
+## Features
 
-- **HTML / CSS / JavaScript** – Core front-end for the calendar and UI.  
-- **Dexie.js** – Lightweight wrapper for IndexedDB, used for storing exams and reminders locally.  
-- **Google Fonts** – For styling the header (Story Script).  
+- **Weekly calendar view** – `Displays one week at a time with easy navigation between weeks.`  
+- **Add and manage exams and project reminders** – `Create, edit, and delete events.`  
+- **Dynamic event badges** – `Each day shows the number of scheduled events.`  
+- **Click to view event details** – `See full list of events for any day.`  
+- **Study plan generation** – `Automatically create daily study schedules leading up to exams or project deadlines.`  
+- **Study tracking and scoring** – `Track completed study sessions and get a study score.`  
+- **Privacy-focused** – `All data is stored locally using Dexie.js; no personal data is uploaded.`  
+- **Responsive design** – `Fully functional on desktop and mobile browsers.`  
+- **Optional notifications** – `Remind users of upcoming exams or study sessions.`  
 
 ---
 
 ## Getting Started
 
-### 1. Clone the repository
+#### 1. Clone the repository
 
 ```bash
 git clone https://github.com/Nmarino8/StudyFlow.git
 ```
 
-### 2. Open the project
+#### 2. Open the project
 
 - Open the folder in your preferred code editor (e.g., VS Code).
 
-### 3. Open in browser
+#### 3. Open in browser
 
 -	Simply open index.html (or calendar.html) in a modern browser.
 -	The weekly calendar will display, and you can add events programmatically or through future UI additions.
 
-### 4. Adding events
+#### 4. Adding events
 
 - Events are stored locally using Dexie.js.
 - For testing, some sample events are already included in calendar.js:
@@ -81,15 +84,6 @@ db.exams.add({ name: "Project Reminder", date: "2026-01-07" });
 
 > Initial release: basic UI for StudyFlow including weekly calendar layout, calendar.html, index.html, and stopwatch page. Functionality is limited; mainly interface and structure.
 
-
----
-## Future Enhancements
-
--	Add a form to add/edit events through the UI instead of editing calendar.js.
--	Include study time tracking and scores per day.
--	Export/import events for backup.
--	Improved mobile UI and responsive design.
--	Notifications for upcoming exams/projects.
 
 ---
 
