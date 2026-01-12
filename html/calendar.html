@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
@@ -13,6 +14,7 @@
 
         <title>StudyFlow - Calendar</title>
     </head>
+
     <body>
         <header>
             <div class="logo-header">
@@ -20,48 +22,42 @@
                     <img src="../images/open-book.png" alt="StudyFlow Logo">
                 </div>
                 <h1 class="story-script-regular">StudyFlow</h1>
-                <!-- Navigation Bar -->
+
                 <nav class="navbar">
                     <a href="index.html">Home</a>
                     <a href="calendar.html">Calendar</a>
                     <a href="pricing.html">Pricing</a>
                     <a href="contact.html">Contact</a>
                     <a href="guide.html">Guide</a>
-            </nav>
-                <div class="stars-img">
-                        <img src="../images/stars.png" alt="StudyFlow moto">
-                </div>
+                </nav>
             </div>
         </header>
 
-        <!-- Settings -->
+        <!-- Settings Menu -->
         <div class="delete-events-container">
             <button id="settings-btn" title="Settings">
                 <img src="../images/settings-icon.png" alt="Settings">
             </button>
+
             <div class="settings-menu">
-                <button id="add-event" title="Add Event">
+                <button id="add-event" type="button" title="Add Event">
                     <img src="../images/purple-plus.png" alt="Add Event">
                 </button>
-                <button id="delete-all-events" title="Delete All Events">
+
+                <button id="delete-all-events" type="button" title="Delete All Events">
                     <img src="../images/trash-bin.png" alt="Delete All Events">
                 </button>
             </div>
         </div>
-        
+
         <main class="calendar-page">
             <div class="weekly-calendar">
-
-                <!-- Header -->
                 <div class="calendar-header">
                     <button id="prev-week">&lt;</button>
                     <div id="calendar-title"></div>
                     <button id="next-week">&gt;</button>
                 </div>
-                <!-- Week days -->
-                <div class="week-grid" id="week-grid">
-                    <!-- JS will generate 7 days here -->
-                </div>
+                <div class="week-grid" id="week-grid"></div>
             </div>
         </main>
 
@@ -69,6 +65,7 @@
             <div class="events-view">
                 <h2>Today's Study Plan</h2>
             </div>
+
             <div class="upcoming-exams-view">
                 <div class="header-of-upcoming">
                     <h2>Upcoming Exams:</h2>
@@ -83,14 +80,54 @@
                 <h2>StudyFlow</h2>
                 <p>Your personal study companion.</p>
             </div>
-
             <div class="footer-bottom">
                 <p>© 2026 StudyFlow. All rights reserved.</p>
             </div>
         </footer>
-        
+
+        <!-- Add Exam Modal -->
+        <div id="add-exam-form" class="add-exam-form">
+            <h2>Add New Exam</h2>
+            <form id="exam-form">
+                <div class="input-group">
+                    <label for="exam-name">Exam Name:</label>
+                    <input type="text" id="exam-name" placeholder="Midterm test" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="exam-date">Exam Date:</label>
+                    <input type="date" id="exam-date" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="exam-subject">Subject:</label>
+                    <input type="text" id="exam-subject" placeholder="Math" required>
+                </div>
+
+                <div class="input-group">
+                    <label>Exam Difficulty:</label>
+                    <div id="exam-difficulty" class="difficulty-selector">
+                        <span class="dot" data-value="1"></span>
+                        <span class="dot" data-value="2"></span>
+                        <span class="dot" data-value="3"></span>
+                        <span class="dot" data-value="4"></span>
+                        <span class="dot" data-value="5"></span>
+                    </div>
+                    <input type="hidden" id="exam-difficulty-value" value="0">
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit">
+                        <img src="../images/plus.png" alt="plus"> Add Exam
+                    </button>
+                    <button type="button" onclick="closeExamModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+
         <script src="https://unpkg.com/dexie@latest/dist/dexie.min.js"></script>
         <script src="../script/db.js"></script>
         <script src="../script/calendar.js"></script>
+        <script src="../script/exams.js"></script>
     </body>
 </html>

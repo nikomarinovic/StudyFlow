@@ -151,7 +151,7 @@ const upcomingExamsList = document.getElementById("upcoming-exams-list");
 function formatDateEU(dateStr) {
     const date = new Date(dateStr);
     const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // months are 0-indexed
+    const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
 }
@@ -160,16 +160,12 @@ async function updateUpcomingExams() {
     try {
         const exams = await window.db.exams.toArray();
 
-        // Sort by date ascending
         exams.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-        // Update count
         numberOfExams.textContent = exams.length;
 
-        // Clear list
         upcomingExamsList.innerHTML = "";
 
-        // Show up to 3 exams
         const upcoming = exams.slice(0, 3);
 
         upcoming.forEach(exam => {
@@ -178,11 +174,9 @@ async function updateUpcomingExams() {
             li.style.justifyContent = "space-between";
             li.style.alignItems = "center";
 
-            // Left: name and subject
             const left = document.createElement("span");
             left.textContent = `${exam.name} (${exam.subject})`;
 
-            // Right: date + delete button
             const right = document.createElement("span");
             right.style.display = "flex";
             right.style.alignItems = "center";

@@ -218,3 +218,131 @@ document.addEventListener("click", (e) => {
         settingsMenu.classList.remove("active");
     }
 });
+
+//add exam button
+const addEventBtn = document.getElementById("add-event");
+const modal = document.getElementById("add-exam-form");
+const overlay = document.createElement("div"); 
+overlay.id = "modal-overlay";
+document.body.appendChild(overlay);
+
+const form = document.getElementById("exam-form");
+const hiddenInput = document.getElementById("exam-difficulty-value");
+
+
+function openExamModal() {
+    modal.classList.add("active");
+    overlay.classList.add("active");
+}
+
+function closeExamModal() {
+    modal.classList.remove("active");
+    overlay.classList.remove("active");
+    form.reset();
+    hiddenInput.value = 0;
+    colorDots(0);
+
+
+    form.querySelectorAll(".input-status").forEach(status => {
+        status.textContent = "!";
+        status.style.backgroundColor = "red";
+    });
+}
+
+addEventBtn.addEventListener("click", openExamModal);
+overlay.addEventListener("click", closeExamModal);
+
+// Difficulty selection
+const dots = document.querySelectorAll(".difficulty-selector .dot");
+const defaultColor = "lightgray";
+const colors = ["#4CAF50", "#8BC34A", "#FFEB3B", "#FF9800", "#F44336"];
+
+function colorDots(value) {
+    const color = colors[value - 1] || defaultColor;
+    dots.forEach((dot, i) => dot.style.backgroundColor = i < value ? color : defaultColor);
+    updateDifficultyStatus();
+}
+
+dots.forEach(dot => {
+    const value = parseInt(dot.dataset.value);
+    dot.addEventListener("click", () => {
+        colorDots(value);
+        hiddenInput.value = value;
+    });
+    dot.addEventListener("mouseover", () => colorDots(value));
+    dot.addEventListener("mouseout", () => colorDots(parseInt(hiddenInput.value)));
+});
+
+// Real-time input validation
+const inputs = form.querySelectorAll("input:not([type=hidden])");
+inputs.forEach(input => {
+    const statusIcon = document.createElement("span");
+    statusIcon.classList.add("input-status");
+    statusIcon.textContent = "!";
+    statusIcon.style.backgroundColor = "red";
+    input.parentElement.appendChild(statusIcon);
+
+    input.addEventListener("input", () => {
+        if (input.value.trim() === "") {
+            statusIcon.textContent = "!";
+            statusIcon.style.backgroundColor = "red";
+        } else {
+            statusIcon.textContent = "✔";
+            statusIcon.style.backgroundColor = "green";
+        }
+    });
+});
+
+// Difficulty status
+const difficultyStatus = document.createElement("span");
+difficultyStatus.classList.add("input-status");
+difficultyStatus.textContent = "!";
+difficultyStatus.style.backgroundColor = "red";
+document.querySelector("#exam-difficulty").parentElement.appendChild(difficultyStatus);
+
+function updateDifficultyStatus() {
+    if (parseInt(hiddenInput.value) > 0) {
+        difficultyStatus.textContent = "✔";
+        difficultyStatus.style.backgroundColor = "green";
+    } else {
+        difficultyStatus.textContent = "!";
+        difficultyStatus.style.backgroundColor = "red";
+    }
+}
+
+// Update upcoming exams count
+async function updateUpcomingExams() {
+    try {
+        const exams = await window.db.exams.toArray();
+        numberOfExams.textContent = exams.length;
+    } catch (error) {
+        console.error("Error fetching exams:", error);
+    }
+}
+updateUpcomingExams();
+
+// Add new exam
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("exam-name").value.trim();
+    const date = document.getElementById("exam-date").value;
+    const subject = document.getElementById("exam-subject").value.trim();
+    const difficulty = parseInt(hiddenInput.value) || 0;
+
+    if (!name || !date || !subject || difficulty === 0) {
+        alert("Please fill in all fields and select a difficulty.");
+        return;
+    }
+
+    try {
+        await window.db.exams.add({ name, date, subject, difficulty });
+        closeExamModal();
+        alert("Exam added successfully!");
+        // Refresh the page to show new exam in calendar and list
+        location.reload();
+    } catch (error) {
+        console.error("Error adding exam:", error);
+        alert("Failed to add exam.");
+    }
+});

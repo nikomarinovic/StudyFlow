@@ -77,8 +77,7 @@
     max-width: 1300px;
     margin: 0 auto;  
     gap: 5%;
-    height: 100%;
-    max-height: 350px;
+    height: 350px;
 }
 .events-view {
     border-radius: 2rem;
@@ -286,4 +285,130 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
+}
+
+/* exam form */
+.add-exam-form {
+    position: fixed;               
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95); 
+    background-color: #fff;
+    width: 90%;
+    max-width: 500px;
+    height: auto;               
+    max-height: 90vh;            
+    z-index: 1000;                  
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    gap: 0.5rem;                  
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+
+    h2{
+        font-family: "Story Script", cursive;
+        font-size: 200%;
+        margin-bottom: 1rem;
+    }
+}
+.add-exam-form.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, -50%) scale(1);
+}
+.add-exam-form label {
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: block;
+}
+.add-exam-form input[type="text"],
+.add-exam-form input[type="date"],
+.add-exam-form input[type="number"] {
+    width: 85%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 1rem;
+}
+.add-exam-form input:focus {
+    border: 2px solid #5C3E94;
+}
+.form-buttons {
+    display: flex;
+    gap: 10px;      
+    justify-content: flex-start; 
+    margin-top: 1rem;
+}
+.form-buttons button {
+    display: flex;      
+    align-items: center;
+    gap: 8px;
+    padding: 0.8rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 16px;
+    transition: background-color 0.2s;
+}
+.form-buttons button img {
+    width: 15px;
+    height: auto;
+}
+.add-exam-form button[type="submit"] {
+    background-color: #5C3E94;
+    color: white;
+}
+.add-exam-form button[type="submit"]:hover {
+    background-color: #7755C9;
+}
+.add-exam-form button[type="button"] {
+    background-color: #ccc;
+}
+.add-exam-form button[type="button"]:hover {
+    background-color: #aaa;
+}
+.input-group {
+    position: relative;
+    margin-bottom: 16px;
+}
+.input-status {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    color: white;
+    text-align: center;
+    line-height: 20px;
+    font-weight: bold;
+    font-size: 14px;
+    background-color: red;
+}
+.input-status.valid {
+    background-color: green;
+    content: "✔";
+}
+/*difficulty selector*/
+.difficulty-selector {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1rem;
+}
+.dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: lightgray;
+    cursor: pointer;
+    transition: background-color 0.2s;
 }
