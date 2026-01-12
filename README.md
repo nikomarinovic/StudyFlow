@@ -89,6 +89,9 @@ db.exams.add({ name: "Project Reminder", date: "2026-01-07" });
 #### [v1.2.0] - 11.1.2026.
 > Added exam management, upcoming exams view, calendar UI improvements, settings enhancements, and bug fixes.
 
+#### [v1.3.0] - 12.1.2026.
+> Added functional "Add Exam" button in settings, fixed page refresh bugs, and improved UI updates for upcoming exams across pages.
+
 ---
 
 ## License
@@ -106,7 +109,7 @@ This project is **open-source** for personal and educational use. You are free t
 
 ## Notes
 
-```text
+```
 -	All data is stored locally in the browser. No cloud storage is used for privacy.
 -	Dexie.js is used to simplify IndexedDB interactions and make local storage reliable.
 -	Test events can be removed anytime by clearing the database in calendar.js or browser dev tools.
