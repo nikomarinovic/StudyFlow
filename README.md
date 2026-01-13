@@ -19,7 +19,6 @@ A **privacy-first weekly study planner** for students. Add exams and project rem
 - [Features](#features)
 - [Getting Started](#getting-started)
 - [Usage](#usage)
-- [Versions](#versions)
 - [License](#license)
 - [Notes](#notes)
 
@@ -78,21 +77,6 @@ db.exams.add({ name: "Project Reminder", date: "2026-01-07" });
 
 ---
 
-## Versions
-
-#### [v1.0.0] – 5.1.2026.  
-> Initial release: basic UI for StudyFlow including weekly calendar layout, calendar.html, index.html, and stopwatch page. Functionality is limited; mainly interface and structure.
-
-#### [v1.1.0] – 10.1.2026.  
-> Added Add Exam modal UI with difficulty selector, validation visuals, and modal layout (UI only, no functionality yet).
-
-#### [v1.2.0] - 11.1.2026.
-> Added exam management, upcoming exams view, calendar UI improvements, settings enhancements, and bug fixes.
-
-#### [v1.3.0] - 12.1.2026.
-> Added functional "Add Exam" button in settings, fixed page refresh bugs, and improved UI updates for upcoming exams across pages.
-
----
 
 ## License
 
