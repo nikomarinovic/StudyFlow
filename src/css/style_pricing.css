@@ -1,0 +1,319 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --background: hsl(40, 33%, 98%);
+    --foreground: hsl(20, 20%, 15%);
+    --card: hsl(40, 30%, 99%);
+    --primary: hsl(270, 74%, 32%);
+    --primary-foreground: hsl(40, 33%, 98%);
+    --primary-glow: hsl(270, 85%, 55%);
+    --muted: hsl(40, 15%, 93%);
+    --muted-foreground: hsl(20, 10%, 45%);
+    --border: hsl(40, 20%, 88%);
+    --success: hsl(158, 64%, 45%);
+    --radius: 0.75rem;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--background);
+    color: var(--foreground);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+}
+
+/* Navigation */
+.nav-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    backdrop-filter: blur(12px);
+    background: rgba(255, 253, 250, 0.8);
+    border-bottom: 1px solid rgba(228, 221, 211, 0.5);
+    box-shadow: 0 4px 20px -4px rgba(41, 37, 32, 0.08);
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    height: 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: var(--foreground);
+}
+
+.logo-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.75rem;
+    background: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo-icon .icon {
+    color: var(--primary-foreground);
+}
+
+.logo-text {
+    font-weight: 700;
+    font-size: 1.25rem;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.nav-link {
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    color: var(--foreground);
+    border-radius: var(--radius);
+    transition: background-color 0.2s;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.nav-link:hover {
+    background-color: var(--muted);
+}
+
+/* Pricing Section */
+.pricing-section {
+    padding-top: 8rem;
+    padding-bottom: 5rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+.subtitle {
+    font-size: 1.125rem;
+    color: var(--muted-foreground);
+    max-width: 36rem;
+    margin: 0 auto 4rem;
+}
+
+.pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+    .pricing-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.pricing-card {
+    backdrop-filter: blur(12px);
+    background: rgba(255, 252, 249, 0.8);
+    border: 1px solid rgba(228, 221, 211, 0.5);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px -4px rgba(41, 37, 32, 0.08);
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.6s ease forwards;
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.pricing-card[data-index="0"] {
+    animation-delay: 0s;
+}
+
+.pricing-card[data-index="1"] {
+    animation-delay: 0.1s;
+}
+
+.pricing-card[data-index="2"] {
+    animation-delay: 0.2s;
+}
+
+.pricing-card.highlighted {
+    border: 2px solid var(--primary);
+    transform: scale(1.05);
+    box-shadow: 0 10px 15px -3px rgba(90, 26, 122, 0.2);
+}
+
+.pricing-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(41, 37, 32, 0.1);
+}
+
+.pricing-card.highlighted:hover {
+    transform: scale(1.05) translateY(-4px);
+}
+
+.plan-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.plan-description {
+    color: var(--muted-foreground);
+    margin-bottom: 1.5rem;
+}
+
+.plan-price {
+    margin-bottom: 1.5rem;
+}
+
+.price {
+    font-size: 2.25rem;
+    font-weight: 700;
+}
+
+.period {
+    color: var(--muted-foreground);
+}
+
+.features-list {
+    list-style: none;
+    margin-bottom: 2rem;
+    text-align: left;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.check-icon {
+    color: var(--success);
+    flex-shrink: 0;
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: var(--radius);
+    transition: all 0.2s;
+    cursor: pointer;
+    margin-top: auto;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid rgba(228, 221, 211, 0.8);
+    color: var(--foreground);
+}
+
+.btn-outline:hover {
+    background: var(--muted);
+    border-color: var(--border);
+}
+
+.btn-hero {
+    background: var(--primary);
+    border: none;
+    color: var(--primary-foreground);
+}
+
+.btn-hero:hover {
+    background: hsl(270, 74%, 28%);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 15px -3px rgba(90, 26, 122, 0.2);
+}
+
+.arrow-icon {
+    flex-shrink: 0;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .title {
+        font-size: 2rem;
+    }
+    
+    .pricing-card.highlighted {
+        transform: scale(1);
+    }
+    
+    .nav-links {
+        gap: 0.25rem;
+    }
+    
+    .nav-link {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(246, 242, 236, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(138, 131, 124, 0.2);
+    border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(138, 131, 124, 0.3);
+}

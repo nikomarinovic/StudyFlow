@@ -1,0 +1,47 @@
+{
+  "name": "studyflow",
+  "version": "1.0.0",
+  "description": "A privacy-first weekly study planner for students. Add exams and project reminders, view a dynamic week calendar with event counts, and organize your study schedule — all data is stored locally in your browser using Dexie.js.",
+  "main": "index.tsx",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nmarino8/StudyFlow.git"
+  },
+  "keywords": [
+    "study",
+    "planner",
+    "dexie",
+    "local-storage",
+    "vite",
+    "react",
+    "typescript"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Nmarino8/StudyFlow/issues"
+  },
+  "homepage": "https://github.com/Nmarino8/StudyFlow#readme",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "dexie": "^3.2.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.7",
+    "@types/react-dom": "^18.2.4",
+    "@vitejs/plugin-react": "^4.0.0",
+    "eslint": "^8.52.0",
+    "eslint-plugin-react": "^7.33.2",
+    "typescript": "^5.2.2",
+    "vite": "^7.3.1"
+  }
+}

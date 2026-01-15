@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth - StudyFlow</title>
+    <link rel="stylesheet" href="../css/style_auth.css">
+</head>
+<body>
+    <div class="auth-container">
+        <!-- Left Panel - Branding -->
+        <div class="left-panel">
+            <div class="gradient-bg"></div>
+            <div class="pattern-overlay"></div>
+            
+            <div class="left-content">
+                <a href="/" class="brand-logo">
+                    <div class="brand-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
+                        </svg>
+                    </div>
+                    <span class="brand-text">StudyFlow</span>
+                </a>
+
+                <div class="left-hero">
+                    <h1 class="left-title" id="leftTitle">Start Your Journey</h1>
+                    <p class="left-description" id="leftDescription">
+                        Join thousands of students who've transformed their study habits with personalized AI-powered schedules.
+                    </p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">95%</div>
+                        <div class="stat-label">Pass Rate</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">2M+</div>
+                        <div class="stat-label">Study Hours</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Form -->
+        <div class="right-panel">
+            <div class="form-wrapper">
+                <!-- Mobile Logo -->
+                <a href="/" class="mobile-logo">
+                    <div class="mobile-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
+                        </svg>
+                    </div>
+                    <span class="mobile-text">StudyFlow</span>
+                </a>
+
+                <div class="form-header">
+                    <h2 class="form-title" id="formTitle">Create Account</h2>
+                    <p class="form-subtitle" id="formSubtitle">Fill in your details to get started</p>
+                </div>
+
+                <form id="authForm" class="auth-form">
+                    <!-- Name Field (Sign Up only) -->
+                    <div class="form-group" id="nameGroup">
+                        <label for="name" class="form-label">Full Name</label>
+                        <div class="input-wrapper">
+                            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <input type="text" id="name" class="form-input" placeholder="John Doe">
+                        </div>
+                    </div>
+
+                    <!-- Email Field -->
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email</label>
+                        <div class="input-wrapper">
+                            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+                                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                            </svg>
+                            <input type="email" id="email" class="form-input" placeholder="john@example.com" required>
+                        </div>
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="form-group">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="input-wrapper">
+                            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+                            <button type="button" id="togglePassword" class="password-toggle">
+                                <svg class="eye-icon" id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <svg class="eye-off-icon hidden" id="eyeOffIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
+                                    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
+                                    <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
+                                    <line x1="2" x2="22" y1="2" y2="22"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Forgot Password (Sign In only) -->
+                    <div class="forgot-password hidden" id="forgotPassword">
+                        <button type="button" class="forgot-link">Forgot password?</button>
+                    </div>
+
+                    <button type="submit" class="btn-submit" id="submitBtn">
+                        <span id="submitText">Create Account</span>
+                        <svg class="submit-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </button>
+                </form>
+
+                <div class="form-footer">
+                    <p class="switch-text">
+                        <span id="switchQuestion">Already have an account?</span>
+                        <button type="button" id="switchMode" class="switch-link">Sign In</button>
+                    </p>
+                </div>
+
+                <p class="terms-text" id="termsText">
+                    By creating an account, you agree to our 
+                    <a href="#" class="terms-link">Terms of Service</a>
+                    and 
+                    <a href="#" class="terms-link">Privacy Policy</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bcryptjs/dist/bcrypt.min.js"></script>
+    <script src="../db/db.js"></script>
+    <script src="../js/auth.js"></script>
+</body>
+</html>
