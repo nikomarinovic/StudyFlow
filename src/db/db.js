@@ -1,3 +1,5 @@
+// IMPORTANT!!! this needs to be included in the every page for access to database and bcryptjs
+
 // <script src="https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js"></script>
 // <script src="https://cdn.jsdelivr.net/npm/bcryptjs/dist/bcrypt.min.js"></script>
 

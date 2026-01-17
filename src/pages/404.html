@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 - Page Not Found | StudyFlow</title>
+  <link rel="stylesheet" href="../css/style_404.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="nav-container">
+      <a href="/" class="nav-brand">
+        <div class="nav-logo">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+          </svg>
+        </div>
+        <span class="nav-title">StudyFlow</span>
+      </a>
+      <a href="/" class="nav-link">Home</a>
+    </div>
+  </nav>
+
+  <!-- 404 Content -->
+  <div class="notfound-container">
+    <!-- Floating Background Elements -->
+    <div class="floating-elements">
+      <div class="float-item float-1"></div>
+      <div class="float-item float-2"></div>
+      <div class="float-item float-3"></div>
+      <div class="float-item float-4"></div>
+      <div class="float-item float-5"></div>
+    </div>
+
+    <!-- Main Content Card -->
+    <div class="content-card">
+      <!-- Animated 404 with Book Icon -->
+      <div class="error-visual">
+        <div class="number-container">
+          <span class="digit">4</span>
+          <div class="book-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+            </svg>
+            <div class="book-glow"></div>
+          </div>
+          <span class="digit">4</span>
+        </div>
+      </div>
+
+      <!-- Text Content -->
+      <h1 class="error-title">Page Not Found</h1>
+      <p class="error-description">
+        Oops! Looks like this page took a study break and never came back. 
+        The page you're looking for doesn't exist or has been moved.
+      </p>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="btn-primary" id="backButton">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" x2="5" y1="12" y2="12"/>
+            <polyline points="12 19 5 12 12 5"/>
+          </svg>
+          Go Back
+        </button>
+        <a href="/" class="btn-outline">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          Return Home
+        </a>
+      </div>
+
+      <!-- Helpful Links -->
+      <div class="helpful-links">
+        <p class="links-title">Popular pages:</p>
+        <div class="links-grid">
+          <a href="/" class="quick-link">Home</a>
+          <a href="/pricing" class="quick-link">Pricing</a>
+          <a href="/auth" class="quick-link">Sign In</a>
+          <a href="/contact" class="quick-link">Contact</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/404.js"></script>
+</body>
+</html>

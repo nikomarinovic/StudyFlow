@@ -6,8 +6,18 @@ if (!userEmail) {
     window.location.href = '/auth.html';
 }
 
+// Determine time-of-day greeting
+function getTimeGreeting() {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+}
+
 // Set user name in header
-document.getElementById('userName').textContent = userName || 'there';
+const greetingEl = document.getElementById('userName');
+const greetingText = getTimeGreeting();
+greetingEl.textContent = userName ? `${greetingText}, ${userName}` : `${greetingText}, there`;
 
 // Global state
 let currentUserId = null;

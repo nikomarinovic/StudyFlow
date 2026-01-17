@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Study Calendar - StudyFlow</title>
+  <link rel="stylesheet" href="../css/style_calendar.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-container">
+      <div class="header-left">
+        <a href="/dashboard" class="back-button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          Back
+        </a>
+        <div class="header-info">
+          <h1 class="header-title">Study Calendar</h1>
+          <p class="header-subtitle">Auto-generated study schedule based on exam difficulty</p>
+        </div>
+      </div>
+      <a href="/timer" class="btn-primary">Start Studying</a>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <!-- Week Navigation -->
+    <div class="week-navigation">
+      <button class="nav-btn" id="prevWeek">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Previous Week
+      </button>
+      <h2 class="week-range" id="weekRange">Loading...</h2>
+      <button class="nav-btn" id="nextWeek">
+        Next Week
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Study Schedule Info -->
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-icon success">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <circle cx="12" cy="12" r="6"/>
+            <circle cx="12" cy="12" r="2"/>
+          </svg>
+        </div>
+        <div class="info-content">
+          <div class="info-label">Easy Exams</div>
+          <div class="info-value">5 hours prep</div>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-icon warning">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+        </div>
+        <div class="info-content">
+          <div class="info-label">Medium Exams</div>
+          <div class="info-value">10 hours prep</div>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-icon danger">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+          </svg>
+        </div>
+        <div class="info-content">
+          <div class="info-label">Hard Exams</div>
+          <div class="info-value">15 hours prep</div>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-icon very-danger">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <circle cx="12" cy="12" r="6"/>
+            <circle cx="12" cy="12" r="2"/>
+          </svg>
+        </div>
+        <div class="info-content">
+          <div class="info-label">Very Hard Exams</div>
+          <div class="info-value">20 hours prep</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="calendar-layout">
+      <!-- Week View -->
+      <div class="week-view-card">
+        <div class="week-grid" id="weekGrid">
+          <!-- Days will be inserted here by JS -->
+        </div>
+      </div>
+
+      <!-- Day Details -->
+      <div class="day-details-card">
+        <div class="day-header">
+          <div class="day-title-section">
+            <h3 class="day-name" id="selectedDayName">Monday</h3>
+            <p class="day-date" id="selectedDayDate">January 1, 2026</p>
+          </div>
+          <div class="day-stats">
+            <div class="session-count" id="sessionCount">0</div>
+            <div class="session-label" id="sessionLabel">sessions</div>
+          </div>
+        </div>
+
+        <div class="sessions-list" id="sessionsList">
+          <!-- Sessions will be inserted here by JS -->
+        </div>
+
+        <div class="day-summary" id="daySummary" style="display: none;">
+          <div class="summary-row">
+            <span>Total study time</span>
+            <span class="summary-value" id="totalTime">0m</span>
+          </div>
+          <div class="summary-row">
+            <span>Completed</span>
+            <span class="summary-value" id="completedCount">0 / 0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-item completed">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+          <path d="m9 12 2 2 4-4"/>
+        </svg>
+        <span>Completed</span>
+      </div>
+      <div class="legend-item scheduled">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+        </svg>
+        <span>Scheduled</span>
+      </div>
+      <div class="legend-item exam">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <circle cx="12" cy="12" r="6"/>
+          <circle cx="12" cy="12" r="2"/>
+        </svg>
+        <span>Exam Day</span>
+      </div>
+    </div>
+  </main>
+
+  <script src="../js/calendar.js"></script>
+</body>
+</html>
