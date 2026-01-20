@@ -8,9 +8,9 @@ A **privacy-first weekly study planner** for students. Organize your study sched
 
 **Note:** StudyFlow is still in early development.
 
-- The current version includes the redesigned UI for authentication, dashboard, calendar, and stopwatch pages.  
-- Full functionality like adding events, generating study plans, tracking study sessions, and notifications is **not fully implemented yet**.  
-- Future releases will add complete **Dexie.js integration** and other planned features.
+- We have a **fully functional local version** with Firebase authentication and database, but it is **not yet publicly available**.  
+- The current public version includes the redesigned UI for authentication, dashboard, calendar, and stopwatch pages.  
+- All main features—adding events, generating study plans, tracking study sessions, and notifications—are **already implemented in the local version** and will be available in future public releases.
 
 ---
 
