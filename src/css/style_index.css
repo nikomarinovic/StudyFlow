@@ -619,3 +619,14 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(138, 131, 124, 0.3);
 }
+
+.footer-social {
+  margin-left: 0.3rem;
+  vertical-align: middle;
+  color: var(--muted-foreground);
+  transition: color 0.2s;
+}
+
+.footer-social:hover {
+  color: var(--foreground);
+}
