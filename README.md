@@ -88,7 +88,7 @@ You may use, modify, and contribute to the project, but commercial use, resale, 
 
 **License Text**
 
-`Copyright (c) 2026 Niko Kurcic`
+`Copyright (c) 2026 Niko Marinović`
 
 #### Permission is granted, free of charge, to any person obtaining a copy of this software and associated documentation files to:
   
