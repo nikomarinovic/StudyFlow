@@ -1,8 +1,6 @@
 # StudyFlow
 
-A **privacy-first weekly study planner** for students. Organize your study schedule, add exams and project reminders, view a dynamic weekly calendar with event counts, and track your progress — all data is stored locally or synced with **Firebase** for authentication and persistence.
 
----
 
 ## 🚧 Under Construction
 
