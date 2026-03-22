@@ -11,7 +11,7 @@ const SITE_CONFIG = {
   mobileBreakpoint:  768,
 
   // ── Disable right-click context menu ──
-  disableRightClick: true,
+  disableRightClick: false,
 
   // ── Page paths ──
   pages: {

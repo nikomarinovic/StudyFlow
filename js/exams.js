@@ -12,7 +12,6 @@ let currentFilter      = 'all';
 const DIFF_HOURS  = { easy: 5, medium: 10, hard: 15, 'very-hard': 20 };
 const DIFF_LABELS = { easy: 'Easy', medium: 'Medium', hard: 'Hard', 'very-hard': 'Very Hard' };
 
-// SVG icons per type (inline, 14×14)
 const TYPE_ICONS = {
   exam:     `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><line x1="8" x2="16" y1="7" y2="7"/><line x1="8" x2="14" y1="11" y2="11"/></svg>`,
   project:  `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>`,
@@ -26,21 +25,35 @@ function getDaysLeft(dateStr) {
   return Math.round((new Date(dateStr + 'T12:00:00') - today) / 86400000);
 }
 
-function getStudiedHours(item, sessions) {
+// Total studied hours for a subject:
+// combines timer sessions + calendar block completions for the same subject.
+function getStudiedHours(item, sessions, completions) {
   const sub = (item.subject || '').toLowerCase().trim();
-  return sessions
+
+  const sessionMins = sessions
     .filter(s => (s.subject || '').toLowerCase().trim() === sub)
-    .reduce((sum, s) => sum + (Number(s.duration) || 0) / 60, 0);
+    .reduce((sum, s) => sum + (Number(s.duration) || 0), 0);
+
+  const completionMins = (completions || [])
+    .filter(c => (c.subject || '').toLowerCase().trim() === sub)
+    .reduce((sum, c) => sum + (Number(c.durationMinutes) || 0), 0);
+
+  return (sessionMins + completionMins) / 60;
 }
 
-function getProgressPct(item, sessions) {
+function getProgressPct(item, sessions, completions) {
   if (item.type !== 'exam') return null;
   const req = DIFF_HOURS[item.difficulty] || 10;
-  return Math.min(100, Math.round((getStudiedHours(item, sessions) / req) * 100));
+  return Math.min(100, Math.round((getStudiedHours(item, sessions, completions) / req) * 100));
 }
 
 function getProgressColor(diff) {
-  return { easy:'var(--success)', medium:'var(--warning)', hard:'var(--destructive)', 'very-hard':'hsl(8,75%,48%)' }[diff] || 'var(--primary)';
+  return {
+    easy:        'var(--success)',
+    medium:      'var(--warning)',
+    hard:        'var(--destructive)',
+    'very-hard': 'hsl(8,75%,48%)',
+  }[diff] || 'var(--primary)';
 }
 
 // ── Toast ──────────────────────────────────────────────────────
@@ -54,7 +67,12 @@ function showToast(msg, type = 'success') {
     : '<circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/>';
   t.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${icon}</svg>${msg}`;
   wrap.appendChild(t);
-  setTimeout(() => { t.style.transition='all .3s'; t.style.opacity='0'; t.style.transform='translateY(8px)'; setTimeout(() => t.remove(), 320); }, 3000);
+  setTimeout(() => {
+    t.style.transition = 'all .3s';
+    t.style.opacity    = '0';
+    t.style.transform  = 'translateY(8px)';
+    setTimeout(() => t.remove(), 320);
+  }, 3000);
 }
 
 // ── Type selector ──────────────────────────────────────────────
@@ -70,8 +88,8 @@ function selectType(btn) {
 
   const dateLabel = document.getElementById('dueDateLabel');
   if (dateLabel) dateLabel.textContent =
-    selectedType === 'exam'     ? 'Exam Date *'     :
-    selectedType === 'project'  ? 'Deadline *'      : 'Reminder Date *';
+    selectedType === 'exam'     ? 'Exam Date *'    :
+    selectedType === 'project'  ? 'Deadline *'     : 'Reminder Date *';
 }
 
 // ── Difficulty chip ────────────────────────────────────────────
@@ -144,11 +162,11 @@ function deleteExam(id, name) {
 }
 
 // ── Summary ───────────────────────────────────────────────────
-function updateSummary(items, sessions) {
+function updateSummary(items, sessions, completions) {
   const upcoming  = items.filter(i => getDaysLeft(i.dueDate || i.examDate) >= 0);
   const urgent    = upcoming.filter(i => getDaysLeft(i.dueDate || i.examDate) <= 7);
   const hoursLeft = upcoming.filter(i => i.type === 'exam').reduce((sum, e) => {
-    return sum + Math.max(0, (DIFF_HOURS[e.difficulty] || 10) - getStudiedHours(e, sessions));
+    return sum + Math.max(0, (DIFF_HOURS[e.difficulty] || 10) - getStudiedHours(e, sessions, completions));
   }, 0);
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
   set('sumTotal',    items.length);
@@ -159,14 +177,15 @@ function updateSummary(items, sessions) {
 
 // ── Render cards ──────────────────────────────────────────────
 function renderItems() {
-  const items    = DB.getItems(currentUser.id);
-  const sessions = DB.getSessions(currentUser.id);
-  const grid     = document.getElementById('examsGrid');
+  const items       = DB.getItems(currentUser.id);
+  const sessions    = DB.getSessions(currentUser.id);
+  const completions = DB.getCompletions(currentUser.id);
+  const grid        = document.getElementById('examsGrid');
   if (!grid) return;
 
-  let filtered = [...items].sort((a, b) => {
-    return getDaysLeft(a.dueDate || a.examDate) - getDaysLeft(b.dueDate || b.examDate);
-  });
+  let filtered = [...items].sort((a, b) =>
+    getDaysLeft(a.dueDate || a.examDate) - getDaysLeft(b.dueDate || b.examDate)
+  );
 
   if (currentFilter === 'upcoming') filtered = filtered.filter(i => getDaysLeft(i.dueDate || i.examDate) >= 0);
   if (currentFilter === 'past')     filtered = filtered.filter(i => getDaysLeft(i.dueDate || i.examDate) <  0);
@@ -201,15 +220,15 @@ function renderItems() {
     const isSoon   = !isPast && !isUrgent && daysLeft <= 7;
 
     const daysClass = isPast ? 'past' : isUrgent ? 'urgent' : isSoon ? 'soon' : 'ok';
-    const daysText  = isPast  ? `${Math.abs(daysLeft)}d ago` : isToday ? 'Today!' : `${daysLeft}`;
-    const daysLabel = isPast  ? 'days ago' : isToday ? 'due today' : 'days left';
+    const daysText  = isPast   ? `${Math.abs(daysLeft)}d ago` : isToday ? 'Today!' : `${daysLeft}`;
+    const daysLabel = isPast   ? 'days ago' : isToday ? 'due today' : 'days left';
 
     const dateStr  = new Date(dateKey + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
     const safeName = item.subject.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
     const accentClass = item.type === 'exam' ? (item.difficulty || 'medium') : item.type;
-    const pct         = getProgressPct(item, sessions);
-    const studiedH    = item.type === 'exam' ? getStudiedHours(item, sessions) : 0;
+    const pct         = getProgressPct(item, sessions, completions);
+    const studiedH    = item.type === 'exam' ? getStudiedHours(item, sessions, completions) : 0;
     const requiredH   = DIFF_HOURS[item.difficulty] || 10;
     const typeIcon    = TYPE_ICONS[item.type] || TYPE_ICONS.exam;
     const typeLabel   = TYPE_LABELS[item.type] || 'Item';
@@ -265,9 +284,10 @@ function renderItems() {
 
 // ── Full re-render ────────────────────────────────────────────
 function renderAll() {
-  const items    = DB.getItems(currentUser.id);
-  const sessions = DB.getSessions(currentUser.id);
-  updateSummary(items, sessions);
+  const items       = DB.getItems(currentUser.id);
+  const sessions    = DB.getSessions(currentUser.id);
+  const completions = DB.getCompletions(currentUser.id);
+  updateSummary(items, sessions, completions);
   renderItems();
 }
 
