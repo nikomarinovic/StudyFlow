@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout - StudyFlow</title>
+  <link rel="stylesheet" href="css/style-utils.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand">
+        <div class="nav-logo">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+          </svg>
+        </div>
+        <span class="nav-title">StudyFlow</span>
+      </a>
+      <a href="pricing.html" class="nav-link">← Pricing</a>
+    </div>
+  </nav>
+
+  <!-- Checkout Section -->
+  <section class="checkout-section">
+
+    <!-- Floating background blobs -->
+    <div class="floating-elements">
+      <div class="float-item float-1"></div>
+      <div class="float-item float-2"></div>
+      <div class="float-item float-3"></div>
+    </div>
+
+    <!-- Glass card -->
+    <div class="content-card">
+
+      <!-- Secure badge -->
+      <div class="secure-badge">
+        <div class="secure-badge-dot"></div>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <span class="secure-badge-text">SSL Encrypted · 100% Safe</span>
+      </div>
+
+      <h1 class="checkout-title">Complete your upgrade</h1>
+      <p class="checkout-subtitle">You're upgrading to <strong id="planNameDisplay">Pro</strong></p>
+
+      <!-- Plan summary -->
+      <div class="plan-summary">
+        <div class="plan-header">
+          <span class="plan-label" id="planLabel">Pro Plan</span>
+          <span class="plan-price" id="planPrice">$9/mo</span>
+        </div>
+        <p class="plan-desc" id="planDesc">Advanced tools for serious students</p>
+        <div class="plan-perks">
+          <div class="plan-perk">
+            <div class="plan-perk-check"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+            Instant access to all features
+          </div>
+          <div class="plan-perk">
+            <div class="plan-perk-check"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+            Cancel anytime, no questions asked
+          </div>
+          <div class="plan-perk">
+            <div class="plan-perk-check"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+            30-day money-back guarantee
+          </div>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="form-divider">Payment details</div>
+
+      <!-- Payment form -->
+      <form class="payment-form" id="paymentForm" onsubmit="return false;">
+
+        <!-- Cardholder name -->
+        <div>
+          <label class="form-label" for="cardName">Cardholder name</label>
+          <div class="form-field">
+            <svg class="form-input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <input class="form-input has-icon" id="cardName" type="text" placeholder="Jane Smith" autocomplete="name">
+          </div>
+        </div>
+
+        <!-- Card number -->
+        <div>
+          <label class="form-label" for="cardNumber">Card number</label>
+          <div class="form-field" style="position:relative;">
+            <svg class="form-input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+            <input class="form-input has-icon mono" id="cardNumber" type="text" placeholder="1234 5678 9012 3456" maxlength="19" autocomplete="cc-number" style="padding-right:5.5rem;">
+            <div class="card-brands">
+              <div class="card-brand visa">VISA</div>
+              <div class="card-brand mc">MC</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Expiry + CVC -->
+        <div class="form-row">
+          <div>
+            <label class="form-label" for="expiry">Expiry date</label>
+            <input class="form-input mono" id="expiry" type="text" placeholder="MM / YY" maxlength="7" autocomplete="cc-exp">
+          </div>
+          <div>
+            <label class="form-label" for="cvc">CVC</label>
+            <input class="form-input mono" id="cvc" type="text" placeholder="•••" maxlength="4" autocomplete="cc-csc">
+          </div>
+        </div>
+
+      </form>
+
+      <!-- Error -->
+      <p class="error-message" id="errorMsg"></p>
+
+      <!-- Pay button -->
+      <button class="checkout-submit" id="payBtn" onclick="handlePay()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span id="payBtnTxt">Confirm &amp; Pay <span id="payBtnAmt">$9</span></span>
+      </button>
+
+      <!-- Ghost back -->
+      <a href="pricing.html" class="btn btn-ghost">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" x2="5" y1="12" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Back to pricing
+      </a>
+
+      <div class="checkout-note">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Your payment info is encrypted. StudyFlow never stores card details.
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Success overlay -->
+  <div class="success-overlay" id="successOverlay">
+    <div class="success-card">
+      <div class="success-ring">
+        <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+      </div>
+      <h2 class="success-title">You're all set!</h2>
+      <p class="success-sub">Welcome to <strong>StudyFlow <span id="successPlan">Pro</span></strong>. Your upgrade is active and all features are unlocked.</p>
+      <a href="dashboard.html" class="btn btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        Go to Dashboard
+      </a>
+    </div>
+  </div>
+
+<script src="js/config.js"></script>
+
+  <script>
+    // ── Read plan from URL params ───────────────────────────
+    const params = new URLSearchParams(location.search);
+    const plan    = params.get('plan')    || 'pro';
+    const billing = params.get('billing') || 'monthly';
+    const PLANS = {
+      pro:  { name:'Pro',  label:'Pro Plan',  monthly:'$9/mo',  annual:'$7/mo',  monthlyAmt:'$9',  annualAmt:'$7',  desc:'Advanced tools for serious students' },
+      team: { name:'Team', label:'Team Plan', monthly:'$19/mo', annual:'$15/mo', monthlyAmt:'$19', annualAmt:'$15', desc:'For study groups and classrooms' },
+    };
+    const p = PLANS[plan] || PLANS.pro;
+    const isAnnual = billing === 'annual';
+    document.getElementById('planNameDisplay').textContent = p.name;
+    document.getElementById('planLabel').textContent       = p.label;
+    document.getElementById('planPrice').textContent       = isAnnual ? p.annual  : p.monthly;
+    document.getElementById('planDesc').textContent        = p.desc + (isAnnual ? ' · billed annually' : '');
+    document.getElementById('payBtnAmt').textContent       = isAnnual ? p.annualAmt : p.monthlyAmt;
+    document.getElementById('successPlan').textContent     = p.name;
+
+    // ── Input formatting ────────────────────────────────────
+    document.getElementById('cardNumber').addEventListener('input', function() {
+      let v = this.value.replace(/\D/g,'').slice(0,16);
+      this.value = v.match(/.{1,4}/g)?.join(' ') || v;
+    });
+    document.getElementById('expiry').addEventListener('input', function() {
+      let v = this.value.replace(/\D/g,'');
+      if (v.length >= 2) v = v.slice(0,2) + ' / ' + v.slice(2,4);
+      this.value = v;
+    });
+    document.getElementById('cvc').addEventListener('input', function() {
+      this.value = this.value.replace(/\D/g,'').slice(0,4);
+    });
+
+    // ── Validation ──────────────────────────────────────────
+    function showError(msg) {
+      const el = document.getElementById('errorMsg');
+      el.innerHTML = msg
+        ? `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>${msg}`
+        : '';
+    }
+    function validate() {
+      const name = document.getElementById('cardName').value.trim();
+      const num  = document.getElementById('cardNumber').value.replace(/\s/g,'');
+      const exp  = document.getElementById('expiry').value.replace(/[\s/]/g,'');
+      const cvc  = document.getElementById('cvc').value;
+      if (!name)        { showError('Please enter the cardholder name');        return false; }
+      if (num.length<16){ showError('Please enter a valid 16-digit card number'); return false; }
+      if (exp.length<4) { showError('Please enter a valid expiry date');         return false; }
+      if (cvc.length<3) { showError('CVC must be 3–4 digits');                  return false; }
+      showError(''); return true;
+    }
+
+    // ── Pay handler ─────────────────────────────────────────
+    function handlePay() {
+      if (!validate()) return;
+      const btn = document.getElementById('payBtn');
+      btn.disabled = true;
+      btn.innerHTML = `<div class="spinner"></div><span>Processing…</span>`;
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span id="payBtnTxt">Confirm &amp; Pay <span id="payBtnAmt">${isAnnual ? p.annualAmt : p.monthlyAmt}</span></span>`;
+        document.getElementById('successOverlay').classList.add('show');
+      }, 2000);
+    }
+    document.getElementById('successOverlay').addEventListener('click', function(e) {
+      if (e.target === this) this.classList.remove('show');
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exams - StudyFlow</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body { background:hsl(40,33%,97%); }
+
+    .exams-layout { display:grid; min-height:100vh; }
+    @media(min-width:1100px){ .exams-layout { grid-template-columns:280px 1fr; } }
+
+    /* left nav */
+    .ex-sidenav { background:white; border-right:1px solid var(--border); padding:1.5rem 1rem; display:flex; flex-direction:column; gap:.25rem; }
+    .ex-sidenav-logo { display:flex; align-items:center; gap:.5rem; text-decoration:none; color:var(--foreground); margin-bottom:1.5rem; padding:.25rem; }
+    .ex-sidenav-logo-icon { width:2rem; height:2rem; border-radius:.5rem; background:var(--primary); display:flex; align-items:center; justify-content:center; color:#fff; }
+    .ex-sidenav-logo-text { font-weight:700; font-size:1.1rem; }
+    .ex-nav-link { display:flex; align-items:center; gap:.75rem; padding:.65rem 1rem; border-radius:.65rem; color:var(--muted-foreground); text-decoration:none; font-size:.875rem; font-weight:500; transition:all .2s; border:none; background:none; cursor:pointer; font-family:inherit; width:100%; }
+    .ex-nav-link:hover { background:var(--muted); color:var(--foreground); }
+    .ex-nav-link.active { background:var(--primary); color:#fff; }
+
+    /* main area */
+    .ex-main { padding:2rem; max-width:900px; }
+    @media(max-width:1100px){ .ex-main { padding:1.5rem; } }
+
+    /* page header */
+    .ex-page-header { margin-bottom:2rem; animation:fadeInUp .5s ease both; }
+    .ex-page-eyebrow { font-size:.75rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--primary); margin-bottom:.5rem; }
+    .ex-page-title { font-size:2rem; font-weight:800; margin-bottom:.4rem; }
+    .ex-page-sub { color:var(--muted-foreground); font-size:.9rem; }
+
+    /* summary bar */
+    .ex-summary { display:grid; grid-template-columns:repeat(2,1fr); gap:1rem; margin-bottom:2rem; animation:fadeInUp .5s ease .1s both; }
+    @media(min-width:640px){ .ex-summary { grid-template-columns:repeat(4,1fr); } }
+    .ex-sum-card { background:white; border:1px solid var(--border); border-radius:1rem; padding:1rem; text-align:center; transition:transform .2s; }
+    .ex-sum-card:hover { transform:translateY(-2px); }
+    .ex-sum-val { font-size:1.75rem; font-weight:700; font-family:'DM Mono',monospace; background:linear-gradient(135deg,var(--primary),var(--primary-glow)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .ex-sum-lbl { font-size:.72rem; color:var(--muted-foreground); margin-top:.2rem; font-weight:500; }
+
+    /* add exam panel */
+    .ex-add-panel { background:white; border:1px solid var(--border); border-radius:1.25rem; margin-bottom:2rem; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,.05); animation:fadeInUp .5s ease .15s both; }
+    .ex-add-header { display:flex; align-items:center; justify-content:space-between; padding:1.25rem 1.5rem; cursor:pointer; user-select:none; transition:background .2s; }
+    .ex-add-header:hover { background:hsl(40,15%,97%); }
+    .ex-add-header-left { display:flex; align-items:center; gap:.75rem; }
+    .ex-add-icon { width:2.25rem; height:2.25rem; border-radius:.65rem; background:rgba(132,34,209,.1); color:var(--primary); display:flex; align-items:center; justify-content:center; }
+    .ex-add-title { font-weight:700; font-size:.95rem; }
+    .ex-add-sub { font-size:.78rem; color:var(--muted-foreground); margin-top:.1rem; }
+    .ex-add-chevron { color:var(--muted-foreground); transition:transform .3s; }
+    .ex-add-chevron.open { transform:rotate(180deg); }
+    .ex-add-body { padding:0 1.5rem; max-height:0; overflow:hidden; transition:max-height .4s cubic-bezier(.4,0,.2,1), padding .4s; }
+    .ex-add-body.open { max-height:500px; padding:0 1.5rem 1.5rem; }
+    .ex-form-grid { display:grid; gap:1rem; grid-template-columns:1fr 1fr; }
+    @media(max-width:640px){ .ex-form-grid { grid-template-columns:1fr; } }
+    .ex-form-group { display:flex; flex-direction:column; gap:.4rem; }
+    .ex-form-label { font-size:.78rem; font-weight:600; color:var(--foreground); }
+    .ex-form-input { padding:.7rem 1rem; border:1px solid var(--border); border-radius:.65rem; font-family:inherit; font-size:.875rem; color:var(--foreground); background:var(--background); transition:border-color .2s, box-shadow .2s; }
+    .ex-form-input:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(90,26,122,.1); }
+    .ex-form-actions { display:flex; gap:.75rem; justify-content:flex-end; margin-top:.5rem; }
+    .ex-form-actions .ex-form-grid { grid-column:1/-1; }
+
+    /* difficulty chips */
+    .ex-diff-chips { display:flex; gap:.5rem; flex-wrap:wrap; }
+    .ex-diff-chip { padding:.45rem .9rem; border-radius:999px; font-size:.78rem; font-weight:600; cursor:pointer; border:2px solid transparent; transition:all .2s; }
+    .ex-diff-chip.easy { background:rgba(22,163,74,.1); color:var(--success); border-color:transparent; }
+    .ex-diff-chip.easy.selected { background:var(--success); color:#fff; border-color:var(--success); }
+    .ex-diff-chip.medium { background:rgba(234,179,8,.1); color:var(--warning); }
+    .ex-diff-chip.medium.selected { background:var(--warning); color:#fff; border-color:var(--warning); }
+    .ex-diff-chip.hard { background:rgba(239,68,68,.1); color:var(--destructive); }
+    .ex-diff-chip.hard.selected { background:var(--destructive); color:#fff; border-color:var(--destructive); }
+    .ex-diff-chip.very-hard { background:rgba(239,68,68,.15); color:var(--destructive); font-weight:800; }
+    .ex-diff-chip.very-hard.selected { background:hsl(8,75%,48%); color:#fff; border-color:hsl(8,75%,48%); }
+
+    /* exam cards */
+    .ex-list-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; animation:fadeInUp .5s ease .2s both; }
+    .ex-list-title { font-size:1rem; font-weight:700; }
+    .ex-filter-row { display:flex; gap:.4rem; }
+    .ex-filter-btn { padding:.35rem .75rem; border-radius:999px; font-size:.75rem; font-weight:600; border:1px solid var(--border); background:white; cursor:pointer; transition:all .2s; font-family:inherit; }
+    .ex-filter-btn:hover { background:var(--muted); }
+    .ex-filter-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+
+    .ex-cards { display:flex; flex-direction:column; gap:.875rem; }
+    .ex-card { background:white; border:1px solid var(--border); border-radius:1rem; padding:1.25rem 1.5rem; display:flex; align-items:center; gap:1.25rem; box-shadow:0 1px 6px rgba(0,0,0,.04); transition:all .25s; animation:fadeInUp .4s ease both; }
+    .ex-card:hover { transform:translateY(-2px); box-shadow:0 6px 24px rgba(0,0,0,.09); border-color:hsl(40,20%,82%); }
+    .ex-card-accent { width:4px; align-self:stretch; border-radius:999px; flex-shrink:0; }
+    .ex-card-accent.easy { background:var(--success); }
+    .ex-card-accent.medium { background:var(--warning); }
+    .ex-card-accent.hard { background:var(--destructive); }
+    .ex-card-accent.very-hard { background:hsl(8,75%,48%); }
+    .ex-card-body { flex:1; min-width:0; }
+    .ex-card-top { display:flex; align-items:baseline; gap:.75rem; margin-bottom:.4rem; flex-wrap:wrap; }
+    .ex-card-name { font-weight:700; font-size:1rem; }
+    .ex-card-topic { font-size:.82rem; color:var(--muted-foreground); }
+    .ex-card-meta { display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
+    .ex-badge { font-size:.7rem; font-weight:600; padding:.2rem .55rem; border-radius:999px; }
+    .ex-badge-easy { background:rgba(22,163,74,.1); color:var(--success); }
+    .ex-badge-medium { background:rgba(234,179,8,.1); color:var(--warning); }
+    .ex-badge-hard { background:rgba(239,68,68,.1); color:var(--destructive); }
+    .ex-badge-very-hard { background:rgba(239,68,68,.15); color:var(--destructive); font-weight:800; }
+    .ex-badge-date { background:rgba(132,34,209,.1); color:var(--primary); }
+    .ex-badge-urgent { background:rgba(239,68,68,.1); color:var(--destructive); animation:pulse-badge 1.5s ease-in-out infinite; }
+    @keyframes pulse-badge { 0%,100%{opacity:1} 50%{opacity:.6} }
+    .ex-card-progress { margin-top:.75rem; }
+    .ex-prog-label { display:flex; justify-content:space-between; font-size:.72rem; color:var(--muted-foreground); margin-bottom:.3rem; }
+    .ex-prog-bar { height:.35rem; background:var(--muted); border-radius:999px; overflow:hidden; }
+    .ex-prog-fill { height:100%; border-radius:999px; transition:width .6s cubic-bezier(.4,0,.2,1); }
+    .ex-card-right { display:flex; flex-direction:column; align-items:flex-end; gap:.5rem; flex-shrink:0; }
+    .ex-days-left { font-family:'DM Mono',monospace; font-size:1.1rem; font-weight:600; }
+    .ex-days-left.urgent { color:var(--destructive); }
+    .ex-days-left.soon { color:var(--warning); }
+    .ex-days-left.ok { color:var(--success); }
+    .ex-days-lbl { font-size:.68rem; color:var(--muted-foreground); text-align:right; }
+    .ex-delete-btn { width:2rem; height:2rem; border-radius:.5rem; border:1px solid var(--border); background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--muted-foreground); transition:all .2s; }
+    .ex-delete-btn:hover { background:rgba(239,68,68,.1); color:var(--destructive); border-color:rgba(239,68,68,.3); }
+
+    /* empty state */
+    .ex-empty { text-align:center; padding:4rem 2rem; color:var(--muted-foreground); }
+    .ex-empty-icon { width:5rem; height:5rem; border-radius:1.25rem; background:var(--muted); display:flex; align-items:center; justify-content:center; margin:0 auto 1.25rem; opacity:.4; }
+    .ex-empty-title { font-size:1.1rem; font-weight:700; color:var(--foreground); margin-bottom:.4rem; }
+    .ex-empty-sub { font-size:.875rem; }
+
+    /* toast */
+    .ex-toast-wrap { position:fixed; bottom:1.5rem; right:1.5rem; display:flex; flex-direction:column; gap:.5rem; z-index:99; }
+    .ex-toast { background:var(--foreground); color:white; padding:.8rem 1.25rem; border-radius:.875rem; font-size:.82rem; display:flex; align-items:center; gap:.6rem; animation:toastIn .35s cubic-bezier(.34,1.56,.64,1) both; box-shadow:0 8px 24px rgba(0,0,0,.2); }
+    .ex-toast.success { background:hsl(158,50%,28%); }
+    .ex-toast.error { background:hsl(8,60%,40%); }
+    @keyframes toastIn { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+  </style>
+</head>
+<body>
+<div class="exams-layout">
+
+  <!-- Sidenav -->
+  <nav class="ex-sidenav" style="display:none;" id="exSidenav">
+    <a href="dashboard.html" class="ex-sidenav-logo">
+      <div class="ex-sidenav-logo-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg></div>
+      <span class="ex-sidenav-logo-text">StudyFlow</span>
+    </a>
+    <a href="dashboard.html" class="ex-nav-link"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg><span>Dashboard</span></a>
+    <a href="calendar.html" class="ex-nav-link"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg><span>Calendar</span></a>
+    <a href="timer.html" class="ex-nav-link"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg><span>Study Timer</span></a>
+    <a href="exams.html" class="ex-nav-link active"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg><span>Exams</span></a>
+  </nav>
+
+  <!-- Main -->
+  <main class="ex-main">
+    <!-- Mobile top bar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+      <a href="dashboard.html" style="display:inline-flex;align-items:center;gap:.4rem;font-size:.82rem;color:var(--muted-foreground);text-decoration:none;padding:.5rem .875rem;border:1px solid var(--border);border-radius:.65rem;background:white;transition:all .2s;" onmouseover="this.style.background='var(--muted)'" onmouseout="this.style.background='white'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Dashboard
+      </a>
+      <a href="timer.html" class="btn-primary" style="font-size:.82rem;padding:.5rem 1rem;text-decoration:none;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>
+        Start Timer
+      </a>
+    </div>
+
+    <!-- Page header -->
+    <div class="ex-page-header">
+      <div class="ex-page-eyebrow">Study Planning</div>
+      <h1 class="ex-page-title">My Exams</h1>
+      <p class="ex-page-sub">Track your upcoming exams and study targets. The calendar auto-generates your study schedule.</p>
+    </div>
+
+    <!-- Summary -->
+    <div class="ex-summary">
+      <div class="ex-sum-card"><div class="ex-sum-val" id="sumTotal">0</div><div class="ex-sum-lbl">Total Exams</div></div>
+      <div class="ex-sum-card"><div class="ex-sum-val" id="sumUpcoming">0</div><div class="ex-sum-lbl">Upcoming</div></div>
+      <div class="ex-sum-card"><div class="ex-sum-val" id="sumUrgent">0</div><div class="ex-sum-lbl">This Week</div></div>
+      <div class="ex-sum-card"><div class="ex-sum-val" id="sumHours">0h</div><div class="ex-sum-lbl">Prep Hours Left</div></div>
+    </div>
+
+    <!-- Add exam panel -->
+    <div class="ex-add-panel">
+      <div class="ex-add-header" onclick="toggleAddPanel()">
+        <div class="ex-add-header-left">
+          <div class="ex-add-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg></div>
+          <div><div class="ex-add-title">Add New Exam</div><div class="ex-add-sub">Fill in the details and we'll build your study schedule automatically</div></div>
+        </div>
+        <svg class="ex-add-chevron" id="addChevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="ex-add-body" id="addBody">
+        <form id="examForm" onsubmit="submitExam(event)">
+          <div class="ex-form-grid">
+            <div class="ex-form-group">
+              <label class="ex-form-label">Subject *</label>
+              <input type="text" id="examSubject" class="ex-form-input" placeholder="e.g. Mathematics" required>
+            </div>
+            <div class="ex-form-group">
+              <label class="ex-form-label">Topic / Description *</label>
+              <input type="text" id="examTopic" class="ex-form-input" placeholder="e.g. Calculus – Chapter 3" required>
+            </div>
+            <div class="ex-form-group">
+              <label class="ex-form-label">Exam Date *</label>
+              <input type="date" id="examDate" class="ex-form-input" required>
+            </div>
+            <div class="ex-form-group">
+              <label class="ex-form-label">Difficulty</label>
+              <div class="ex-diff-chips">
+                <button type="button" class="ex-diff-chip easy selected" data-val="easy" onclick="selectDiff(this)">Easy</button>
+                <button type="button" class="ex-diff-chip medium" data-val="medium" onclick="selectDiff(this)">Medium</button>
+                <button type="button" class="ex-diff-chip hard" data-val="hard" onclick="selectDiff(this)">Hard</button>
+                <button type="button" class="ex-diff-chip very-hard" data-val="very-hard" onclick="selectDiff(this)">Very Hard</button>
+              </div>
+            </div>
+          </div>
+          <div class="ex-form-actions" style="margin-top:1.25rem;">
+            <button type="button" class="btn-outline" onclick="toggleAddPanel()">Cancel</button>
+            <button type="submit" class="btn-primary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+              Save Exam
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- List -->
+    <div class="ex-list-header">
+      <div class="ex-list-title" id="listTitle">All Exams</div>
+      <div class="ex-filter-row">
+        <button class="ex-filter-btn active" data-filter="all" onclick="setFilter(this)">All</button>
+        <button class="ex-filter-btn" data-filter="upcoming" onclick="setFilter(this)">Upcoming</button>
+        <button class="ex-filter-btn" data-filter="past" onclick="setFilter(this)">Past</button>
+      </div>
+    </div>
+    <div class="ex-cards" id="examsGrid"></div>
+  </main>
+</div>
+
+<!-- Toast container -->
+<div class="ex-toast-wrap" id="toastWrap"></div>
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/exams.js"></script>
+<script>
+  // Show sidenav on wide screens
+  const mq = window.matchMedia('(min-width:1100px)');
+  function handleMq(e){ document.getElementById('exSidenav').style.display = e.matches ? 'flex' : 'none'; }
+  mq.addEventListener('change', handleMq); handleMq(mq);
+</script>
+</body>
+</html>

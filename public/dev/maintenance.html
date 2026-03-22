@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudyFlow — Under Maintenance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & root ── */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg:      hsl(40,33%,97%);
+  --surface: #ffffff;
+  --border:  hsl(40,20%,88%);
+  --border2: hsl(40,20%,80%);
+  --fg:      hsl(20,20%,15%);
+  --fg2:     hsl(20,10%,45%);
+  --fg3:     hsl(20,8%,65%);
+  --primary: hsl(270,74%,32%);
+  --primary-mid: hsl(270,78%,45%);
+  --primary-lit: hsl(270,85%,62%);
+  --teal:    hsl(175,60%,45%);
+  --amber:   hsl(38,92%,50%);
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* ── Ambient background ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 700px 500px at 80% -5%,  rgba(124,58,237,.07) 0%, transparent 65%),
+    radial-gradient(ellipse 500px 400px at -5%  95%,  rgba(45,212,191,.05) 0%, transparent 65%),
+    radial-gradient(ellipse 400px 300px at 50%  110%, rgba(251,191,36,.04) 0%, transparent 65%);
+}
+
+/* Floating orbs */
+.orb {
+  position: fixed; border-radius: 50%; filter: blur(80px); pointer-events: none;
+  animation: orb-float 20s ease-in-out infinite alternate;
+}
+.orb-1 { width:500px; height:500px; top:-150px; right:-100px; background:rgba(124,58,237,.08); animation-duration:24s; }
+.orb-2 { width:350px; height:350px; bottom:-80px; left:-80px;  background:rgba(45,212,191,.06); animation-duration:19s; animation-delay:-8s; }
+.orb-3 { width:250px; height:250px; top:40%; left:35%;         background:rgba(251,191,36,.05); animation-duration:22s; animation-delay:-4s; }
+@keyframes orb-float {
+  from { transform:translate(0,0) scale(1); }
+  to   { transform:translate(30px,-30px) scale(1.08); }
+}
+
+/* ── Layout ── */
+.page {
+  position: relative; z-index: 1;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 2rem;
+}
+
+/* ── Card ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 2rem;
+  padding: 3.5rem 3rem;
+  max-width: 520px; width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.04);
+  position: relative; overflow: hidden;
+  animation: card-in .7s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes card-in {
+  from { opacity:0; transform:translateY(32px) scale(.97); }
+  to   { opacity:1; transform:translateY(0)    scale(1); }
+}
+
+/* Subtle top glow inside card */
+.card::before {
+  content: '';
+  position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+  width: 260px; height: 200px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(124,58,237,.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ── Icon ring ── */
+.icon-ring {
+  width: 88px; height: 88px; border-radius: 50%; margin: 0 auto 1.75rem;
+  background: linear-gradient(135deg, rgba(124,58,237,.1), rgba(45,212,191,.08));
+  border: 1.5px solid rgba(124,58,237,.2);
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  animation: ring-in .5s cubic-bezier(.34,1.56,.64,1) .2s both;
+}
+@keyframes ring-in {
+  from { transform:scale(0); opacity:0; }
+  to   { transform:scale(1); opacity:1; }
+}
+
+/* Rotating dashed ring */
+.icon-ring::before {
+  content: '';
+  position: absolute; inset: -10px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(124,58,237,.2);
+  animation: ring-spin 12s linear infinite;
+}
+@keyframes ring-spin { to { transform: rotate(360deg); } }
+
+/* Pulse on icon */
+.icon-ring::after {
+  content: '';
+  position: absolute; inset: -4px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(124,58,237,.15);
+  animation: ring-pulse 2.4s ease-in-out infinite;
+}
+@keyframes ring-pulse {
+  0%,100% { transform:scale(1);   opacity:.6; }
+  50%     { transform:scale(1.08); opacity:1;  }
+}
+
+.icon-ring svg {
+  color: var(--primary);
+  animation: icon-breathe 3s ease-in-out infinite;
+}
+@keyframes icon-breathe {
+  0%,100% { transform:scale(1); }
+  50%     { transform:scale(1.1); }
+}
+
+/* ── Gear row ── */
+.gears {
+  display: flex; align-items: center; justify-content: center; gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  animation: fade-up .5s ease .35s both;
+}
+.gear { color: var(--primary); opacity: .35; }
+.gear-cw  { animation: gear-spin-cw  5s linear infinite; }
+.gear-ccw { animation: gear-spin-ccw 4s linear infinite; }
+@keyframes gear-spin-cw  { to { transform: rotate(360deg);  } }
+@keyframes gear-spin-ccw { to { transform: rotate(-360deg); } }
+
+/* ── Text ── */
+.eyebrow {
+  font-size: .68rem; font-weight: 700; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--primary);
+  margin-bottom: .75rem;
+  animation: fade-up .5s ease .4s both;
+}
+.title {
+  font-size: 2rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.15;
+  margin-bottom: .75rem;
+  animation: fade-up .5s ease .45s both;
+}
+.subtitle {
+  font-size: .9rem; color: var(--fg2); line-height: 1.7;
+  max-width: 380px; margin: 0 auto 2rem;
+  animation: fade-up .5s ease .5s both;
+}
+
+/* ── Progress bar ── */
+.progress-wrap {
+  margin-bottom: 2rem;
+  animation: fade-up .5s ease .55s both;
+}
+.progress-label {
+  display: flex; justify-content: space-between;
+  font-size: .72rem; font-weight: 600; color: var(--fg3);
+  margin-bottom: .5rem;
+}
+.progress-label span:last-child { color: var(--primary); }
+.progress-track {
+  height: .5rem; background: hsl(40,20%,90%);
+  border-radius: 999px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, var(--primary), var(--primary-lit));
+  width: 0;
+  animation: fill-progress 1.8s cubic-bezier(.4,0,.2,1) .8s forwards;
+  position: relative; overflow: hidden;
+}
+.progress-fill::after {
+  content: '';
+  position: absolute; top:0; left:-60%; width:50%; height:100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent);
+  animation: shimmer 2.2s ease-in-out 2.8s infinite;
+}
+@keyframes fill-progress { to { width: 72%; } }
+@keyframes shimmer { 0%{left:-60%} 100%{left:160%} }
+
+/* ── Status pills ── */
+.status-pills {
+  display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap;
+  margin-bottom: 2rem;
+  animation: fade-up .5s ease .6s both;
+}
+.pill {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .35rem .85rem; border-radius: 999px;
+  font-size: .72rem; font-weight: 600;
+  border: 1px solid;
+}
+.pill-done   { background:rgba(52,211,153,.08); border-color:rgba(52,211,153,.25); color:hsl(158,55%,35%); }
+.pill-active { background:rgba(124,58,237,.08); border-color:rgba(124,58,237,.25); color:var(--primary); }
+.pill-wait   { background:rgba(251,191,36,.08); border-color:rgba(251,191,36,.35); color:hsl(38,75%,38%); }
+.pill-dot    { width:.45rem; height:.45rem; border-radius:50%; }
+.pill-done   .pill-dot { background:hsl(158,55%,42%); }
+.pill-active .pill-dot { background:var(--primary-lit); animation:dot-blink 1.2s ease-in-out infinite; }
+.pill-wait   .pill-dot { background:var(--amber); }
+@keyframes dot-blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── Back home link ── */
+.back-home {
+  display: inline-flex; align-items: center; gap: .45rem;
+  font-size: .82rem; font-weight: 600; color: var(--fg3);
+  text-decoration: none; padding: .6rem 1.25rem;
+  border: 1px solid var(--border); border-radius: .75rem;
+  background: var(--bg); transition: all .2s;
+  animation: fade-up .5s ease .65s both;
+}
+.back-home:hover { color: var(--fg); border-color: var(--border2); background:hsl(40,20%,93%); transform:translateY(-1px); }
+
+/* ── Footer ── */
+.footer-note {
+  margin-top: 2rem;
+  font-size: .72rem; color: var(--fg3);
+  display: flex; align-items: center; gap: .4rem;
+  animation: fade-up .5s ease .7s both;
+}
+.footer-note a { color: var(--primary); text-decoration: none; font-weight: 600; }
+.footer-note a:hover { text-decoration: underline; }
+
+/* ── Logo ── */
+.logo {
+  display: flex; align-items: center; gap: .6rem;
+  text-decoration: none; color: var(--fg);
+  margin-bottom: 2.5rem;
+  animation: fade-up .5s ease .1s both;
+}
+.logo-mark {
+  width: 2rem; height: 2rem; border-radius: .5rem;
+  background: var(--primary);
+  display: flex; align-items: center; justify-content: center; color: #fff;
+  box-shadow: 0 4px 12px rgba(90,26,122,.2);
+}
+.logo-text { font-size: 1.05rem; font-weight: 800; letter-spacing: -.02em; }
+
+/* Separator */
+.sep {
+  width: 2.5rem; height: 2px; border-radius: 999px;
+  background: linear-gradient(90deg, var(--primary), var(--teal));
+  margin: 1.25rem auto;
+  animation: fade-up .5s ease .42s both;
+}
+
+/* ── Utility ── */
+@keyframes fade-up {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── Scrolling bottom ticker ── */
+.ticker-wrap {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: hsl(270,74%,32%);
+  height: 2.25rem; overflow: hidden; z-index: 10;
+  animation: ticker-in .5s ease .9s both;
+}
+.ticker-wrap::before,
+.ticker-wrap::after {
+  content:''; position:absolute; top:0; bottom:0; width:3rem; z-index:1; pointer-events:none;
+}
+.ticker-wrap::before { left:0;  background:linear-gradient(to right, hsl(270,74%,32%), transparent); }
+.ticker-wrap::after  { right:0; background:linear-gradient(to left,  hsl(270,74%,32%), transparent); }
+@keyframes ticker-in { from{opacity:0;transform:translateY(100%)} to{opacity:1;transform:translateY(0)} }
+
+.ticker-track {
+  display: flex; align-items: center;
+  white-space: nowrap; width: max-content;
+  animation: ticker-scroll 30s linear infinite;
+  height: 100%;
+}
+.ticker-item {
+  display: inline-flex; align-items: center; gap: .5rem;
+  font-size: .72rem; font-weight: 600; color: rgba(255,255,255,.8);
+  padding: 0 2rem; letter-spacing: .04em; text-transform: uppercase;
+}
+.ticker-item svg { opacity: .7; }
+.ticker-sep { display:inline-block; width:.3rem; height:.3rem; border-radius:50%; background:rgba(255,255,255,.35); margin:0 .25rem; }
+@keyframes ticker-scroll {
+  from { transform:translateX(0); }
+  to   { transform:translateX(-50%); }
+}
+</style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<div class="page">
+  <div class="card">
+
+    <!-- Logo -->
+    <a href="/index.html" class="logo">
+      <div class="logo-mark">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+      </div>
+      <span class="logo-text">StudyFlow</span>
+    </a>
+
+    <!-- Icon ring -->
+    <div class="icon-ring">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+    </div>
+
+    <!-- Rotating gears -->
+    <div class="gears">
+      <svg class="gear gear-ccw" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--fg3);opacity:.25"><circle cx="12" cy="12" r="2"/></svg>
+      <svg class="gear gear-cw" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--fg3);opacity:.25"><circle cx="12" cy="12" r="2"/></svg>
+      <svg class="gear gear-ccw" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+    </div>
+
+    <div class="eyebrow">Scheduled Maintenance</div>
+    <h1 class="title">We're tuning<br>things up</h1>
+    <div class="sep"></div>
+    <p class="subtitle">StudyFlow is undergoing planned maintenance to improve performance and deliver new features. We'll be back shortly — your data is safe.</p>
+
+    <!-- Progress -->
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span>Maintenance progress</span>
+        <span id="progressPct">72%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill"></div>
+      </div>
+    </div>
+
+    <!-- Status pills -->
+    <div class="status-pills">
+      <span class="pill pill-done">
+        <span class="pill-dot"></span>Database backup
+      </span>
+      <span class="pill pill-active">
+        <span class="pill-dot"></span>Deploying updates
+      </span>
+      <span class="pill pill-wait">
+        <span class="pill-dot"></span>Final checks
+      </span>
+    </div>
+
+    <!-- Back link -->
+    <a href="/index.html" class="back-home">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Try going back home
+    </a>
+
+    <!-- Footer note -->
+    <div class="footer-note">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Expected downtime: under 30 minutes
+    </div>
+
+  </div>
+</div>
+
+<!-- Scrolling bottom ticker -->
+<div class="ticker-wrap">
+  <div class="ticker-track" id="tickerTrack"></div>
+</div>
+
+<script>
+(function() {
+  const icon = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>`;
+  const dot = `<span class="ticker-sep"></span>`;
+  const msgs = [
+    `${icon} StudyFlow Maintenance Mode`,
+    `${icon} Your data is safe &amp; secure`,
+    `${icon} We'll be back shortly`,
+    `${icon} Thank you for your patience`,
+    `${icon} StudyFlow Maintenance Mode`,
+    `${icon} Your data is safe &amp; secure`,
+    `${icon} We'll be back shortly`,
+    `${icon} Thank you for your patience`,
+  ];
+  const html = msgs.map(m => `<span class="ticker-item">${m}</span>${dot}`).join('');
+  const t = document.getElementById('tickerTrack');
+  t.innerHTML = html + html;
+})();
+</script>
+</body>
+</html>

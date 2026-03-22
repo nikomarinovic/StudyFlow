@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - StudyFlow</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body { background: hsl(40,33%,97%); }
+
+    .s-layout { display:grid; min-height:100vh; }
+    @media(min-width:960px){ .s-layout { grid-template-columns:260px 1fr; } }
+
+    /* ── Left sidebar ───────────────────────────────────── */
+    .s-sidebar { background:white; border-right:1px solid var(--border); padding:1.5rem 1rem; display:flex; flex-direction:column; gap:.2rem; min-height:100vh; }
+    .s-logo { display:flex; align-items:center; gap:.6rem; text-decoration:none; color:var(--foreground); margin-bottom:1.5rem; padding:.25rem; }
+    .s-logo-icon { width:2rem; height:2rem; border-radius:.5rem; background:var(--primary); display:flex; align-items:center; justify-content:center; color:#fff; }
+    .s-logo-text { font-weight:700; font-size:1.1rem; }
+    .s-nav-link { display:flex; align-items:center; gap:.7rem; padding:.65rem 1rem; border-radius:.65rem; color:var(--muted-foreground); text-decoration:none; font-size:.875rem; font-weight:500; transition:all .2s; }
+    .s-nav-link:hover { background:var(--muted); color:var(--foreground); }
+    .s-nav-link.active { background:var(--primary); color:#fff; }
+    .s-sidebar-bottom { margin-top:auto; padding-top:1rem; border-top:1px solid var(--border); }
+
+    /* ── Main content ───────────────────────────────────── */
+    .s-main { padding:2rem; max-width:720px; }
+    @media(max-width:960px){ .s-main { padding:1.25rem; } }
+
+    .s-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:2rem; }
+    .s-back { display:inline-flex; align-items:center; gap:.4rem; font-size:.82rem; color:var(--muted-foreground); text-decoration:none; padding:.5rem .875rem; border:1px solid var(--border); border-radius:.65rem; background:white; transition:all .2s; }
+    .s-back:hover { background:var(--muted); color:var(--foreground); }
+
+    /* ── Page header ─────────────────────────────────────── */
+    .s-header { margin-bottom:2rem; animation:fadeInUp .5s ease both; }
+    .s-eyebrow { font-size:.7rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--primary); margin-bottom:.5rem; }
+    .s-title { font-size:2rem; font-weight:800; margin-bottom:.35rem; }
+    .s-subtitle { font-size:.875rem; color:var(--muted-foreground); }
+
+    /* ── Sync notice banner ──────────────────────────────── */
+    .s-sync-banner {
+      display:flex; align-items:flex-start; gap:.875rem;
+      background:hsl(199,89%,97%); border:1px solid hsl(199,89%,82%);
+      border-radius:1rem; padding:1rem 1.25rem; margin-bottom:1.25rem;
+      animation:fadeInUp .5s ease .04s both;
+    }
+    .s-sync-icon {
+      width:2rem; height:2rem; border-radius:.5rem; flex-shrink:0;
+      background:hsl(199,89%,90%); color:hsl(199,89%,38%);
+      display:flex; align-items:center; justify-content:center; margin-top:.05rem;
+    }
+    .s-sync-title { font-size:.82rem; font-weight:700; color:hsl(199,89%,28%); margin-bottom:.2rem; }
+    .s-sync-sub { font-size:.77rem; color:hsl(199,60%,40%); line-height:1.55; }
+    .s-sync-badge {
+      margin-left:auto; flex-shrink:0; align-self:center;
+      font-size:.65rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+      padding:.2rem .55rem; border-radius:999px;
+      background:hsl(199,89%,88%); color:hsl(199,89%,28%);
+    }
+
+    /* ── Profile card ─────────────────────────────────────── */
+    .s-profile { background:white; border:1px solid var(--border); border-radius:1.25rem; padding:1.75rem; margin-bottom:1.25rem; display:flex; align-items:center; gap:1.5rem; animation:fadeInUp .5s ease .08s both; box-shadow:0 2px 12px rgba(0,0,0,.04); position:relative; overflow:hidden; }
+    .s-profile::before { content:''; position:absolute; top:-40px; right:-40px; width:180px; height:180px; border-radius:50%; background:radial-gradient(circle,rgba(132,34,209,.06) 0%,transparent 70%); pointer-events:none; }
+    .s-avatar { width:4.25rem; height:4.25rem; border-radius:1rem; background:linear-gradient(135deg,var(--primary),var(--primary-glow)); display:flex; align-items:center; justify-content:center; font-size:1.75rem; font-weight:800; color:#fff; flex-shrink:0; }
+    .s-profile-info { flex:1; min-width:0; }
+    .s-profile-name { font-size:1.2rem; font-weight:700; margin-bottom:.15rem; }
+    .s-profile-email { font-size:.82rem; color:var(--muted-foreground); }
+    .s-profile-badge { margin-top:.55rem; display:inline-flex; align-items:center; gap:.35rem; font-size:.72rem; font-weight:600; padding:.25rem .65rem; border-radius:999px; background:rgba(22,163,74,.1); color:var(--success); }
+    .s-profile-badge::before { content:''; width:.45rem; height:.45rem; border-radius:50%; background:currentColor; }
+
+    /* ── Stats row ─────────────────────────────────────────── */
+    .s-stats { display:grid; grid-template-columns:repeat(2,1fr); gap:.875rem; margin-bottom:1.25rem; animation:fadeInUp .5s ease .14s both; }
+    @media(min-width:640px){ .s-stats { grid-template-columns:repeat(4,1fr); } }
+    .s-stat { background:white; border:1px solid var(--border); border-radius:1rem; padding:1rem; box-shadow:0 1px 4px rgba(0,0,0,.04); transition:transform .2s, box-shadow .2s; }
+    .s-stat:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(0,0,0,.08); }
+    .s-stat-icon { width:1.9rem; height:1.9rem; border-radius:.5rem; background:rgba(132,34,209,.08); display:flex; align-items:center; justify-content:center; color:var(--primary); margin-bottom:.65rem; }
+    .s-stat-val { font-family:'DM Mono',monospace; font-size:1.4rem; font-weight:500; color:var(--foreground); margin-bottom:.15rem; }
+    .s-stat-lbl { font-size:.7rem; color:var(--muted-foreground); font-weight:500; }
+
+    /* ── Sections ─────────────────────────────────────────── */
+    .s-section { background:white; border:1px solid var(--border); border-radius:1.25rem; margin-bottom:1rem; overflow:hidden; box-shadow:0 1px 6px rgba(0,0,0,.04); animation:fadeInUp .5s ease both; }
+    .s-section:nth-child(1){ animation-delay:.18s } .s-section:nth-child(2){ animation-delay:.22s } .s-section:nth-child(3){ animation-delay:.26s }
+    .s-section-header { padding:1.125rem 1.5rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:.75rem; }
+    .s-section-icon { width:1.9rem; height:1.9rem; border-radius:.5rem; display:flex; align-items:center; justify-content:center; }
+    .s-section-icon.purple { background:rgba(132,34,209,.08); color:var(--primary); }
+    .s-section-icon.blue { background:rgba(14,165,233,.08); color:hsl(199,89%,45%); }
+    .s-section-icon.red { background:rgba(239,68,68,.08); color:var(--destructive); }
+    .s-section-title { font-size:.9rem; font-weight:700; }
+    .s-section-sub { font-size:.74rem; color:var(--muted-foreground); margin-top:.1rem; }
+    .s-row { display:flex; align-items:center; justify-content:space-between; padding:1rem 1.5rem; border-bottom:1px solid hsl(40,20%,94%); transition:background .15s; }
+    .s-row:last-child { border-bottom:none; }
+    .s-row:hover { background:hsl(40,20%,98%); }
+    .s-row-left { display:flex; align-items:center; gap:.75rem; }
+    .s-row-dot { width:.35rem; height:.35rem; border-radius:50%; background:hsl(40,20%,80%); flex-shrink:0; }
+    .s-row-label { font-size:.875rem; font-weight:500; }
+    .s-row-sub { font-size:.74rem; color:var(--muted-foreground); margin-top:.1rem; }
+    .s-row-val { font-size:.82rem; color:var(--muted-foreground); font-family:'DM Mono',monospace; }
+
+    /* ── Buttons ─────────────────────────────────────────── */
+    .s-btn { padding:.5rem 1rem; border-radius:.65rem; font-family:inherit; font-size:.8rem; font-weight:600; cursor:pointer; transition:all .2s; border:none; }
+    .s-btn-danger { background:rgba(239,68,68,.08); color:var(--destructive); border:1px solid rgba(239,68,68,.2); }
+    .s-btn-danger:hover { background:rgba(239,68,68,.15); }
+    .s-btn-ghost { background:var(--muted); color:var(--foreground); border:1px solid var(--border); }
+    .s-btn-ghost:hover { background:hsl(40,20%,88%); }
+
+    /* ── Danger zone ──────────────────────────────────────── */
+    .s-danger { border-color:rgba(239,68,68,.18); }
+    .s-danger .s-section-header { border-bottom-color:rgba(239,68,68,.12); background:rgba(239,68,68,.02); }
+    .s-danger .s-row-dot { background:rgba(239,68,68,.3); }
+
+    /* ── Confirm dialog ───────────────────────────────────── */
+    .s-dialog-overlay { position:fixed; inset:0; background:rgba(255,253,250,.8); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; z-index:100; opacity:0; pointer-events:none; transition:opacity .25s; }
+    .s-dialog-overlay.show { opacity:1; pointer-events:all; }
+    .s-dialog { background:white; border:1px solid var(--border); border-radius:1.25rem; padding:2rem; max-width:380px; width:90%; box-shadow:0 24px 60px rgba(0,0,0,.12); transform:scale(.92); transition:transform .3s cubic-bezier(.34,1.56,.64,1); }
+    .s-dialog-overlay.show .s-dialog { transform:scale(1); }
+    .s-dialog-emoji { font-size:2.5rem; margin-bottom:.75rem; }
+    .s-dialog-title { font-size:1.15rem; font-weight:800; margin-bottom:.4rem; }
+    .s-dialog-sub { font-size:.875rem; color:var(--muted-foreground); margin-bottom:1.5rem; line-height:1.6; }
+    .s-dialog-actions { display:flex; gap:.75rem; }
+
+    /* ── Toast ───────────────────────────────────────────── */
+    .s-toasts { position:fixed; bottom:1.5rem; right:1.5rem; display:flex; flex-direction:column; gap:.5rem; z-index:99; }
+    .s-toast { display:flex; align-items:center; gap:.6rem; padding:.8rem 1.2rem; border-radius:.875rem; font-size:.8rem; background:var(--foreground); color:white; box-shadow:0 8px 24px rgba(0,0,0,.15); animation:toastIn .35s cubic-bezier(.34,1.56,.64,1) both; }
+    .s-toast.success { background:hsl(158,50%,28%); }
+    .s-toast.error { background:hsl(8,60%,40%); }
+    @keyframes toastIn { from{transform:translateY(16px);opacity:0} to{transform:translateY(0);opacity:1} }
+    @keyframes fadeInUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  </style>
+</head>
+<body>
+<div class="s-layout">
+
+  <!-- Sidebar (desktop only) -->
+  <nav class="s-sidebar" id="sSidebar" style="display:none;">
+    <a href="dashboard.html" class="s-logo">
+      <div class="s-logo-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg></div>
+      <span class="s-logo-text">StudyFlow</span>
+    </a>
+    <a href="dashboard.html" class="s-nav-link"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>Dashboard</a>
+    <a href="calendar.html" class="s-nav-link"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>Calendar</a>
+    <a href="timer.html" class="s-nav-link"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>Study Timer</a>
+    <a href="exams.html" class="s-nav-link"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>Exams</a>
+    <div class="s-sidebar-bottom">
+      <a href="settings.html" class="s-nav-link active"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>Settings</a>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="s-main">
+    <div class="s-topbar">
+      <a href="dashboard.html" class="s-back"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>Dashboard</a>
+      <button class="s-btn s-btn-danger" onclick="signOut()">Sign Out</button>
+    </div>
+
+    <div class="s-header">
+      <div class="s-eyebrow">Account</div>
+      <h1 class="s-title">Settings</h1>
+      <p class="s-subtitle">Manage your profile, preferences, and data</p>
+    </div>
+
+    <!-- Sync notice banner -->
+    <div class="s-sync-banner">
+      <div class="s-sync-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+      </div>
+      <div>
+        <div class="s-sync-title">Cross-device sync coming soon</div>
+        <div class="s-sync-sub">We're working on syncing your data across all your devices. For now, your sessions, exams, and progress are stored locally on this device only.</div>
+      </div>
+      <div class="s-sync-badge">In Progress</div>
+    </div>
+
+    <!-- Profile -->
+    <div class="s-profile">
+      <div class="s-avatar" id="sAvatar">?</div>
+      <div class="s-profile-info">
+        <div class="s-profile-name" id="sName">—</div>
+        <div class="s-profile-email" id="sEmail">—</div>
+        <div class="s-profile-badge">Free Plan</div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="s-stats">
+      <div class="s-stat">
+        <div class="s-stat-icon"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div class="s-stat-val" id="sTotalHrs">0h</div>
+        <div class="s-stat-lbl">Study Hours</div>
+      </div>
+      <div class="s-stat">
+        <div class="s-stat-icon"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div>
+        <div class="s-stat-val" id="sStreak">0</div>
+        <div class="s-stat-lbl">Day Streak</div>
+      </div>
+      <div class="s-stat">
+        <div class="s-stat-icon"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+        <div class="s-stat-val" id="sScore">0</div>
+        <div class="s-stat-lbl">Study Score</div>
+      </div>
+      <div class="s-stat">
+        <div class="s-stat-icon"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg></div>
+        <div class="s-stat-val" id="sExams">0</div>
+        <div class="s-stat-lbl">Exams Added</div>
+      </div>
+    </div>
+
+    <!-- Account info -->
+    <div class="s-section">
+      <div class="s-section-header">
+        <div class="s-section-icon purple"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+        <div><div class="s-section-title">Account Info</div><div class="s-section-sub">Your profile details</div></div>
+      </div>
+      <div class="s-row"><div class="s-row-left"><div class="s-row-dot"></div><div><div class="s-row-label">Full Name</div></div></div><div class="s-row-val" id="rowName">—</div></div>
+      <div class="s-row"><div class="s-row-left"><div class="s-row-dot"></div><div><div class="s-row-label">Email Address</div></div></div><div class="s-row-val" id="rowEmail">—</div></div>
+      <div class="s-row"><div class="s-row-left"><div class="s-row-dot"></div><div><div class="s-row-label">Member Since</div></div></div><div class="s-row-val" id="rowMember">—</div></div>
+      <div class="s-row"><div class="s-row-left"><div class="s-row-dot"></div><div><div class="s-row-label">Plan</div></div></div><div class="s-row-val">Free</div></div>
+    </div>
+
+    <!-- Study data -->
+    <div class="s-section">
+      <div class="s-section-header">
+        <div class="s-section-icon blue"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></div>
+        <div><div class="s-section-title">Study Data</div><div class="s-section-sub">Your learning statistics</div></div>
+      </div>
+      <div class="s-row"><div class="s-row-left"><div class="s-row-dot"></div><div><div class="s-row-label">Total Sessions</div><div class="s-row-sub">Completed focus sessions</div></div></div><div class="s-row-val" id="rowSessions">0</div></div>
+      <div class="s-row"><div class="s-row-left"><div class="s-row-dot"></div><div><div class="s-row-label">Total Study Time</div><div class="s-row-sub">Across all sessions</div></div></div><div class="s-row-val" id="rowHours">0 hrs</div></div>
+      <div class="s-row"><div class="s-row-left"><div class="s-row-dot"></div><div><div class="s-row-label">Current Streak</div><div class="s-row-sub">Consecutive study days</div></div></div><div class="s-row-val" id="rowStreak">0 days</div></div>
+      <div class="s-row"><div class="s-row-left"><div class="s-row-dot"></div><div><div class="s-row-label">Exams Tracked</div></div></div><div class="s-row-val" id="rowExams">0</div></div>
+    </div>
+
+    <!-- Danger zone -->
+    <div class="s-section s-danger">
+      <div class="s-section-header">
+        <div class="s-section-icon red"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg></div>
+        <div><div class="s-section-title">Danger Zone</div><div class="s-section-sub">Irreversible actions — proceed with care</div></div>
+      </div>
+      <div class="s-row">
+        <div class="s-row-left"><div class="s-row-dot"></div><div><div class="s-row-label">Clear Study Sessions</div><div class="s-row-sub">Removes all session history and resets stats</div></div></div>
+        <button class="s-btn s-btn-danger" onclick="confirmClear()">Clear Data</button>
+      </div>
+      <div class="s-row">
+        <div class="s-row-left"><div class="s-row-dot"></div><div><div class="s-row-label">Delete Account</div><div class="s-row-sub">Permanently removes your account and all data</div></div></div>
+        <button class="s-btn s-btn-danger" onclick="confirmDeleteAccount()">Delete Account</button>
+      </div>
+      <div class="s-row">
+        <div class="s-row-left"><div class="s-row-dot"></div><div><div class="s-row-label">Sign Out</div><div class="s-row-sub">Log out of this device</div></div></div>
+        <button class="s-btn s-btn-danger" onclick="signOut()">Sign Out</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Confirm dialog -->
+<div class="s-dialog-overlay" id="confirmDialog">
+  <div class="s-dialog">
+    <div class="s-dialog-emoji">⚠️</div>
+    <div class="s-dialog-title" id="dialogTitle">Are you sure?</div>
+    <div class="s-dialog-sub" id="dialogSub">This action cannot be undone.</div>
+    <div class="s-dialog-actions">
+      <button class="s-btn s-btn-ghost" onclick="closeDialog()" style="flex:1;">Cancel</button>
+      <button class="s-btn s-btn-danger" id="dialogConfirmBtn" style="flex:1;">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="s-toasts" id="sToasts"></div>
+
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/settings.js"></script>
+<script>
+  const mq = window.matchMedia('(min-width:960px)');
+  function handleMq(e){ document.getElementById('sSidebar').style.display = e.matches ? 'flex' : 'none'; }
+  mq.addEventListener('change', handleMq); handleMq(mq);
+</script>
+</body>
+</html>

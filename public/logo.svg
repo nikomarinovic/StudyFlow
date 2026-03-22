@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 256 256" width="256" height="256">
+  <defs><clipPath id="bgc"><rect width="256" height="256" rx="51.2"/></clipPath><filter id="f_o18" color-interpolation-filters="sRGB"><feFlood flood-color="#f5f5f5" result="c"/><feComposite in="c" in2="SourceAlpha" operator="in"/></filter></defs>
+  <rect width="256" height="256" rx="51.2" fill="#52158E"/>
+  
+  <g opacity="1" transform="translate(128,128) rotate(0)" filter="url(#f_o18)"><svg x="-80.64" y="-80.64" width="161.28" height="161.28" viewBox="0 0 512 512">
+  <g xmlns="http://www.w3.org/2000/svg">
+    <path stroke="#000000" stroke-width="15" stroke-linejoin="round" d="M443.6,11h-321c-35.4,0-64.6,26.1-64.6,59.4v371.1c0,33.4 26.1,59.4 59.4,59.4h326.2c6.3,0 10.4-4.2 10.4-11.5v-468c0-6.2-4.2-10.4-10.4-10.4zm-321,20.9h310.5v350.3h-315.7c-14.9,0-28.3,5.2-38.6,13.9v-325.7c-1.42109e-14-21.9 19.8-38.5 43.8-38.5zm310.6,449.3h-315.8c-21.9,0-38.6-16.7-38.6-38.6 0-21.9 17.7-38.6 38.6-38.6l315.8,.1v77.1z"/>
+  </g>
+</svg></g>
+  
+</svg>

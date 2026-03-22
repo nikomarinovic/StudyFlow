@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pricing - StudyFlow</title>
+  <link rel="stylesheet" href="css/style-utils.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand">
+        <div class="nav-logo">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+          </svg>
+        </div>
+        <span class="nav-title">StudyFlow</span>
+      </a>
+      <div style="display:flex;align-items:center;gap:.5rem;">
+        <a href="index.html"  class="nav-link">Home</a>
+        <a href="auth.html"   class="nav-link">Sign In</a>
+        <a href="auth.html?mode=signup" class="btn btn-primary" style="padding:.5rem 1.25rem;font-size:.875rem;">Get Started</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Pricing section -->
+  <section class="pricing-section">
+    <div class="pricing-container">
+
+      <div class="pricing-eyebrow">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+        Simple, transparent pricing
+      </div>
+
+      <h1 class="pricing-title">Choose the plan that <span>fits your goals</span></h1>
+      <p class="pricing-subtitle">Start free, upgrade when you're ready. No hidden fees, cancel anytime.</p>
+
+      <!-- Billing toggle -->
+      <div class="billing-toggle-wrap">
+        <span class="billing-label active" id="labelMonthly">Monthly</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="billingToggle" onchange="toggleBilling()">
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+        <span class="billing-label" id="labelAnnual">Annual <span class="save-badge">Save 25%</span></span>
+      </div>
+
+      <!-- Cards -->
+      <div class="pricing-grid" id="pricingGrid">
+
+        <!-- Free -->
+        <div class="pricing-card" data-index="0">
+          <div class="plan-name">Free</div>
+          <div class="plan-description">Everything you need to get started</div>
+          <div class="plan-price">
+            <div class="price-monthly"><span class="price">$0</span><span class="period"> / month</span></div>
+            <div class="price-annual"><span class="price">$0</span><span class="period"> / month</span></div>
+          </div>
+          <div class="features-divider"></div>
+          <ul class="features-list">
+            <li class="feature-item-row"><div class="check-icon yes"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span>Study timer (all modes)</span></li>
+            <li class="feature-item-row"><div class="check-icon yes"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span>Up to 5 exams</span></li>
+            <li class="feature-item-row"><div class="check-icon yes"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span>Basic study calendar</span></li>
+            <li class="feature-item-row"><div class="check-icon yes"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span>Dashboard analytics</span></li>
+            <li class="feature-item-row"><div class="check-icon no"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><span class="feature-text no">Unlimited exams</span></li>
+            <li class="feature-item-row"><div class="check-icon no"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><span class="feature-text no">AI study coach</span></li>
+          </ul>
+          <a href="auth.html?mode=signup" class="card-btn card-btn-outline">Get Started Free</a>
+        </div>
+
+        <!-- Pro -->
+        <div class="pricing-card highlighted" data-index="1">
+          <div class="card-badge">Most Popular</div>
+          <div class="plan-name">Pro</div>
+          <div class="plan-description">Advanced tools for serious students</div>
+          <div class="plan-price">
+            <div class="price-monthly"><span class="price">$9</span><span class="period"> / month</span></div>
+            <div class="price-annual"><span class="price">$7</span><span class="period"> / month · billed annually</span></div>
+          </div>
+          <div class="features-divider"></div>
+          <ul class="features-list">
+            <li class="feature-item-row"><div class="check-icon yes"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span>Everything in Free</span></li>
+            <li class="feature-item-row"><div class="check-icon yes"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span>Unlimited exams</span></li>
+            <li class="feature-item-row"><div class="check-icon yes"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span>AI study coach &amp; tips</span></li>
+            <li class="feature-item-row"><div class="check-icon yes"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span>Advanced analytics</span></li>
+            <li class="feature-item-row"><div class="check-icon yes"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span>Custom study goals</span></li>
+            <li class="feature-item-row"><div class="check-icon yes"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span>Priority support</span></li>
+          </ul>
+          <a href="checkout.html?plan=pro" class="card-btn card-btn-primary">Start Pro Trial</a>
+        </div>
+
+        <!-- Team -->
+        <div class="pricing-card" data-index="2">
+          <div class="plan-name">Team</div>
+          <div class="plan-description">For study groups and classrooms</div>
+          <div class="plan-price">
+            <div class="price-monthly"><span class="price">$19</span><span class="period"> / month</span></div>
+            <div class="price-annual"><span class="price">$15</span><span class="period"> / month · billed annually</span></div>
+          </div>
+          <div class="features-divider"></div>
+          <ul class="features-list">
+            <li class="feature-item-row"><div class="check-icon yes"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span>Everything in Pro</span></li>
+            <li class="feature-item-row"><div class="check-icon yes"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span>Up to 10 members</span></li>
+            <li class="feature-item-row"><div class="check-icon yes"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span>Group leaderboards</span></li>
+            <li class="feature-item-row"><div class="check-icon yes"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span>Shared exam schedules</span></li>
+            <li class="feature-item-row"><div class="check-icon yes"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span>Admin dashboard</span></li>
+            <li class="feature-item-row"><div class="check-icon yes"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span>Dedicated support</span></li>
+          </ul>
+          <a href="checkout.html?plan=team" class="card-btn card-btn-outline">Contact Sales</a>
+        </div>
+
+      </div><!-- /pricing-grid -->
+
+      <!-- FAQ -->
+      <div class="faq-section">
+        <h2 class="faq-title">Frequently asked questions</h2>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            Is the free plan really free?
+            <svg class="faq-chevron" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="faq-answer"><div class="faq-answer-inner">Yes, completely. The Free plan includes the core features you need to build great study habits — no credit card required, ever.</div></div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            Can I cancel my subscription at any time?
+            <svg class="faq-chevron" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="faq-answer"><div class="faq-answer-inner">Absolutely. You can cancel your Pro or Team plan at any time. You'll retain access until the end of your billing period with no questions asked.</div></div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            What is the AI study coach?
+            <svg class="faq-chevron" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="faq-answer"><div class="faq-answer-inner">The AI coach analyzes your study patterns, suggests optimal session lengths, gives personalized tips based on your upcoming exams, and adjusts your schedule when you fall behind.</div></div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            Does my data sync across devices?
+            <svg class="faq-chevron" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="faq-answer"><div class="faq-answer-inner">Currently StudyFlow saves data locally on your device. Cross-device sync is in active development and will be rolling out soon — it's one of our top priorities!</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <script>
+    function toggleBilling() {
+      const annual = document.getElementById('billingToggle').checked;
+      document.getElementById('pricingGrid').classList.toggle('annual-mode', annual);
+      document.getElementById('labelMonthly').classList.toggle('active', !annual);
+      document.getElementById('labelAnnual').classList.toggle('active', annual);
+      // update checkout links
+      document.querySelectorAll('.card-btn[href^="checkout"]').forEach(a => {
+        const u = new URL(a.href, location.href);
+        if (annual) u.searchParams.set('billing','annual');
+        else u.searchParams.delete('billing');
+        a.href = u.pathname + u.search;
+      });
+    }
+    function toggleFaq(el) {
+      const ans = el.nextElementSibling;
+      const chevron = el.querySelector('.faq-chevron');
+      const isOpen = ans.style.maxHeight && ans.style.maxHeight !== '0px';
+      ans.style.maxHeight = isOpen ? '0px' : ans.scrollHeight + 'px';
+      chevron.classList.toggle('open', !isOpen);
+    }
+  </script>
+  <script src="js/config.js"></script>
+</body>
+</html>

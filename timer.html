@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudyFlow — Focus Timer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   RESET & ROOT
+═══════════════════════════════════════ */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg:          hsl(40,33%,97%);
+  --bg2:         hsl(40,30%,99%);
+  --surface:     #ffffff;
+  --border:      hsl(40,20%,88%);
+  --border2:     hsl(40,20%,80%);
+  --fg:          hsl(20,20%,15%);
+  --fg2:         hsl(20,10%,45%);
+  --fg3:         hsl(20,8%,65%);
+  --primary:     hsl(270,74%,32%);
+  --primary-mid: hsl(270,78%,45%);
+  --primary-lit: hsl(270,85%,62%);
+  --success:     hsl(158,64%,42%);
+}
+
+html { height:100%; }
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Subtle ambient blobs */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    radial-gradient(ellipse 700px 500px at 85% -5%, rgba(124,58,237,.06) 0%, transparent 65%),
+    radial-gradient(ellipse 500px 400px at -5% 95%, rgba(45,212,191,.05) 0%, transparent 65%);
+}
+
+/* ═══════════════════════════════════════
+   SHELL
+═══════════════════════════════════════ */
+.shell { position:relative; z-index:1; display:grid; min-height:100vh; }
+@media(min-width:1080px){ .shell { grid-template-columns:300px 1fr; } }
+
+/* ═══════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════ */
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 1.75rem 1.4rem;
+  display: flex; flex-direction: column; gap: 1.75rem;
+  min-height: 100vh;
+  animation: sb-in .55s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes sb-in {
+  from { opacity:0; transform:translateX(-18px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+
+.logo { display:flex; align-items:center; gap:.65rem; text-decoration:none; color:var(--fg); }
+.logo-mark {
+  width:2.1rem; height:2.1rem; border-radius:.55rem;
+  background: var(--primary);
+  display: flex; align-items: center; justify-content: center; color: #fff;
+  box-shadow: 0 4px 14px rgba(90,26,122,.22);
+}
+.logo-text { font-size:1.05rem; font-weight:800; letter-spacing:-.02em; }
+
+.back-link {
+  display: inline-flex; align-items: center; gap: .3rem; margin-top: .4rem;
+  font-size: .73rem; font-weight: 500; color: var(--fg3);
+  text-decoration: none; transition: color .2s;
+}
+.back-link:hover { color: var(--fg2); }
+
+.s-label {
+  font-size: .63rem; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--fg3); margin-bottom: .55rem;
+}
+
+/* Subject select */
+.subject-wrap  { position: relative; }
+.subject-icon  { position:absolute; left:.8rem;  top:50%; transform:translateY(-50%); color:var(--fg3); pointer-events:none; }
+.subject-caret { position:absolute; right:.8rem; top:50%; transform:translateY(-50%); color:var(--fg3); pointer-events:none; }
+.subject-sel {
+  width: 100%; padding: .68rem .8rem .68rem 2.4rem;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: .7rem; color: var(--fg);
+  font-family: inherit; font-size: .83rem;
+  appearance: none; cursor: pointer;
+  transition: border-color .2s, box-shadow .2s;
+}
+.subject-sel:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(90,26,122,.08); }
+
+/* Modes */
+.modes { display:flex; flex-direction:column; gap:.3rem; }
+.mode-btn {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .7rem .9rem; border-radius: .7rem;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--fg2); font-family: inherit; font-size: .82rem; font-weight: 500;
+  cursor: pointer; transition: all .2s; text-align: left;
+}
+.mode-btn:hover  { background:var(--bg); color:var(--fg); border-color:var(--border2); }
+.mode-btn.active { background:var(--primary); border-color:var(--primary); color:#fff; }
+.mode-left { display:flex; align-items:center; gap:.6rem; }
+.mode-icon { opacity:.55; transition:opacity .2s; }
+.mode-btn.active .mode-icon { opacity:1; }
+.mode-pill {
+  font-size: .62rem; font-weight: 600; padding: .17rem .44rem;
+  border-radius: 999px; background: rgba(0,0,0,.08);
+  font-family: 'DM Mono', monospace;
+}
+.mode-btn.active .mode-pill { background:rgba(255,255,255,.22); }
+
+/* Stats */
+.stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:.45rem; }
+.stat-box {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: .7rem; padding: .7rem .4rem; text-align: center;
+  transition: border-color .2s, transform .2s, box-shadow .2s;
+}
+.stat-box:hover { border-color:var(--border2); transform:translateY(-1px); box-shadow:0 4px 14px rgba(0,0,0,.05); }
+.stat-val {
+  font-family: 'DM Mono', monospace; font-size: 1.35rem; font-weight: 400;
+  background: linear-gradient(135deg, var(--primary), var(--primary-lit));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.stat-lbl { font-size:.59rem; font-weight:700; color:var(--fg3); margin-top:.1rem; letter-spacing:.06em; text-transform:uppercase; }
+
+/* Recent sessions */
+.recent { flex:1; overflow-y:auto; min-height:0; }
+.session-row {
+  display: flex; align-items: center; gap: .58rem;
+  padding: .56rem .7rem; border-radius: .6rem; margin-bottom: .27rem;
+  border: 1px solid var(--border); background: var(--bg2);
+  transition: border-color .2s, box-shadow .2s;
+  animation: row-in .3s ease both;
+}
+.session-row:hover { border-color:var(--border2); box-shadow:0 2px 8px rgba(0,0,0,.04); }
+@keyframes row-in {
+  from { opacity:0; transform:translateX(-5px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+.session-dot  { width:.38rem; height:.38rem; border-radius:50%; background:var(--success); flex-shrink:0; }
+.session-info { flex:1; min-width:0; }
+.session-subj { font-size:.75rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.session-meta { font-size:.63rem; color:var(--fg3); margin-top:.07rem; }
+.session-dur  { font-family:'DM Mono',monospace; font-size:.75rem; font-weight:500; color:var(--primary); flex-shrink:0; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:rgba(0,0,0,.1); border-radius:999px; }
+
+/* ═══════════════════════════════════════
+   MAIN AREA
+═══════════════════════════════════════ */
+.main {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 2rem; position: relative; overflow: hidden;
+  animation: main-in .7s ease .12s both;
+}
+@keyframes main-in {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ─── Ring stage ─── */
+.ring-stage { position:relative; width:288px; height:288px; margin-bottom:2rem; }
+
+/* Rotating tick decoration */
+.ticks-svg {
+  position: absolute; inset: -20px; pointer-events: none;
+  opacity: .15; transition: opacity .6s;
+  animation: ticks-spin 90s linear infinite;
+}
+.running .ticks-svg { opacity:.32; animation-duration:45s; }
+@keyframes ticks-spin { to { transform:rotate(360deg); } }
+
+/* Halo rings */
+.halo {
+  position: absolute; border-radius: 50%;
+  border: 1.5px solid transparent;
+  transition: all .65s; pointer-events: none;
+}
+.halo-1 { inset:-5px;  }
+.halo-2 { inset:-13px; }
+.halo-3 { inset:-23px; }
+.running .halo-1 { border-color:rgba(124,58,237,.22); box-shadow:0 0 28px rgba(124,58,237,.07); }
+.running .halo-2 { border-color:rgba(124,58,237,.1); }
+.running .halo-3 { border-color:rgba(124,58,237,.05); }
+
+/* Pulse rings */
+.pulse-ring {
+  position: absolute; inset: -3px; border-radius: 50%;
+  border: 1.5px solid rgba(90,26,122,.28);
+  opacity: 0; pointer-events: none;
+}
+.running .pulse-ring:nth-child(5) { animation:p-expand 2.6s ease-out infinite; }
+.running .pulse-ring:nth-child(6) { animation:p-expand 2.6s ease-out .87s infinite; }
+.running .pulse-ring:nth-child(7) { animation:p-expand 2.6s ease-out 1.74s infinite; }
+@keyframes p-expand {
+  0%   { transform:scale(.9);  opacity:.5; }
+  100% { transform:scale(1.24); opacity:0; }
+}
+
+/* SVG ring */
+.ring-svg { width:288px; height:288px; transform:rotate(-90deg); position:relative; z-index:1; }
+.r-track      { fill:none; stroke:hsl(40,20%,91%); stroke-width:4; }
+.r-inner-ring { fill:none; stroke:hsl(40,18%,93%); stroke-width:1.5; }
+.r-fill {
+  fill: none;
+  stroke: url(#rg);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 816.8;
+  stroke-dashoffset: 816.8;
+  transition: stroke-dashoffset .78s cubic-bezier(.4,0,.2,1);
+  filter: url(#gf);
+}
+.r-dot {
+  fill: var(--primary);
+  filter: url(#df);
+  opacity: 0;
+  transition: opacity .4s;
+}
+
+/* Ring center */
+.ring-center {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: .28rem;
+}
+.time-display {
+  font-family: 'DM Mono', monospace;
+  font-size: 3.6rem; font-weight: 300; letter-spacing: -.03em; line-height: 1;
+  color: var(--fg);
+}
+.time-display.tick { animation: t-flash .08s ease; }
+@keyframes t-flash { 50% { opacity:.5; } }
+.phase-label {
+  font-size: .62rem; font-weight: 700; letter-spacing: .13em;
+  text-transform: uppercase; color: var(--fg3);
+  transition: all .4s;
+}
+
+/* ─── Segment bars ─── */
+.seg-bars { display:flex; gap:.22rem; width:288px; margin-bottom:2.25rem; }
+.seg-bar  { height:3px; flex:1; border-radius:999px; background:hsl(40,20%,90%); overflow:hidden; }
+.seg-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--primary), var(--primary-lit));
+  border-radius: 999px;
+  transition: width .75s linear;
+}
+
+/* ─── Controls ─── */
+.controls { display:flex; gap:1.1rem; align-items:center; margin-bottom:2.25rem; }
+
+.btn-play {
+  width: 70px; height: 70px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--primary-lit));
+  border: none; color: #fff; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 26px rgba(90,26,122,.3), 0 2px 6px rgba(90,26,122,.15);
+  transition: all .25s cubic-bezier(.34,1.56,.64,1);
+  position: relative; overflow: hidden;
+}
+.btn-play::after {
+  content: ''; position: absolute; inset: 0; border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255,255,255,.2), transparent);
+  pointer-events: none;
+}
+.btn-play:hover  { transform:scale(1.08); box-shadow:0 12px 36px rgba(90,26,122,.38); }
+.btn-play:active { transform:scale(.95); }
+.running .btn-play { animation:play-breathe 3s ease-in-out infinite; }
+@keyframes play-breathe {
+  0%,100% { box-shadow:0 8px 26px rgba(90,26,122,.3), 0 2px 6px rgba(90,26,122,.15); }
+  50%     { box-shadow:0 10px 38px rgba(90,26,122,.44), 0 2px 8px rgba(90,26,122,.2); }
+}
+
+.play-icon, .pause-icon {
+  position: absolute;
+  transition: opacity .22s ease, transform .22s cubic-bezier(.34,1.56,.64,1);
+}
+.pause-icon             { opacity:0; transform:scale(.5); }
+.running .play-icon     { opacity:0; transform:scale(.5); }
+.running .pause-icon    { opacity:1; transform:scale(1); }
+
+.btn-sec {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--fg2); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s; box-shadow: 0 1px 4px rgba(0,0,0,.05);
+}
+.btn-sec:hover  { background:var(--bg); border-color:var(--border2); color:var(--fg); transform:scale(1.06); }
+.btn-sec:active { transform:scale(.94); }
+
+/* ─── Quote ─── */
+.quote-wrap { max-width:340px; text-align:center; }
+.quote-text {
+  font-size: .82rem; color: var(--fg3); font-style: italic; line-height: 1.8;
+  transition: opacity .5s;
+}
+.quote-text.fade { opacity:0; }
+
+/* ─── Keyboard hint ─── */
+.kbd-hint {
+  position: absolute; bottom: 1.4rem; left: 50%; transform: translateX(-50%);
+  display: flex; gap: .4rem; align-items: center;
+  font-size: .67rem; color: var(--fg3); white-space: nowrap;
+  font-family: 'DM Mono', monospace;
+}
+kbd {
+  padding: .18rem .4rem; border-radius: .3rem;
+  background: var(--surface); border: 1px solid var(--border);
+  font-family: inherit; font-size: .62rem; color: var(--fg2);
+  box-shadow: 0 1px 0 var(--border2);
+}
+
+/* ═══════════════════════════════════════
+   MODAL
+═══════════════════════════════════════ */
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(245,241,234,.82);
+  backdrop-filter: blur(14px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .35s;
+}
+.modal-backdrop.open { opacity:1; pointer-events:all; }
+
+.modal-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 1.5rem; padding: 2.5rem 2rem; text-align: center;
+  max-width: 400px; width: 92%;
+  box-shadow: 0 24px 64px rgba(0,0,0,.12);
+  transform: scale(.88) translateY(20px);
+  transition: transform .45s cubic-bezier(.34,1.56,.64,1);
+}
+.modal-backdrop.open .modal-card { transform:scale(1) translateY(0); }
+
+.complete-ring {
+  width: 76px; height: 76px; border-radius: 50%; margin: 0 auto 1.25rem;
+  background: linear-gradient(135deg, rgba(52,211,153,.1), rgba(45,212,191,.08));
+  border: 1.5px solid rgba(52,211,153,.25);
+  display: flex; align-items: center; justify-content: center; color: var(--success);
+  animation: rp .45s cubic-bezier(.34,1.56,.64,1) .1s both;
+}
+@keyframes rp { from{transform:scale(0)} to{transform:scale(1)} }
+
+.complete-title     { font-size:1.65rem; font-weight:800; margin-bottom:.3rem; }
+.complete-sub       { color:var(--fg2); font-size:.85rem; }
+.complete-mins {
+  font-family: 'DM Mono', monospace; font-size: 3rem; font-weight: 300;
+  background: linear-gradient(135deg, var(--primary), var(--primary-lit));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  margin: .25rem 0 0;
+}
+.complete-unit      { font-size:.7rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--fg3); margin-bottom:1rem; }
+.complete-subj-text { color:var(--fg2); font-size:.83rem; margin-bottom:1.75rem; }
+
+.modal-actions { display:flex; gap:.7rem; justify-content:center; }
+.modal-btn {
+  padding: .68rem 1.35rem; border-radius: .75rem;
+  font-family: inherit; font-size: .84rem; font-weight: 700;
+  cursor: pointer; transition: all .2s; border: none;
+}
+.modal-btn-p { background:var(--primary); color:#fff; }
+.modal-btn-p:hover { background:hsl(270,74%,26%); transform:translateY(-1px); box-shadow:0 8px 20px rgba(90,26,122,.28); }
+.modal-btn-s { background:var(--bg); color:var(--fg); border:1px solid var(--border); }
+.modal-btn-s:hover { background:hsl(40,20%,90%); }
+
+/* ═══════════════════════════════════════
+   TOAST
+═══════════════════════════════════════ */
+.toast {
+  position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 300;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 1rem; padding: .85rem 1.2rem;
+  display: flex; align-items: center; gap: .7rem;
+  box-shadow: 0 8px 28px rgba(0,0,0,.1);
+  transform: translateY(70px); opacity: 0;
+  transition: all .45s cubic-bezier(.34,1.56,.64,1);
+  min-width: 240px;
+}
+.toast.show { transform:translateY(0); opacity:1; }
+.toast-icon {
+  width: 1.9rem; height: 1.9rem; border-radius: .5rem; flex-shrink: 0;
+  background: rgba(52,211,153,.1); color: var(--success);
+  display: flex; align-items: center; justify-content: center;
+}
+.toast-text strong { display:block; font-size:.8rem; margin-bottom:.1rem; }
+.toast-text span   { font-size:.73rem; color:var(--fg2); }
+</style>
+</head>
+<body>
+<div class="shell" id="shell">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="sidebar">
+    <div>
+      <a href="dashboard.html" class="logo">
+        <div class="logo-mark">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+        </div>
+        <span class="logo-text">StudyFlow</span>
+      </a>
+      <a href="dashboard.html" class="back-link">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to Dashboard
+      </a>
+    </div>
+
+    <div>
+      <div class="s-label">Studying For</div>
+      <div class="subject-wrap">
+        <svg class="subject-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+        <select class="subject-sel" id="subjectSel">
+          <option value="">— General Study —</option>
+        </select>
+        <svg class="subject-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+    </div>
+
+    <div>
+      <div class="s-label">Session Type</div>
+      <div class="modes">
+        <button class="mode-btn active" data-min="25" onclick="setMode(this)">
+          <span class="mode-left">
+            <svg class="mode-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Pomodoro
+          </span>
+          <span class="mode-pill">25 min</span>
+        </button>
+        <button class="mode-btn" data-min="50" onclick="setMode(this)">
+          <span class="mode-left">
+            <svg class="mode-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            Deep Focus
+          </span>
+          <span class="mode-pill">50 min</span>
+        </button>
+        <button class="mode-btn" data-min="90" onclick="setMode(this)">
+          <span class="mode-left">
+            <svg class="mode-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Flow State
+          </span>
+          <span class="mode-pill">90 min</span>
+        </button>
+        <button class="mode-btn" data-min="5" onclick="setMode(this)">
+          <span class="mode-left">
+            <svg class="mode-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+            Short Break
+          </span>
+          <span class="mode-pill">5 min</span>
+        </button>
+        <button class="mode-btn" data-min="15" onclick="setMode(this)">
+          <span class="mode-left">
+            <svg class="mode-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
+            Long Break
+          </span>
+          <span class="mode-pill">15 min</span>
+        </button>
+      </div>
+    </div>
+
+    <div>
+      <div class="s-label">Today's Progress</div>
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-val" id="statSessions">0</div><div class="stat-lbl">Sessions</div></div>
+        <div class="stat-box"><div class="stat-val" id="statMins">0</div><div class="stat-lbl">Minutes</div></div>
+        <div class="stat-box"><div class="stat-val" id="statStreak">0</div><div class="stat-lbl">Streak</div></div>
+      </div>
+    </div>
+
+    <div style="flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;">
+      <div class="s-label">Recent Sessions</div>
+      <div class="recent" id="recentList">
+        <div style="text-align:center;padding:1.5rem 0;color:var(--fg3);font-size:.75rem;">No sessions yet — start the timer.</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ═══ -->
+  <main class="main" id="mainArea">
+
+    <div class="ring-stage" id="ringStage">
+
+      <!-- Rotating tick decoration -->
+      <svg class="ticks-svg" viewBox="0 0 328 328" id="ticksSvg">
+        <g id="ticksG"></g>
+      </svg>
+
+      <!-- Halo rings -->
+      <div class="halo halo-1"></div>
+      <div class="halo halo-2"></div>
+      <div class="halo halo-3"></div>
+
+      <!-- Pulse rings -->
+      <div class="pulse-ring"></div>
+      <div class="pulse-ring"></div>
+      <div class="pulse-ring"></div>
+
+      <!-- SVG progress ring -->
+      <svg class="ring-svg" viewBox="0 0 288 288">
+        <defs>
+          <linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"  stop-color="hsl(270,74%,32%)"/>
+            <stop offset="55%" stop-color="hsl(280,82%,52%)"/>
+            <stop offset="100%" stop-color="hsl(175,60%,45%)"/>
+          </linearGradient>
+          <filter id="gf" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="2" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="df" x="-150%" y="-150%" width="400%" height="400%">
+            <feGaussianBlur stdDeviation="3.5" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <circle class="r-track"      cx="144" cy="144" r="130"/>
+        <circle class="r-inner-ring" cx="144" cy="144" r="116"/>
+        <circle class="r-fill" id="rFill" cx="144" cy="144" r="130"/>
+        <circle class="r-dot"  id="rDot"  cx="144" cy="14"  r="5.5"/>
+      </svg>
+
+      <div class="ring-center">
+        <div class="time-display" id="timeDis">25:00</div>
+        <div class="phase-label"  id="phaseL">Ready to focus</div>
+      </div>
+    </div>
+
+    <!-- Segment progress bars -->
+    <div class="seg-bars" id="segBars"></div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button class="btn-sec" onclick="resetTimer()" title="Reset (R)">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+      </button>
+      <button class="btn-play" onclick="toggleTimer()" title="Play / Pause (Space)">
+        <svg class="play-icon"  width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <svg class="pause-icon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+      </button>
+      <button class="btn-sec" onclick="skipSession()" title="Skip (S)">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19"/></svg>
+      </button>
+    </div>
+
+    <!-- Quote -->
+    <div class="quote-wrap">
+      <p class="quote-text" id="quoteEl"></p>
+    </div>
+
+    <!-- Keyboard shortcuts hint -->
+    <div class="kbd-hint">
+      <kbd>Space</kbd>&nbsp;play/pause &nbsp;·&nbsp; <kbd>R</kbd>&nbsp;reset &nbsp;·&nbsp; <kbd>S</kbd>&nbsp;skip
+    </div>
+  </main>
+</div>
+
+<!-- Session complete modal -->
+<div class="modal-backdrop" id="modal">
+  <div class="modal-card">
+    <div class="complete-ring">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    </div>
+    <h2 class="complete-title">Session Complete</h2>
+    <p class="complete-sub">You focused for</p>
+    <div class="complete-mins" id="cMins">25</div>
+    <div class="complete-unit">minutes</div>
+    <p class="complete-subj-text" id="cSubj"></p>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-s" onclick="closeModal()">Take a Break</button>
+      <button class="modal-btn modal-btn-p" onclick="closeModalStart()">Another Round</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast">
+  <div class="toast-icon">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+  </div>
+  <div class="toast-text">
+    <strong id="toastT">Session saved!</strong>
+    <span id="toastM">25 minutes logged.</span>
+  </div>
+</div>
+<script src="js/config.js"></script>
+<script src="js/db.js"></script> 
+<script src="js/timer.js"></script> 
+</body>
+</html>
