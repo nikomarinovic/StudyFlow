@@ -1,113 +1,90 @@
-# StudyFlow
-
-A **privacy-first weekly study planner** for students. Organize your study schedule, add exams and project reminders, view a dynamic weekly calendar with event counts, and track your progress — all data is stored locally or synced with **Firebase** for authentication and persistence.
-
----
-
-## 🚧 Under Construction
-
-**Note:** StudyFlow is still in early development.
-
-- Currently, there is a **fully functional local version** integrated with **Firebase authentication and database**, but it is **not yet publicly deployed**.  
-- The public version showcases the redesigned UI for authentication, dashboard, calendar, and timer pages.  
-- All main features—adding events, generating study plans, tracking study sessions, and notifications—are **already implemented locally** and will be rolled out to users soon.
+<h1 align="center">
+  <img src="public/logo.svg" alt="StudyFlow Logo" width="96" />
+  <br />
+  StudyFlow
+</h1>
+<p align="center">
+  Intelligent study planner with focus timer, exam tracking, and progress analytics.
+</p>
+<p align="center">
+  <a href="https://studyflowio.netlify.app/">studyflowio.netlify.app</a>
+</p>
 
 ---
 
-## 📸 Screenshots
+## What is StudyFlow?
 
-### Landing Page
-![Landing Page](Screenshots/landing_page_beta.png)
+**StudyFlow helps students study smarter by keeping everything in one place:**
 
-### Dashboard
-![Dashboard](Screenshots/dashboard_beta.png)
+- Exam tracking with difficulty levels and countdown timers
+- Pomodoro-style focus sessions with multiple session modes
+- Auto-generated weekly study schedules based on your exams
+- Progress analytics — streaks, study hours, and weekly goals
+- Calendar view with scheduled and completed sessions
+- Full account system with session history and stats
 
-### Login
-![Authentication](Screenshots/authentication_beta.png)
+**`No cloud required. Runs entirely in your browser.`**
 
-### Calendar
-![Calendar](Screenshots/calendar_beta.png)
+---
 
-### Pomodoro Timer 
-![Timer](Screenshots/timer_beta.png)
+## How It Works
 
-> Screenshots show the current UI; functionality will be added in future releases.
+Getting started with StudyFlow is fast:
+
+1. **Create an account** – sign up with email and password, stored locally on your device.
+2. **Add your exams** – enter subject, topic, date, and difficulty level.
+3. **Start a focus session** – choose Pomodoro (25 min), Deep Focus (50 min), Flow State (90 min), or a break mode.
+4. **Track your progress** – StudyFlow automatically calculates how many hours you've studied per subject and how much is left before each exam.
+5. **Review your week** – the calendar shows scheduled sessions, completed sessions, and upcoming exams at a glance.
+
+> [!TIP]
+> Set your exam difficulty to **Very Hard** to get more study hours automatically scheduled in the lead-up to the exam date.
 
 ---
 
 ## Features
 
-- **Weekly calendar view** – Displays one week at a time with easy navigation between weeks.  
-- **Add and manage exams/projects** – Create, edit, and delete events.  
-- **Dynamic event badges** – Each day shows the number of scheduled events.  
-- **Click to view event details** – See full list of events for any day.  
-- **Study plan generation** – Automatically create daily study schedules leading up to deadlines.  
-- **Study tracking and scoring** – Track completed study sessions and get a study score.  
-- **Privacy-focused** – Data is stored locally and optionally synced with Firebase.  
-- **Responsive design** – Works on desktop and mobile browsers.  
-- **Optional notifications** – Remind users of upcoming exams or study sessions.
+- **Focus Timer** — Pomodoro, Deep Focus, Flow State, Short & Long Break
+- **Exam Tracker** — subject, topic, date, and difficulty level
+- **Smart Schedule** — auto-generates daily study slots from your exams
+- **Calendar** — weekly view with session indicators and day detail
+- **Analytics** — study score, streak, and weekly goal progress
+- **Settings** — clear sessions, delete account, view stats
 
 ---
 
-## Usage
+## Screenshots
 
-- Navigate weeks using Next / Previous buttons.  
-- Click any day to see scheduled events.  
-- Event badges update automatically based on the local database or Firebase sync.  
+<p align="center">
+  <img src="public/screenshot-1.png" alt="StudyFlow Dashboard" width="700" />
+</p>
+<p align="center">
+  <img src="public/screenshot-2.png" alt="StudyFlow Focus Timer" width="700" />
+</p>
+<p align="center">
+  <img src="public/screenshot-3.png" alt="StudyFlow Calendar" width="700" />
+</p>
 
 ---
 
-## Contributing
+## Data & Privacy
 
-We welcome contributions! To contribute:
-
-1. Fork the repository  
-2. Create a feature branch:  
-```bash
-git checkout -b feature/my-feature
-```
-	3.	Commit your changes:
-```bash
-git commit -m "Add new feature"
-```
-	4.	Push to the branch:
-```bash
-git push origin feature/my-feature
-```
-	5.	Open a pull request.
+StudyFlow stores all data **locally in your browser** using `localStorage`. Nothing is sent to any server.
 
 > [!NOTE]
-> All user data is either stored locally or managed via Firebase.
+> Cross-device sync is currently in development. For now, your sessions, exams, and progress are tied to the device and browser you use.
+
+> [!WARNING]
+> Clearing your browser's site data or using private/incognito mode will erase your StudyFlow data.
 
 ---
 
-## License
-
-StudyFlow is licensed for personal, educational, and contribution purposes only.
-You may use, modify, and contribute to the project, but commercial use, resale, or distribution for profit is prohibited.
-
-**License Text**
-
-`Copyright (c) 2026 Niko Marinović`
-
-#### Permission is granted, free of charge, to any person obtaining a copy of this software and associated documentation files to:
-  
-  -	Use the Software locally for personal or educational purposes
-  - Modify, merge, and contribute to the Software
-
-#### Restrictions:
-
-  -	You may not sell, distribute, or use the Software for commercial purposes
-  -	You may not copy the design or UI for commercial projects
-
-> The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-> [!CAUTION]
-> THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND.
+<h3 align="center">
+StudyFlow does not accept feature implementations via pull requests. Feature requests and bug reports are welcome through GitHub issues.
+</h3>
 
 ---
 
-> [!IMPORTANT]
-> Stay tuned for updates — full functionality and features are coming soon!
-
----
+<p align="center">
+  © 2026 Niko Marinović. All rights reserved.
+</p>
