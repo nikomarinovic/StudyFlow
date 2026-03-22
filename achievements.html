@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Achievements - StudyFlow</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ── Page shell ─────────────────────────────────────── */
+    body { background: hsl(40,33%,97%); }
+
+    .ach-layout { display: grid; min-height: 100vh; }
+    @media(min-width:1100px){ .ach-layout { grid-template-columns: 280px 1fr; } }
+
+    /* sidenav */
+    .ach-sidenav { background: white; border-right: 1px solid var(--border); padding: 1.5rem 1rem; display: flex; flex-direction: column; gap: .25rem; }
+    .ach-sidenav-logo { display: flex; align-items: center; gap: .5rem; text-decoration: none; color: var(--foreground); margin-bottom: 1.5rem; padding: .25rem; }
+    .ach-sidenav-logo-icon { width: 2rem; height: 2rem; border-radius: .5rem; background: var(--primary); display: flex; align-items: center; justify-content: center; color: #fff; }
+    .ach-sidenav-logo-text { font-weight: 700; font-size: 1.1rem; }
+    .ach-nav-link { display: flex; align-items: center; gap: .75rem; padding: .65rem 1rem; border-radius: .65rem; color: var(--muted-foreground); text-decoration: none; font-size: .875rem; font-weight: 500; transition: all .2s; border: none; background: none; cursor: pointer; font-family: inherit; width: 100%; }
+    .ach-nav-link:hover { background: var(--muted); color: var(--foreground); }
+    .ach-nav-link.active { background: var(--primary); color: #fff; }
+
+    /* main */
+    .ach-main { padding: 2rem; max-width: 960px; }
+    @media(max-width:1100px){ .ach-main { padding: 1.5rem; } }
+
+    /* page header */
+    .ach-page-header { margin-bottom: 2rem; animation: fadeInUp .5s ease both; }
+    .ach-page-eyebrow { font-size: .75rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--primary); margin-bottom: .5rem; }
+    .ach-page-title { font-size: 2rem; font-weight: 800; margin-bottom: .4rem; }
+    .ach-page-sub { color: var(--muted-foreground); font-size: .9rem; }
+
+    /* ── Hero stat cards ─────────────────────────────────── */
+    .hero-stats { display: grid; grid-template-columns: repeat(2,1fr); gap: 1rem; margin-bottom: 2rem; animation: fadeInUp .5s ease .05s both; }
+    @media(min-width:640px){ .hero-stats { grid-template-columns: repeat(4,1fr); } }
+
+    .hero-stat-card { background: white; border: 1px solid var(--border); border-radius: 1.1rem; padding: 1.1rem 1.25rem; display: flex; flex-direction: column; gap: .35rem; box-shadow: 0 1px 6px rgba(0,0,0,.04); transition: transform .2s; }
+    .hero-stat-card:hover { transform: translateY(-2px); }
+    .hero-stat-icon { width: 2.2rem; height: 2.2rem; border-radius: .65rem; display: flex; align-items: center; justify-content: center; margin-bottom: .15rem; }
+    .hero-stat-val { font-size: 1.7rem; font-weight: 800; font-family: 'DM Mono', monospace; line-height: 1; background: linear-gradient(135deg, var(--primary), var(--primary-glow)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-stat-lbl { font-size: .72rem; font-weight: 600; color: var(--muted-foreground); }
+
+    /* ── 2-column grid ────────────────────────────────────── */
+    .ach-grid-2 { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 1.5rem; animation: fadeInUp .5s ease .1s both; }
+    @media(min-width:860px){ .ach-grid-2 { grid-template-columns: 1fr 1fr; } }
+
+    /* ── Card shell ───────────────────────────────────────── */
+    .ach-card-shell { background: white; border: 1px solid var(--border); border-radius: 1.25rem; padding: 1.5rem; box-shadow: 0 1px 8px rgba(0,0,0,.05); }
+    .ach-section-title { font-size: .8rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted-foreground); margin-bottom: 1rem; }
+
+    /* ── Achievement ring + summary ─────────────────────── */
+    .ach-overview { display: flex; align-items: center; gap: 1.5rem; }
+    .ach-ring-wrap { position: relative; flex-shrink: 0; width: 88px; height: 88px; }
+    .ach-ring-svg { width: 88px; height: 88px; transform: rotate(-90deg); }
+    .ach-ring-bg   { fill: none; stroke: var(--muted); stroke-width: 7; }
+    .ach-ring-fill { fill: none; stroke: var(--primary); stroke-width: 7; stroke-linecap: round;
+      stroke-dasharray: 220; stroke-dashoffset: calc(220 - (220 * var(--pct, 0%) / 100));
+      transition: stroke-dashoffset .8s cubic-bezier(.4,0,.2,1); }
+    .ach-ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .ach-ring-pct { font-size: .95rem; font-weight: 800; font-family: 'DM Mono', monospace; color: var(--primary); line-height: 1; }
+    .ach-ring-lbl { font-size: .55rem; font-weight: 700; text-transform: uppercase; color: var(--muted-foreground); letter-spacing: .05em; }
+    .ach-overview-text h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: .3rem; }
+    .ach-overview-text p  { font-size: .82rem; color: var(--muted-foreground); }
+    .ach-unlock-count { font-size: 1.4rem; font-weight: 800; font-family: 'DM Mono', monospace; color: var(--primary); }
+
+    /* ── Planner mini-stats ──────────────────────────────── */
+    .mini-stats { display: grid; grid-template-columns: repeat(2,1fr); gap: .75rem; }
+    .mini-stat { background: hsl(40,20%,97%); border: 1px solid var(--border); border-radius: .75rem; padding: .85rem 1rem; }
+    .mini-stat-val { font-size: 1.35rem; font-weight: 800; font-family: 'DM Mono', monospace; color: var(--foreground); }
+    .mini-stat-lbl { font-size: .7rem; font-weight: 600; color: var(--muted-foreground); margin-top: .1rem; }
+
+    /* ── Subject chart ───────────────────────────────────── */
+    .subj-row { display: grid; grid-template-columns: 110px 1fr 40px; align-items: center; gap: .75rem; margin-bottom: .65rem; }
+    .subj-name { font-size: .78rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .subj-bar-wrap { height: .5rem; background: var(--muted); border-radius: 999px; overflow: hidden; }
+    .subj-bar-fill { height: 100%; border-radius: 999px; transition: width .6s cubic-bezier(.4,0,.2,1); }
+    .subj-hours { font-size: .72rem; font-weight: 700; font-family: 'DM Mono', monospace; color: var(--muted-foreground); text-align: right; }
+    .chart-empty { text-align: center; padding: 2rem; color: var(--muted-foreground); font-size: .875rem; }
+
+    /* ── Heatmap ─────────────────────────────────────────── */
+    .hm-month-row { display: grid; grid-template-columns: repeat(15,1fr); margin-bottom: .3rem; }
+    .hm-month-row span { font-size: .65rem; color: var(--muted-foreground); font-weight: 600; }
+    .hm-grid { display: grid; grid-template-columns: repeat(15,1fr); grid-template-rows: repeat(7,1fr); gap: 3px; }
+    .hm-cell { aspect-ratio: 1; border-radius: 3px; transition: transform .1s; cursor: default; }
+    .hm-cell:hover { transform: scale(1.3); z-index: 1; }
+    .hm-today { outline: 2px solid var(--primary); outline-offset: 1px; }
+    .hm-legend { display: flex; align-items: center; gap: .4rem; margin-top: .75rem; justify-content: flex-end; }
+    .hm-legend span { font-size: .65rem; color: var(--muted-foreground); font-weight: 600; }
+    .hm-leg-cell { width: 12px; height: 12px; border-radius: 2px; }
+
+    /* ── Weekly bar chart ────────────────────────────────── */
+    .wk-chart { display: flex; align-items: flex-end; justify-content: space-between; gap: .5rem; height: 120px; }
+    .wk-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: .4rem; }
+    .wk-bar-inner { width: 100%; display: flex; flex-direction: column; justify-content: flex-end; height: 90px; }
+    .wk-bar-fill { width: 100%; border-radius: .4rem .4rem 0 0; background: rgba(132,34,209,.45); transition: height .6s cubic-bezier(.4,0,.2,1); min-height: 3px; }
+    .wk-bar-fill.current { background: var(--primary); }
+    .wk-bar-label { font-size: .62rem; font-weight: 600; color: var(--muted-foreground); text-align: center; white-space: nowrap; }
+    .wk-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: .75rem; border-top: 1px solid var(--border); font-size: .8rem; color: var(--muted-foreground); }
+    .wk-footer strong { color: var(--foreground); font-weight: 700; }
+
+    /* ── Achievement grid ────────────────────────────────── */
+    .ach-full-section { background: white; border: 1px solid var(--border); border-radius: 1.25rem; padding: 1.5rem; box-shadow: 0 1px 8px rgba(0,0,0,.05); animation: fadeInUp .5s ease .2s both; }
+    .ach-full-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem; margin-bottom: 1.25rem; }
+    .ach-full-title { font-size: 1rem; font-weight: 700; }
+
+    .ach-filters { display: flex; gap: .4rem; flex-wrap: wrap; }
+    .ach-filter-btn { display: inline-flex; align-items: center; gap: .3rem; padding: .3rem .7rem; border-radius: 999px; font-size: .72rem; font-weight: 600; border: 1px solid var(--border); background: white; cursor: pointer; transition: all .2s; font-family: inherit; color: var(--muted-foreground); }
+    .ach-filter-btn:hover { background: var(--muted); color: var(--foreground); }
+    .ach-filter-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    #achGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: .875rem; }
+
+    .ach-card { background: hsl(40,20%,98%); border: 1px solid var(--border); border-radius: 1rem; padding: 1rem 1.1rem; display: flex; align-items: flex-start; gap: .9rem; position: relative; transition: all .22s; animation: fadeInUp .35s ease both; }
+    .ach-card:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,0,0,.07); }
+    .ach-card.earned { border-color: transparent; box-shadow: 0 0 0 1.5px rgba(132,34,209,.18), 0 2px 10px rgba(132,34,209,.06); }
+    .ach-card.locked { opacity: .75; }
+    .ach-icon-wrap { width: 44px; height: 44px; border-radius: .75rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1.5px solid; }
+    .ach-body { flex: 1; min-width: 0; }
+    .ach-title { font-size: .85rem; font-weight: 700; margin-bottom: .15rem; display: flex; align-items: center; gap: .4rem; }
+    .ach-title.dim { color: var(--muted-foreground); }
+    .ach-earned-dot { width: 7px; height: 7px; background: var(--success); border-radius: 50%; flex-shrink: 0; }
+    .ach-desc { font-size: .72rem; color: var(--muted-foreground); margin-bottom: .55rem; }
+    .ach-prog-wrap { display: flex; align-items: center; gap: .5rem; }
+    .ach-prog-bar { flex: 1; height: .3rem; background: var(--muted); border-radius: 999px; overflow: hidden; }
+    .ach-prog-fill { height: 100%; border-radius: 999px; transition: width .6s cubic-bezier(.4,0,.2,1); }
+    .ach-prog-label { font-size: .65rem; font-weight: 700; font-family: 'DM Mono', monospace; color: var(--muted-foreground); white-space: nowrap; }
+    .ach-badge-check { position: absolute; top: .65rem; right: .65rem; width: 20px; height: 20px; border-radius: 50%; background: var(--success); display: flex; align-items: center; justify-content: center; color: white; }
+
+    /* member info */
+    .member-info { display: flex; align-items: center; gap: .6rem; margin-top: 1rem; padding-top: .75rem; border-top: 1px solid var(--border); font-size: .78rem; color: var(--muted-foreground); }
+    .member-info svg { flex-shrink: 0; }
+
+    /* toast */
+    .ach-toast-wrap { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 99; }
+  </style>
+</head>
+<body>
+<div class="ach-layout">
+
+  <!-- Sidenav -->
+  <nav class="ach-sidenav" style="display:none;" id="achSidenav">
+    <a href="dashboard.html" class="ach-sidenav-logo">
+      <div class="ach-sidenav-logo-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
+      </div>
+      <span class="ach-sidenav-logo-text">StudyFlow</span>
+    </a>
+    <a href="dashboard.html" class="ach-nav-link">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+      <span>Dashboard</span>
+    </a>
+    <a href="calendar.html" class="ach-nav-link">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+      <span>Calendar</span>
+    </a>
+    <a href="timer.html" class="ach-nav-link">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>
+      <span>Study Timer</span>
+    </a>
+    <a href="exams.html" class="nav-item">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
+        <span>Exams</span>
+    </a>
+    <a href="achievements.html" class="ach-nav-link active">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
+      <span>Achievements</span>
+    </a>
+  </nav>
+
+  <!-- Main -->
+  <main class="ach-main">
+
+    <!-- Top bar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+      <a href="dashboard.html" style="display:inline-flex;align-items:center;gap:.4rem;font-size:.82rem;color:var(--muted-foreground);text-decoration:none;padding:.5rem .875rem;border:1px solid var(--border);border-radius:.65rem;background:white;transition:all .2s;" onmouseover="this.style.background='var(--muted)'" onmouseout="this.style.background='white'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Dashboard
+      </a>
+      <a href="timer.html" class="btn-primary" style="font-size:.82rem;padding:.5rem 1rem;text-decoration:none;display:inline-flex;align-items:center;gap:.4rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>
+        Start Timer
+      </a>
+    </div>
+
+    <!-- Page header -->
+    <div class="ach-page-header">
+      <div class="ach-page-eyebrow">Progress &amp; Stats</div>
+      <h1 class="ach-page-title">Achievements</h1>
+      <p class="ach-page-sub">Track your milestones, study patterns and all-time stats, <span id="userName">Student</span>.</p>
+    </div>
+
+    <!-- Hero stat cards -->
+    <div class="hero-stats">
+      <div class="hero-stat-card">
+        <div class="hero-stat-icon" style="background:rgba(132,34,209,.1)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="hsl(270,74%,42%)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div class="hero-stat-val" id="statScore">0</div>
+        <div class="hero-stat-lbl">Study Score</div>
+      </div>
+      <div class="hero-stat-card">
+        <div class="hero-stat-icon" style="background:rgba(59,130,246,.1)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="hsl(221,83%,53%)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="hero-stat-val" id="statHours">0</div>
+        <div class="hero-stat-lbl">Total Hours</div>
+      </div>
+      <div class="hero-stat-card">
+        <div class="hero-stat-icon" style="background:rgba(239,68,68,.1)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="hsl(8,75%,55%)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+        </div>
+        <div class="hero-stat-val" id="statStreak">0</div>
+        <div class="hero-stat-lbl">Day Streak</div>
+      </div>
+      <div class="hero-stat-card">
+        <div class="hero-stat-icon" style="background:rgba(22,163,74,.1)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="hsl(158,64%,40%)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        </div>
+        <div class="hero-stat-val" id="statSessions">0</div>
+        <div class="hero-stat-lbl">Sessions</div>
+      </div>
+    </div>
+
+    <!-- Row 1: Overview + Planner stats -->
+    <div class="ach-grid-2">
+      <!-- Achievement overview -->
+      <div class="ach-card-shell">
+        <div class="ach-section-title">Completion</div>
+        <div class="ach-overview">
+          <div class="ach-ring-wrap">
+            <svg class="ach-ring-svg" viewBox="0 0 88 88">
+              <circle class="ach-ring-bg"   cx="44" cy="44" r="35"/>
+              <circle class="ach-ring-fill" cx="44" cy="44" r="35"/>
+            </svg>
+            <div class="ach-ring-center">
+              <span class="ach-ring-pct">0%</span>
+              <span class="ach-ring-lbl">done</span>
+            </div>
+          </div>
+          <div class="ach-overview-text">
+            <h3><span class="ach-unlock-count" id="achUnlocked">0</span> / <span id="achTotal">0</span> Unlocked</h3>
+            <p>Keep studying to unlock more achievements and earn your place at the top.</p>
+            <div class="member-info">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+              Member since <strong id="memberSince" style="color:var(--foreground);font-weight:600;margin-left:.2rem"></strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Planner stats -->
+      <div class="ach-card-shell">
+        <div class="ach-section-title">Planner Stats</div>
+        <div class="mini-stats">
+          <div class="mini-stat">
+            <div class="mini-stat-val" id="statExams">0</div>
+            <div class="mini-stat-lbl">Exams Added</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-stat-val" id="statProjects">0</div>
+            <div class="mini-stat-lbl">Projects Added</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-stat-val" id="statReminders">0</div>
+            <div class="mini-stat-lbl">Reminders Set</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-stat-val" id="statCompletions">0</div>
+            <div class="mini-stat-lbl">Blocks Checked</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2: Weekly chart + Subject breakdown -->
+    <div class="ach-grid-2" style="animation-delay:.15s">
+      <!-- Weekly hours -->
+      <div class="ach-card-shell">
+        <div class="ach-section-title">Hours per Week</div>
+        <div class="wk-chart" id="weeklyChart"></div>
+        <div class="wk-footer">
+          <span>Last 8 weeks</span>
+          <strong id="weeklyTotal">0 total hours</strong>
+        </div>
+      </div>
+
+      <!-- Subject breakdown -->
+      <div class="ach-card-shell">
+        <div class="ach-section-title">Top Subjects</div>
+        <div id="subjectChart"></div>
+      </div>
+    </div>
+
+    <!-- Heatmap -->
+    <div class="ach-card-shell" style="margin-bottom:1.5rem; animation: fadeInUp .5s ease .18s both;">
+      <div class="ach-section-title">Study Activity — Last 15 Weeks</div>
+      <div id="heatmap"></div>
+    </div>
+
+    <!-- Full achievements grid -->
+    <div class="ach-full-section">
+      <div class="ach-full-header">
+        <div class="ach-full-title">All Achievements</div>
+        <div class="ach-filters">
+          <button class="ach-filter-btn active" data-filter="all"      onclick="setFilter(this)">All</button>
+          <button class="ach-filter-btn" data-filter="streak"          onclick="setFilter(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+            Streak
+          </button>
+          <button class="ach-filter-btn" data-filter="hours"           onclick="setFilter(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Hours
+          </button>
+          <button class="ach-filter-btn" data-filter="sessions"        onclick="setFilter(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Sessions
+          </button>
+          <button class="ach-filter-btn" data-filter="planner"         onclick="setFilter(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+            Planner
+          </button>
+          <button class="ach-filter-btn" data-filter="score"           onclick="setFilter(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Score
+          </button>
+          <button class="ach-filter-btn" data-filter="special"         onclick="setFilter(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            Special
+          </button>
+        </div>
+      </div>
+
+      <div id="achGrid" data-filter="all"></div>
+    </div>
+
+  </main>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/achievements.js"></script>
+<script>
+  const mq = window.matchMedia('(min-width:1100px)');
+  function handleMq(e){ document.getElementById('achSidenav').style.display = e.matches ? 'flex' : 'none'; }
+  mq.addEventListener('change', handleMq); handleMq(mq);
+</script>
+</body>
+</html>
