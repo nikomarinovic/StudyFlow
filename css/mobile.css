@@ -1,0 +1,613 @@
+/* ================================================================
+   STUDYFLOW — MOBILE RESPONSIVE PATCH v2
+   Add <link rel="stylesheet" href="css/mobile.css"> to ALL pages
+   AFTER your existing stylesheet links.
+   ================================================================ */
+
+/* ──────────────────────────────────────────────────────────────
+   MOBILE NAV BOTTOM BAR
+   Always visible on ≤ 768px — 6 tabs including Settings
+   ────────────────────────────────────────────────────────────── */
+.mob-nav {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 200;
+  background: rgba(255, 253, 250, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(228, 221, 211, 0.8);
+  box-shadow: 0 -4px 24px rgba(41, 37, 32, 0.1);
+  /* height is content-driven, safe area handled by padding */
+  padding-top: 0.3rem;
+  padding-bottom: calc(0.3rem + env(safe-area-inset-bottom));
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.mob-nav-inner {
+  display: flex;
+  align-items: stretch;       /* items fill the same height */
+  justify-content: space-around;
+  width: 100%;
+}
+
+.mob-nav-item {
+  /* each tab: column-flex, perfectly centered */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;    /* vertically center icon+label */
+  gap: 0.2rem;
+  padding: 0.25rem 0;
+  text-decoration: none;
+  color: hsl(20, 10%, 52%);
+  font-size: 0.56rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: color 0.18s;
+  flex: 1;                    /* all 6 tabs equal width */
+  min-width: 0;
+  min-height: 2.9rem;         /* consistent tap target */
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mob-nav-item svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  flex-shrink: 0;
+  display: block;             /* remove inline baseline gap */
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.mob-nav-item span {
+  display: block;
+  line-height: 1;
+  text-align: center;
+}
+
+.mob-nav-item:active svg {
+  transform: scale(0.86);
+}
+
+.mob-nav-item:hover { color: hsl(270, 74%, 32%); }
+
+.mob-nav-item.active {
+  color: hsl(270, 74%, 32%);
+}
+
+.mob-nav-item.active svg {
+  transform: scale(1.08);
+  filter: drop-shadow(0 0 5px rgba(132, 34, 209, 0.28));
+}
+
+/* Active indicator pip — sits at very bottom of each tab */
+.mob-nav-pip {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: transparent;
+  transition: background 0.2s;
+}
+
+.mob-nav-item.active .mob-nav-pip {
+  background: hsl(270, 74%, 32%);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   MOBILE TOP HEADER (app pages)
+   ────────────────────────────────────────────────────────────── */
+.mob-header {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 190;
+  height: 3.25rem;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: rgba(255, 253, 250, 0.95);
+  border-bottom: 1px solid rgba(228, 221, 211, 0.6);
+  box-shadow: 0 2px 12px rgba(41, 37, 32, 0.06);
+  padding: 0 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mob-header-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-decoration: none;
+  color: hsl(20, 20%, 15%);
+}
+
+.mob-header-logo-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.45rem;
+  background: hsl(270, 74%, 32%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.mob-header-logo-text {
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: -0.02em;
+}
+
+.mob-header-action {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.mob-header-study-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.85rem;
+  background: hsl(270, 74%, 32%);
+  color: #fff;
+  border-radius: 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: background 0.2s;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   ACTIVATE ON <= 768px
+   ────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .mob-nav    { display: flex; }
+  .mob-header { display: flex; }
+
+  body {
+    padding-bottom: calc(3.75rem + env(safe-area-inset-bottom) + 0.5rem) !important;
+  }
+
+  /* Hide all sidebars */
+  .sidebar,
+  .ach-sidenav,
+  .ex-sidenav,
+  .s-sidebar {
+    display: none !important;
+  }
+
+  .main-content { margin-left: 0 !important; }
+
+  .dashboard-container,
+  .ach-layout,
+  .exams-layout,
+  .s-layout {
+    display: block !important;
+  }
+
+  .main-content,
+  .ach-main,
+  .ex-main,
+  .s-main {
+    padding-top: 3.75rem !important;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   INDEX.HTML — NAV BAR: show all buttons, compact
+   ────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+
+  .sync-bar { z-index: 101 !important; }
+
+  .nav-bar {
+    top: 2rem !important;
+    z-index: 100 !important;
+  }
+
+  .nav-bar .container {
+    height: 3.25rem;
+    padding: 0 0.875rem;
+  }
+
+  .logo-text { font-size: 1rem !important; }
+
+  /* Show ALL nav buttons */
+  .nav-buttons {
+    display: flex !important;
+    align-items: center;
+    gap: 0.3rem !important;
+  }
+
+  .nav-buttons .btn-ghost {
+    display: inline-flex !important;
+    padding: 0.35rem 0.6rem !important;
+    font-size: 0.74rem !important;
+  }
+
+  .nav-buttons .btn-hero {
+    padding: 0.38rem 0.7rem !important;
+    font-size: 0.76rem !important;
+  }
+
+  .hero-section {
+    padding-top: 6.5rem !important;
+    padding-bottom: 2.5rem !important;
+  }
+
+  .hero-title {
+    font-size: 2.1rem !important;
+    line-height: 1.15 !important;
+  }
+
+  .hero-subtitle {
+    font-size: 0.92rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .hero-cta {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0.65rem !important;
+    margin-bottom: 2rem !important;
+  }
+
+  .hero-cta .btn {
+    width: 100%;
+    max-width: 300px;
+    justify-content: center;
+  }
+
+  .stats {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 0.75rem !important;
+    max-width: 100% !important;
+  }
+
+  .stat-value { font-size: 1.5rem !important; }
+  .stat-label { font-size: 0.72rem !important; }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   INDEX.HTML — FOOTER: compact
+   ────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+
+  .footer {
+    padding: 1.25rem 1rem !important;
+  }
+
+  .footer-content {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    text-align: center;
+  }
+
+  .footer-center p { font-size: 0.75rem !important; }
+  .footer-logo-text { font-size: 0.875rem !important; }
+
+  .footer-social svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   INDEX.HTML — FEATURES / SECTIONS
+   ────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+
+  .features-section { padding: 3rem 1rem !important; }
+  .section-title    { font-size: 1.75rem !important; }
+  .section-subtitle { font-size: 0.9rem !important; }
+
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.875rem !important;
+  }
+
+  .feature-card        { padding: 1.125rem !important; }
+  .feature-title       { font-size: 0.95rem !important; }
+  .feature-description { font-size: 0.8rem !important; }
+
+  .how-it-works-section { padding: 3rem 1rem !important; }
+  .how-it-works-grid    { grid-template-columns: 1fr !important; gap: 2rem !important; }
+  .how-it-works-visual  { display: none !important; }
+  .section-title-left   { font-size: 1.6rem !important; }
+  .section-text         { font-size: 0.95rem !important; }
+
+  .cta-section  { padding: 2rem 1rem !important; }
+  .cta-content  { padding: 2rem 1.25rem !important; }
+  .cta-title    { font-size: 1.5rem !important; }
+  .cta-subtitle { font-size: 0.9rem !important; }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   DASHBOARD — MOBILE
+   ────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+
+  .header {
+    padding: 0.75rem 1rem !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 3.25rem;
+    position: sticky;
+    top: 3.25rem;
+  }
+
+  .header-left h1 { font-size: 1.2rem !important; }
+  .header-subtitle { font-size: 0.72rem !important; }
+  .header-right { width: auto !important; }
+
+  .content { padding: 0.875rem !important; }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.625rem !important;
+  }
+
+  .stat-card       { padding: 1rem !important; }
+  .dash-stat-value { font-size: 1.45rem !important; }
+
+  .main-grid       { grid-template-columns: 1fr !important; gap: 1rem !important; }
+  .card-header     { flex-wrap: wrap; gap: 0.5rem; }
+  .card-actions    { flex-direction: row !important; flex-wrap: wrap; }
+  .schedule-item   { padding: 0.75rem !important; gap: 0.6rem !important; }
+  .sync-strip      { font-size: 0.68rem !important; padding: 0.35rem 0.875rem !important; }
+  .chart           { height: 8rem !important; gap: 0.35rem !important; }
+  .chart-bar-inner { height: 6.5rem !important; }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   TIMER PAGE — MOBILE
+   ────────────────────────────────────────────────────────────── */
+@media (max-width: 1079px) {
+  .shell                  { grid-template-columns: 1fr !important; }
+  .shell > .sidebar       { display: none !important; }
+  .shell > .main          { padding-top: 4.5rem !important; }
+}
+
+@media (max-width: 768px) {
+
+  .ring-stage { width: 220px !important; height: 220px !important; margin-bottom: 1rem !important; }
+  .ring-svg   { width: 220px !important; height: 220px !important; }
+  .time-display { font-size: 2.6rem !important; }
+  .seg-bars   { width: 220px !important; margin-bottom: 1.25rem !important; }
+
+  .controls   { gap: 0.875rem !important; margin-bottom: 1.25rem !important; }
+  .btn-play   { width: 60px !important; height: 60px !important; }
+  .btn-sec    { width: 42px !important; height: 42px !important; }
+  .kbd-hint   { display: none !important; }
+
+  .timer-page { padding: 4.5rem 1rem 1.25rem !important; max-width: 100% !important; }
+  .timer-card { padding: 1.5rem 1.125rem !important; }
+
+  .timer-mode-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .timer-mode-tabs::-webkit-scrollbar { display: none; }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   CALENDAR PAGE — MOBILE
+   ────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+
+  .cal-header   { padding: 0.6rem 0.875rem !important; top: 0 !important; }
+  .main-container { padding: 0.875rem !important; }
+
+  .cal-header-container { flex-direction: row !important; align-items: center !important; gap: 0.5rem; }
+  .cal-header-left      { flex-direction: row !important; align-items: center !important; gap: 0.5rem; }
+  .cal-header-title     { font-size: 1rem !important; }
+  .cal-header-subtitle  { display: none !important; }
+  .back-button          { padding: 0.35rem 0.65rem !important; font-size: 0.75rem !important; }
+
+  .calendar-layout      { grid-template-columns: 1fr !important; gap: 1rem !important; }
+
+  .week-nav-row  { gap: 0.5rem !important; margin-bottom: 0.5rem !important; }
+  .nav-btn       { padding: 0.35rem 0.7rem !important; font-size: 0.75rem !important; }
+  .week-range    { font-size: 0.82rem !important; }
+
+  .week-grid  { gap: 3px !important; }
+  .day-cell   { padding: 0.35rem 0.15rem !important; border-radius: 0.45rem !important; }
+  .day-name   { font-size: 0.52rem !important; text-align: center; }
+  .day-number { font-size: 0.85rem !important; text-align: center; }
+  .day-indicators { gap: 2px !important; }
+  .indicator-bar  { height: 3px !important; }
+  .day-ring-wrap  { display: none !important; }
+  .exam-day-pill  { display: none !important; }
+
+  .day-details-card { max-height: none !important; }
+  .sessions-list    { max-height: 380px !important; }
+
+  .info-grid  { grid-template-columns: repeat(2, 1fr) !important; gap: 0.5rem !important; }
+  .info-card  { padding: 0.65rem !important; }
+  .info-value { font-size: 0.78rem !important; }
+  .info-label { font-size: 0.62rem !important; }
+
+  .week-summary-strip {
+    gap: 0.4rem !important;
+    padding: 0.6rem 0.875rem !important;
+    font-size: 0.7rem !important;
+    flex-wrap: wrap !important;
+  }
+
+  .jump-today-btn { padding: 0.35rem 0.65rem !important; font-size: 0.72rem !important; }
+
+  .legend {
+    overflow-x: auto;
+    flex-wrap: nowrap !important;
+    scrollbar-width: none;
+    padding-bottom: 0.25rem;
+  }
+  .legend::-webkit-scrollbar { display: none; }
+  .legend-item { flex-shrink: 0; font-size: 0.72rem !important; padding: 0.3rem 0.65rem !important; }
+
+  .week-progress-label { font-size: 0.68rem !important; }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   EXAMS / PLANNER PAGE — MOBILE
+   ────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+
+  .ex-main,
+  .exams-page-container {
+    padding: 3.75rem 0.875rem 1.5rem !important;
+    max-width: 100% !important;
+  }
+
+  .ex-page-title,
+  .exams-page-title { font-size: 1.5rem !important; }
+
+  .ex-summary   { grid-template-columns: repeat(2, 1fr) !important; }
+  .ex-form-grid { grid-template-columns: 1fr !important; }
+
+  .ex-filter-row {
+    overflow-x: auto;
+    flex-wrap: nowrap !important;
+    scrollbar-width: none;
+    padding-bottom: 0.25rem;
+  }
+  .ex-filter-row::-webkit-scrollbar { display: none; }
+  .ex-filter-btn { flex-shrink: 0; }
+
+  .ex-card       { flex-wrap: wrap; gap: 0.65rem !important; padding: 0.875rem !important; }
+  .ex-card-right { flex-direction: row !important; width: 100%; justify-content: space-between; }
+  .exam-card     { flex-direction: column !important; align-items: flex-start !important; }
+
+  .exam-form-actions,
+  .ex-form-actions { flex-direction: row !important; }
+  .exam-form-actions button,
+  .ex-form-actions button { flex: 1; }
+
+  .ex-type-chip { font-size: 0.78rem !important; padding: 0.4rem 0.75rem !important; }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   ACHIEVEMENTS PAGE — MOBILE
+   ────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+
+  .ach-main { padding: 3.75rem 0.875rem 1.5rem !important; max-width: 100% !important; }
+  .ach-page-title { font-size: 1.5rem !important; }
+
+  .hero-stats  { grid-template-columns: repeat(2, 1fr) !important; }
+  .ach-grid-2  { grid-template-columns: 1fr !important; }
+  #achGrid     { grid-template-columns: 1fr !important; }
+
+  .ach-filters {
+    overflow-x: auto;
+    flex-wrap: nowrap !important;
+    scrollbar-width: none;
+    padding-bottom: 0.25rem;
+  }
+  .ach-filters::-webkit-scrollbar { display: none; }
+  .ach-filter-btn { flex-shrink: 0; }
+
+  .ach-full-header { flex-direction: column !important; align-items: flex-start !important; gap: 0.65rem !important; }
+  #heatmap { overflow-x: auto; }
+  .wk-chart { height: 90px !important; gap: 0.2rem !important; }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   SETTINGS PAGE — MOBILE
+   ────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+
+  .s-main { padding: 3.75rem 0.875rem 1.5rem !important; max-width: 100% !important; }
+  .s-title { font-size: 1.5rem !important; }
+  .s-stats { grid-template-columns: repeat(2, 1fr) !important; }
+  .s-profile { padding: 1.125rem !important; }
+  .s-avatar  { width: 3rem !important; height: 3rem !important; font-size: 1.2rem !important; }
+
+  .s-transfer-cards { grid-template-columns: 1fr !important; }
+  .s-preview-grid   { grid-template-columns: repeat(3, 1fr) !important; }
+  .s-row { flex-wrap: wrap; gap: 0.5rem; }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   AUTH PAGE — MOBILE
+   ────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .auth-container { flex-direction: column !important; }
+  .right-panel    { padding: 2rem 1.25rem !important; min-height: 100svh; align-items: flex-start; }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   PRICING & UTILITY PAGES — MOBILE
+   ────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+
+  .pricing-grid         { grid-template-columns: 1fr !important; padding: 0; gap: 1rem !important; }
+  .pricing-card.highlighted { transform: none !important; order: -1; }
+  .pricing-title        { font-size: 1.85rem !important; }
+  .pricing-section      { padding: 5rem 1rem 3rem !important; }
+  .pricing-subtitle     { font-size: 0.9rem !important; }
+
+  .checkout-section     { padding: 4rem 1rem 2rem !important; }
+  .content-card         { padding: 1.5rem 1.125rem !important; border-radius: 1.25rem !important; }
+  .checkout-title       { font-size: 1.4rem !important; }
+
+  .digit       { font-size: 4.5rem !important; }
+  .error-title { font-size: 1.65rem !important; }
+
+  .nav-container { padding: 0 1rem !important; }
+  .nav-link      { padding: 0.4rem 0.65rem !important; font-size: 0.8rem !important; }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   VERY SMALL PHONES (<= 390px)
+   ────────────────────────────────────────────────────────────── */
+@media (max-width: 390px) {
+
+  .hero-title      { font-size: 1.8rem !important; }
+  .dash-stat-value { font-size: 1.3rem !important; }
+
+  .mob-nav-item    { font-size: 0.5rem !important; }
+  .mob-nav-item svg { width: 1.05rem !important; height: 1.05rem !important; }
+
+  .ring-stage  { width: 195px !important; height: 195px !important; }
+  .ring-svg    { width: 195px !important; height: 195px !important; }
+  .time-display { font-size: 2.3rem !important; }
+  .seg-bars    { width: 195px !important; }
+  .btn-play    { width: 54px !important; height: 54px !important; }
+
+  .week-range  { font-size: 0.75rem !important; }
+  .ex-sum-val  { font-size: 1.35rem !important; }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   SAFE AREA (notch / dynamic island / home indicator)
+   ────────────────────────────────────────────────────────────── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .mob-nav {
+    padding-bottom: calc(0.3rem + env(safe-area-inset-bottom));
+  }
+
+  @media (max-width: 768px) {
+    body {
+      /* 2.9rem item height + 0.3rem top pad + safe area + a little breathing room */
+      padding-bottom: calc(3.5rem + env(safe-area-inset-bottom) + 0.5rem) !important;
+    }
+  }
+}
