@@ -86,5 +86,5 @@ StudyFlow does not accept feature implementations via pull requests. Feature req
 ---
 
 <p align="center">
-  © 2026 Niko Marinović. All rights reserved.
+  © 2026 Niko Marinović & Luka Protrka. All rights reserved.
 </p>
