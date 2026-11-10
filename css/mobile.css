@@ -75,15 +75,15 @@
   transform: scale(0.86);
 }
 
-.mob-nav-item:hover { color: hsl(270, 74%, 32%); }
+.mob-nav-item:hover { color: var(--primary); }
 
 .mob-nav-item.active {
-  color: hsl(270, 74%, 32%);
+  color: var(--primary);
 }
 
 .mob-nav-item.active svg {
   transform: scale(1.08);
-  filter: drop-shadow(0 0 5px rgba(132, 34, 209, 0.28));
+  filter: drop-shadow(0 0 5px rgba(20, 124, 112, 0.28));
 }
 
 /* Active indicator pip — sits at very bottom of each tab */
@@ -100,7 +100,7 @@
 }
 
 .mob-nav-item.active .mob-nav-pip {
-  background: hsl(270, 74%, 32%);
+  background: var(--primary);
 }
 
 /* ──────────────────────────────────────────────────────────────
@@ -134,7 +134,7 @@
   width: 1.75rem;
   height: 1.75rem;
   border-radius: 0.45rem;
-  background: hsl(270, 74%, 32%);
+  background: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -158,7 +158,7 @@
   align-items: center;
   gap: 0.3rem;
   padding: 0.35rem 0.85rem;
-  background: hsl(270, 74%, 32%);
+  background: var(--primary);
   color: #fff;
   border-radius: 0.55rem;
   font-size: 0.75rem;

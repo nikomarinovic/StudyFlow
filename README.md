@@ -22,8 +22,11 @@
 - Progress analytics — streaks, study hours, and weekly goals
 - Calendar view with scheduled and completed sessions
 - Full account system with session history and stats
+- Course workspaces with ECTS, per-course weighted assessment criteria, point entry, and assignments
+- Academic planner with recurring timetable, weekly lab confirmation, availability, exam periods, and ECTS-weighted suggested sessions
+- Per-course resources and a calendar with week, day, and month views
 
-**`No cloud required. Runs entirely in your browser.`**
+**Runs in your browser and syncs personal academic data through Firebase across devices.**
 
 ---
 
@@ -31,7 +34,7 @@
 
 Getting started with StudyFlow is fast:
 
-1. **Create an account** – sign up with email and password, stored locally on your device.
+1. **Create an account** – sign up with email and password; your account is managed by Firebase Authentication.
 2. **Add your exams** – enter subject, topic, date, and difficulty level.
 3. **Start a focus session** – choose Pomodoro (25 min), Deep Focus (50 min), Flow State (90 min), or a break mode.
 4. **Track your progress** – StudyFlow automatically calculates how many hours you've studied per subject and how much is left before each exam.
@@ -50,6 +53,7 @@ Getting started with StudyFlow is fast:
 - **Calendar** — weekly view with session indicators and day detail
 - **Analytics** — study score, streak, and weekly goal progress
 - **Settings** — clear sessions, delete account, view stats
+- **Courses** — track ECTS, assessment weights, mandatory minimums, earned points, and assignment deadlines
 
 ---
 
@@ -69,10 +73,10 @@ Getting started with StudyFlow is fast:
 
 ## Data & Privacy
 
-StudyFlow stores all data **locally in your browser** using `localStorage`. Nothing is sent to any server.
+StudyFlow keeps a local cache for responsive use and syncs account records to the user's private Firestore path. Firebase Authentication manages sign-in. Firestore rules restrict each account to its own records.
 
 > [!NOTE]
-> Cross-device sync is currently in development. For now, your sessions, exams, and progress are tied to the device and browser you use.
+> Firebase project `studyflow-78e19` is configured for the current app and the deployed Netlify domain. See [FIREBASE_SETUP.md](FIREBASE_SETUP.md) when using a different deployment domain.
 
 > [!WARNING]
 > Clearing your browser's site data or using private/incognito mode will erase your StudyFlow data.

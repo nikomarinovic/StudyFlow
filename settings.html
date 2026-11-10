@@ -46,7 +46,7 @@
 
     /* ── Profile ──────────────────────────────────────────── */
     .s-profile { background:white; border:1px solid var(--border); border-radius:1.25rem; padding:1.75rem; margin-bottom:1.25rem; display:flex; align-items:center; gap:1.5rem; animation:fadeInUp .5s ease .08s both; box-shadow:0 2px 12px rgba(0,0,0,.04); position:relative; overflow:hidden; }
-    .s-profile::before { content:''; position:absolute; top:-40px; right:-40px; width:180px; height:180px; border-radius:50%; background:radial-gradient(circle,rgba(132,34,209,.06) 0%,transparent 70%); pointer-events:none; }
+    .s-profile::before { content:''; position:absolute; top:-40px; right:-40px; width:180px; height:180px; border-radius:50%; background:radial-gradient(circle,rgba(20,124,112,.06) 0%,transparent 70%); pointer-events:none; }
     .s-avatar { width:4.25rem; height:4.25rem; border-radius:1rem; background:linear-gradient(135deg,var(--primary),var(--primary-glow)); display:flex; align-items:center; justify-content:center; font-size:1.75rem; font-weight:800; color:#fff; flex-shrink:0; }
     .s-profile-info { flex:1; min-width:0; }
     .s-profile-name { font-size:1.2rem; font-weight:700; margin-bottom:.15rem; }
@@ -59,7 +59,7 @@
     @media(min-width:640px){ .s-stats { grid-template-columns:repeat(4,1fr); } }
     .s-stat { background:white; border:1px solid var(--border); border-radius:1rem; padding:1rem; box-shadow:0 1px 4px rgba(0,0,0,.04); transition:transform .2s, box-shadow .2s; }
     .s-stat:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(0,0,0,.08); }
-    .s-stat-icon { width:1.9rem; height:1.9rem; border-radius:.5rem; background:rgba(132,34,209,.08); display:flex; align-items:center; justify-content:center; color:var(--primary); margin-bottom:.65rem; }
+    .s-stat-icon { width:1.9rem; height:1.9rem; border-radius:.5rem; background:rgba(20,124,112,.08); display:flex; align-items:center; justify-content:center; color:var(--primary); margin-bottom:.65rem; }
     .s-stat-val { font-family:'DM Mono',monospace; font-size:1.4rem; font-weight:500; color:var(--foreground); margin-bottom:.15rem; }
     .s-stat-lbl { font-size:.7rem; color:var(--muted-foreground); font-weight:500; }
 
@@ -68,7 +68,7 @@
     .s-section:nth-child(1){ animation-delay:.18s } .s-section:nth-child(2){ animation-delay:.22s } .s-section:nth-child(3){ animation-delay:.26s } .s-section:nth-child(4){ animation-delay:.30s }
     .s-section-header { padding:1.125rem 1.5rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:.75rem; }
     .s-section-icon { width:1.9rem; height:1.9rem; border-radius:.5rem; display:flex; align-items:center; justify-content:center; }
-    .s-section-icon.purple { background:rgba(132,34,209,.08); color:var(--primary); }
+    .s-section-icon.purple { background:rgba(20,124,112,.08); color:var(--primary); }
     .s-section-icon.blue   { background:rgba(14,165,233,.08);  color:hsl(199,89%,45%); }
     .s-section-icon.green  { background:rgba(22,163,74,.08);   color:var(--success); }
     .s-section-icon.red    { background:rgba(239,68,68,.08);   color:var(--destructive); }
@@ -90,7 +90,7 @@
     .s-btn-ghost { background:var(--muted); color:var(--foreground); border:1px solid var(--border); }
     .s-btn-ghost:hover { background:hsl(40,20%,88%); }
     .s-btn-primary { background:var(--primary); color:white; border:1px solid transparent; }
-    .s-btn-primary:hover { background:hsl(270,74%,28%); }
+    .s-btn-primary:hover { background:#0f675d; }
     .s-btn-outline { background:white; color:var(--foreground); border:1px solid var(--border); }
     .s-btn-outline:hover { background:var(--muted); }
 
@@ -115,7 +115,7 @@
     .s-tc-icon { width:2rem; height:2rem; border-radius:.5rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
     .s-tc-icon.green  { background:rgba(22,163,74,.1);   color:var(--success); }
     .s-tc-icon.blue   { background:rgba(59,130,246,.1);  color:hsl(221,83%,53%); }
-    .s-tc-icon.purple { background:rgba(132,34,209,.1);  color:var(--primary); }
+    .s-tc-icon.purple { background:rgba(20,124,112,.1);  color:var(--primary); }
     .s-tc-title { font-size:.88rem; font-weight:700; }
     .s-tc-desc { font-size:.75rem; color:var(--muted-foreground); line-height:1.5; margin-bottom:.85rem; }
     .s-tc-btn-row { display:flex; gap:.5rem; flex-wrap:wrap; }
@@ -148,6 +148,9 @@
     @keyframes toastIn   { from{transform:translateY(16px);opacity:0} to{transform:translateY(0);opacity:1} }
     @keyframes fadeInUp  { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
   </style>
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/app-polish.css">
+  <script src="js/theme.js"></script>
 </head>
 <body>
 <div class="s-layout">
@@ -160,6 +163,8 @@
     </a>
     <a href="dashboard.html" class="s-nav-link"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>Dashboard</a>
     <a href="calendar.html" class="s-nav-link"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>Calendar</a>
+    <a href="courses.html" class="s-nav-link">▤ Courses</a>
+    <a href="academic.html" class="s-nav-link">◷ Academic planner</a>
     <a href="timer.html" class="s-nav-link"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>Study Timer</a>
     <a href="exams.html" class="nav-item">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
@@ -199,10 +204,10 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
       </div>
       <div>
-        <div class="s-sync-title">Cross-device sync coming soon</div>
-        <div class="s-sync-sub">Until then, use Export &amp; Import below to move your data between devices.</div>
+        <div class="s-sync-title" id="settingsSyncTitle">Firebase setup required</div>
+        <div class="s-sync-sub" id="settingsSyncDescription">Add your Firebase Web App configuration and deploy the included Firestore rules to enable secure sign-in and cloud sync.</div>
       </div>
-      <div class="s-sync-badge">In Progress</div>
+      <div class="s-sync-badge" id="settingsSyncBadge">Setup needed</div>
     </div>
 
     <!-- Profile -->
@@ -213,6 +218,12 @@
         <div class="s-profile-email" id="sEmail">—</div>
         <div class="s-profile-badge">Free Plan</div>
       </div>
+      <button class="s-btn s-btn-outline" id="editAcademicProfile" type="button">Edit student profile</button>
+    </div>
+
+    <div class="s-section" style="animation-delay:.1s">
+      <div class="s-section-header"><div class="s-section-icon blue">◐</div><div><div class="s-section-title">Appearance</div><div class="s-section-sub">Choose a comfortable reading theme</div></div></div>
+      <div class="s-row"><div class="s-row-left"><div class="s-row-dot"></div><div><div class="s-row-label">Color theme</div><div class="s-row-sub">A consistent light theme on every device</div></div></div><span aria-label="Color theme: Light" style="padding:.55rem .75rem;border:1px solid var(--border);border-radius:.6rem;background:var(--card);color:var(--foreground)">Light</span></div>
     </div>
 
     <!-- Stats -->
@@ -363,6 +374,17 @@
   </main>
 </div>
 
+<dialog id="academicProfileDialog" style="border:1px solid var(--border);border-radius:1rem;padding:1.25rem;max-width:560px;width:calc(100% - 2rem)">
+  <form id="academicProfileForm" method="dialog" style="display:grid;gap:.75rem">
+    <h2>Student profile</h2>
+    <label>Student type<select name="studentType" style="display:block;width:100%;padding:.6rem"><option value="university">University</option><option value="high-school">High school</option><option value="other">Other</option></select></label>
+    <label>University / institution<input name="institution" list="profileInstitutions" style="display:block;width:100%;padding:.6rem"><datalist id="profileInstitutions"><option>University of Zagreb</option><option>Faculty of Electrical Engineering and Computing (FER)</option><option>Harvard University</option><option>Massachusetts Institute of Technology (MIT)</option><option>Stanford University</option><option>University of Oxford</option></datalist></label>
+    <label>Faculty<input name="faculty" style="display:block;width:100%;padding:.6rem"></label><label>Study programme<input name="studyProgram" style="display:block;width:100%;padding:.6rem"></label>
+    <label>Academic year<input name="academicYear" style="display:block;width:100%;padding:.6rem"></label><label>University email<input name="institutionEmail" type="email" style="display:block;width:100%;padding:.6rem"></label>
+    <div style="display:flex;justify-content:flex-end;gap:.5rem"><button type="button" class="s-btn s-btn-outline" id="cancelAcademicProfile">Cancel</button><button class="s-btn s-btn-primary">Save profile</button></div>
+  </form>
+</dialog>
+
 <!-- Confirm dialog -->
 <div class="s-dialog-overlay" id="confirmDialog">
   <div class="s-dialog">
@@ -382,6 +404,7 @@
 
 <script src="js/config.js"></script>
 <script src="js/db.js"></script>
+  <script src="js/firebase-config.js"></script><script src="js/firebase.js"></script>
 <script src="js/mobile-nav.js"></script>
 <script src="js/settings.js"></script>
 <script>

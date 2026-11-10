@@ -37,6 +37,10 @@
     .sync-bar-mobile strong { font-weight: 700; color: hsl(199,89%,28%); }
     @media(max-width:1023px){ .sync-bar-mobile { display: flex; } }
   </style>
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/app-polish.css">
+  <link rel="stylesheet" href="css/auth-polish.css">
+  <script src="js/theme.js"></script>
 </head>
 <body>
   <div class="auth-container">
@@ -53,19 +57,19 @@
           <span class="brand-text">StudyFlow</span>
         </a>
         <div class="left-hero">
-          <h1 class="left-title" id="leftTitle">Start Your Journey</h1>
-          <p class="left-description" id="leftDescription">Join thousands of students who've transformed their study habits with personalized schedules.</p>
+          <h1 class="left-title" id="leftTitle">Your semester, in good order.</h1>
+          <p class="left-description" id="leftDescription">Bring courses, deadlines, exams, and study time into one clear workspace.</p>
         </div>
         <div class="auth-stats-grid">
-          <div class="auth-stat-card"><div class="auth-stat-value">95%</div><div class="auth-stat-label">Pass Rate</div></div>
-          <div class="auth-stat-card"><div class="auth-stat-value">2M+</div><div class="auth-stat-label">Study Hours</div></div>
+          <div class="auth-stat-card"><div class="auth-stat-value">Coursework</div><div class="auth-stat-label">Points, criteria, and assignments stay together.</div></div>
+          <div class="auth-stat-card"><div class="auth-stat-value">Study plan</div><div class="auth-stat-label">Make room for classes, deadlines, and breaks.</div></div>
         </div>
         <!-- Sync notice on desktop left panel -->
         <div class="sync-notice">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
           <div class="sync-notice-text">
-            <strong>Cross-device sync coming soon</strong>
-            Your data is stored locally on this device only. We're working on cloud sync.
+            <strong>Private by design</strong>
+            Your account syncs through Firebase across your signed-in devices.
           </div>
         </div>
       </div>
@@ -85,7 +89,7 @@
         <!-- Sync notice on mobile (right panel) -->
         <div class="sync-bar-mobile">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
-          <span><strong>Cross-device sync coming soon</strong> — data is stored on this device only.</span>
+          <span><strong>Firebase sync ready</strong> — sign in to keep your academic data on your devices.</span>
         </div>
 
         <div class="form-header">
@@ -103,6 +107,21 @@
               <input type="text" id="name" class="form-input" placeholder="John Doe">
             </div>
           </div>
+
+          <div class="form-group signup-profile" id="studentTypeGroup">
+            <label for="studentType" class="form-label">I am a</label>
+            <select id="studentType" class="form-input"><option value="university">University student</option><option value="high-school">High school student</option><option value="other">Other student</option></select>
+          </div>
+          <details id="universityFields" class="signup-profile academic-profile">
+            <summary>University details <span>Optional profile information</span></summary>
+            <div class="academic-profile-grid">
+            <div class="form-group"><label for="institution" class="form-label">University or institution</label><input id="institution" class="form-input" list="institutions" placeholder="Search or enter your institution"><datalist id="institutions"><option>University of Zagreb</option><option>Faculty of Electrical Engineering and Computing (FER)</option><option>Harvard University</option><option>Massachusetts Institute of Technology (MIT)</option><option>Stanford University</option><option>University of Oxford</option></datalist></div>
+            <div class="form-group"><label for="faculty" class="form-label">Faculty / school</label><input id="faculty" class="form-input" placeholder="Faculty of Electrical Engineering and Computing"></div>
+            <div class="form-group"><label for="studyProgram" class="form-label">Study programme</label><input id="studyProgram" class="form-input" placeholder="Computer Science"></div>
+            <div class="form-group"><label for="academicYear" class="form-label">Current academic year</label><select id="academicYear" class="form-input"><option value="">Select year</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>Graduate</option><option>Doctoral</option></select></div>
+            <div class="form-group"><label for="institutionEmail" class="form-label">University email (optional)</label><input id="institutionEmail" type="email" class="form-input" placeholder="name@university.edu"></div>
+            </div>
+          </details>
 
           <div class="form-group">
             <label for="email" class="form-label">Email</label>
@@ -164,6 +183,7 @@
   <script src="js/config.js"></script>
   <script src="js/mobile-nav.js"></script>
   <script src="js/db.js"></script>
-  <script src="js/auth.js"></script>
+  <script src="js/firebase-config.js"></script><script src="js/firebase.js"></script>
+  <script src="js/auth.js?v=visual-refresh-1"></script>
 </body>
 </html>

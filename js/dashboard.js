@@ -353,7 +353,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('greeting').textContent =
     `${getTimeGreeting()}, ${currentUser.name}!`;
 
-  document.getElementById('signOutBtn').addEventListener('click', () => {
+  document.getElementById('signOutBtn').addEventListener('click', async () => {
+    const sync=await window.FirebaseSyncReady;if(sync?.enabled)await sync.signOut();
     localStorage.removeItem('sf_current_user');
     window.location.href = 'index.html';
   });
