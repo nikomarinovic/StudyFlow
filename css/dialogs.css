@@ -1,0 +1,22 @@
+/* Keep data entry dialogs usable on short screens and narrow phones. */
+dialog:not([id=""]) {
+  box-sizing:border-box; max-width:calc(100vw - 2rem); max-height:calc(100dvh - 2rem);
+  overflow:auto; overscroll-behavior:contain; scrollbar-gutter:stable;
+}
+dialog form { min-width:0; }
+dialog .dialog-head { position:sticky;top:-1px;z-index:2;background:inherit;padding:.15rem 0 .7rem; }
+dialog .dialog-actions { position:sticky;bottom:-1px;z-index:2;background:inherit;padding:.75rem 0 .15rem; }
+dialog .dialog-actions button { min-height:2.75rem; }
+#academicProfileDialog { width:min(560px,calc(100vw - 2rem));overflow:auto; }
+#academicProfileDialog form { max-height:calc(100dvh - 5rem);overflow:auto;padding:.15rem; }
+.s-dialog-overlay { box-sizing:border-box;padding:1rem;overflow:auto; }
+.s-dialog { box-sizing:border-box;max-height:calc(100dvh - 2rem);overflow:auto; }
+.modal-backdrop { box-sizing:border-box;padding:1rem;overflow-y:auto; }
+.modal-card { width:min(100%,420px);max-height:calc(100dvh - 2rem);overflow:auto; }
+@media(max-width:700px){
+  dialog { width:calc(100vw - 1rem)!important;max-width:calc(100vw - 1rem)!important;max-height:calc(100dvh - 1rem)!important;padding:1rem!important;border-radius:14px!important; }
+  dialog .form-grid { grid-template-columns:minmax(0,1fr)!important; }
+  dialog .criterion-row { grid-template-columns:minmax(70px,1fr) repeat(3,minmax(48px,62px)) 22px!important; }
+  dialog .criterion-row input { min-width:0; }
+  dialog .dialog-actions { gap:.5rem; }
+}

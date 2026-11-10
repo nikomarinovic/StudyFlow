@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="css/theme.css">
   <link rel="stylesheet" href="css/app-polish.css">
   <script src="js/theme.js"></script>
+  <link rel="stylesheet" href="css/sidebar.css">
+  <link rel="stylesheet" href="css/dialogs.css">
 </head>
 <body>
 <div class="dashboard-container">
@@ -44,6 +46,6 @@
 <dialog id="taskDialog"><form id="taskForm" method="dialog"><div class="dialog-head"><div><p class="eyebrow">COURSEWORK</p><h2 id="taskDialogTitle">Add assignment</h2></div><button type="button" class="close" data-close="taskDialog">×</button></div><input type="hidden" name="id"><div class="form-grid">
 <label>Title<input name="title" required maxlength="120" placeholder="Problem set 2"></label><label>Course<select name="courseId" required></select></label><label>Assessment category<select name="assessmentIndex" required></select></label><label>Grade contribution<input id="taskWeight" type="text" readonly></label><label>Due date<input name="dueDate" type="date" required></label><label>Due time<input name="dueTime" type="time"></label><label>Maximum points<input name="maxPoints" type="number" min="0" step="0.5"></label><label>Remind me (days before)<input name="reminderDaysBefore" type="number" min="0" max="90" value="1"></label></div><label>Description<textarea name="description" rows="3" maxlength="500"></textarea></label><label>Notes<textarea name="notes" rows="2" maxlength="500"></textarea></label><div class="dialog-actions"><button type="button" class="btn-outline" data-close="taskDialog">Cancel</button><button type="submit" class="btn-primary">Save assignment</button></div></form></dialog>
 <dialog id="resourceDialog"><form id="resourceForm" method="dialog"><div class="dialog-head"><div><p class="eyebrow">COURSE MATERIALS</p><h2>Add a resource</h2></div><button type="button" class="close" data-close="resourceDialog">×</button></div><div class="form-grid"><label>Title<input name="title" required maxlength="120" placeholder="Week 1 lecture slides"></label><label>Course<select name="courseId" required></select></label><label>Category<select name="category"><option>Lecture materials</option><option>Laboratory materials</option><option>Exam preparation</option><option>Additional resources</option><option>Personal notes</option></select></label><label>URL<input name="url" type="url" required placeholder="https://…"></label></div><label>Description<textarea name="description" rows="2" maxlength="300"></textarea></label><div class="dialog-actions"><button type="button" class="btn-outline" data-close="resourceDialog">Cancel</button><button class="btn-primary">Save resource</button></div></form></dialog>
-<script src="js/config.js"></script><script src="js/mobile-nav.js"></script><script src="js/db.js"></script>
+<script src="js/config.js"></script><script src="js/sidebar.js"></script><script src="js/mobile-nav.js"></script><script src="js/db.js"></script>
   <script src="js/firebase-config.js"></script><script src="js/firebase.js"></script><script src="js/courses.js"></script>
 </body></html>
