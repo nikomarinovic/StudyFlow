@@ -50,7 +50,7 @@ function confirmClear() {
 function confirmDeleteAccount() {
   openDialog(
     'Delete your account?',
-    'This will permanently delete your account, all sessions, exams, and stats. This cannot be undone.',
+    'This will permanently delete your account, courses, assignments, sessions, exams, and stats. This cannot be undone.',
     'Delete Account',
     doDeleteAccount
   );
@@ -64,15 +64,23 @@ function doClearSessions() {
   showToast('All sessions cleared');
   init();
 }
-function doDeleteAccount() {
-  [DB.SESSIONS_KEY, DB.EXAMS_KEY, DB.ITEMS_KEY, DB.STATS_KEY, DB.COMPLETIONS_KEY].forEach(key => {
+async function doDeleteAccount() {
+  if(currentUser.firebaseUser){
+    const password=prompt('Confirm your Firebase password to permanently delete this account.');
+    if(password===null)return false;
+    const sync=await window.FirebaseSyncReady;
+    if(!sync?.enabled)throw new Error('Firebase is not available. No account data was deleted.');
+    await sync.deleteAccount(password);
+  }
+  [DB.SESSIONS_KEY, DB.EXAMS_KEY, DB.ITEMS_KEY, DB.STATS_KEY, DB.COMPLETIONS_KEY, DB.COURSES_KEY, DB.TASKS_KEY, DB.EVENTS_KEY, DB.AVAILABILITY_KEY, DB.LAB_WEEKS_KEY, DB.PERIODS_KEY, DB.RESOURCES_KEY, 'sf_profiles'].forEach(key => {
     DB._set(key, DB._get(key).filter(r => r.userId !== currentUser.id));
   });
   DB._set(DB.USERS_KEY, DB.getUsers().filter(u => u.id !== currentUser.id));
   localStorage.removeItem('sf_current_user');
   window.location.href = 'index.html';
 }
-function signOut() {
+async function signOut() {
+  const sync=await window.FirebaseSyncReady;if(sync?.enabled)await sync.signOut();
   localStorage.removeItem('sf_current_user');
   window.location.href = 'index.html';
 }
@@ -82,11 +90,19 @@ function exportData() {
   const payload = {
     exportedAt:  new Date().toISOString(),
     exportedBy:  currentUser.email,
-    version:     2,
+    version:     4,
     items:       DB.getItems(currentUser.id),
     sessions:    DB.getSessions(currentUser.id),
     completions: DB.getCompletions(currentUser.id),
     stats:       DB.getStats(currentUser.id),
+    courses:     DB.getCourses(currentUser.id),
+    tasks:       DB.getTasks(currentUser.id),
+    academicEvents: DB.getAcademicEvents(currentUser.id),
+    availability: DB._get(DB.AVAILABILITY_KEY).filter(x=>x.userId===currentUser.id),
+    labWeeks: DB._get(DB.LAB_WEEKS_KEY).filter(x=>x.userId===currentUser.id),
+    academicPeriods: DB.getPeriods(currentUser.id),
+    resources: DB.getResources(currentUser.id),
+    profile: DB.getProfile(currentUser.id),
   };
 
   const json     = JSON.stringify(payload, null, 2);
@@ -143,50 +159,23 @@ function triggerImport(mode) {
 }
 
 function doImport(data, mode) {
-  if (mode === 'override') {
-    // Wipe current user's data
-    DB._set(DB.ITEMS_KEY,       DB._get(DB.ITEMS_KEY).filter(i => i.userId !== currentUser.id));
-    DB._set(DB.SESSIONS_KEY,    DB._get(DB.SESSIONS_KEY).filter(s => s.userId !== currentUser.id));
-    DB._set(DB.COMPLETIONS_KEY, DB._get(DB.COMPLETIONS_KEY).filter(c => c.userId !== currentUser.id));
-
-    // Write backup data re-stamped with current userId
-    const items       = (data.items       || []).map(i => ({ ...i, userId: currentUser.id }));
-    const sessions    = (data.sessions    || []).map(s => ({ ...s, userId: currentUser.id }));
-    const completions = (data.completions || []).map(c => ({ ...c, userId: currentUser.id }));
-
-    DB._set(DB.ITEMS_KEY,       [...DB._get(DB.ITEMS_KEY),       ...items]);
-    DB._set(DB.SESSIONS_KEY,    [...DB._get(DB.SESSIONS_KEY),    ...sessions]);
-    DB._set(DB.COMPLETIONS_KEY, [...DB._get(DB.COMPLETIONS_KEY), ...completions]);
-
-    // Override stats (keep userId)
-    if (data.stats) {
-      DB.updateStats(currentUser.id, { ...data.stats, userId: currentUser.id });
-    }
-
-    const total = items.length + sessions.length;
-    showToast(`Override complete — ${total} records imported`);
-
-  } else {
-    // Merge: only add items whose id doesn't already exist
-    const existingItems    = new Set(DB.getItems(currentUser.id).map(i => i.id));
-    const existingSessions = new Set(DB.getSessions(currentUser.id).map(s => s.id));
-    const existingComps    = new Set(DB.getCompletions(currentUser.id).map(c => c.blockId));
-
-    const newItems       = (data.items       || []).filter(i => !existingItems.has(i.id))
-                            .map(i => ({ ...i, userId: currentUser.id }));
-    const newSessions    = (data.sessions    || []).filter(s => !existingSessions.has(s.id))
-                            .map(s => ({ ...s, userId: currentUser.id }));
-    const newCompletions = (data.completions || []).filter(c => !existingComps.has(c.blockId))
-                            .map(c => ({ ...c, userId: currentUser.id }));
-
-    DB._set(DB.ITEMS_KEY,       [...DB._get(DB.ITEMS_KEY),       ...newItems]);
-    DB._set(DB.SESSIONS_KEY,    [...DB._get(DB.SESSIONS_KEY),    ...newSessions]);
-    DB._set(DB.COMPLETIONS_KEY, [...DB._get(DB.COMPLETIONS_KEY), ...newCompletions]);
-
-    const added = newItems.length + newSessions.length;
-    const skipped = (data.items?.length || 0) + (data.sessions?.length || 0) - added;
-    showToast(`Merged — ${added} new records added${skipped > 0 ? `, ${skipped} duplicates skipped` : ''}`);
-  }
+  const specs=[
+    [DB.ITEMS_KEY,'items'],[DB.SESSIONS_KEY,'sessions'],[DB.COMPLETIONS_KEY,'completions'],
+    [DB.COURSES_KEY,'courses'],[DB.TASKS_KEY,'tasks'],[DB.EVENTS_KEY,'academicEvents'],
+    [DB.AVAILABILITY_KEY,'availability'],[DB.LAB_WEEKS_KEY,'labWeeks'],[DB.PERIODS_KEY,'academicPeriods'],[DB.RESOURCES_KEY,'resources']
+  ];
+  let count=0, skipped=0;
+  specs.forEach(([key,field])=>{
+    const incoming=(data[field]||[]).map(row=>({...row,userId:currentUser.id}));
+    const all=DB._get(key), others=all.filter(row=>row.userId!==currentUser.id), existing=all.filter(row=>row.userId===currentUser.id);
+    if(mode==='override') { DB._set(key,[...others,...incoming]);count+=incoming.length;return; }
+    const id=row=>row.id||row.blockId||row.userId;
+    const ids=new Set(existing.map(id));const additions=incoming.filter(row=>!ids.has(id(row)));
+    count+=additions.length;skipped+=incoming.length-additions.length;DB._set(key,[...all,...additions]);
+  });
+  if(data.stats&&mode==='override')DB.updateStats(currentUser.id,{...data.stats,userId:currentUser.id});
+  if(data.profile){if(mode==='override'||!Object.keys(DB.getProfile(currentUser.id)).length)DB.saveProfile(currentUser.id,data.profile);}
+  showToast(mode==='override'?`Override complete — ${count} records imported`:`Merged — ${count} new records added${skipped?`, ${skipped} duplicates skipped`:''}`);
 
   init();
   updateExportPreview();
@@ -217,6 +206,8 @@ function init() {
   if (avatar) avatar.textContent = name.charAt(0).toUpperCase();
   set('sName',  name);
   set('sEmail', currentUser.email || '—');
+  const profile = DB.getProfile(currentUser.id);
+  if (profile.institution || profile.faculty) set('sEmail', [currentUser.email, profile.institution, profile.faculty].filter(Boolean).join(' · '));
   set('rowName',  name);
   set('rowEmail', currentUser.email || '—');
 
@@ -248,8 +239,21 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  const profileDialog = document.getElementById('academicProfileDialog');
+  document.getElementById('editAcademicProfile')?.addEventListener('click', () => {
+    const profile = DB.getProfile(currentUser.id), form = document.getElementById('academicProfileForm');
+    ['studentType','institution','faculty','studyProgram','academicYear','institutionEmail'].forEach(k => { if (form.elements[k]) form.elements[k].value = profile[k] || (k === 'studentType' ? 'university' : ''); });
+    profileDialog.showModal();
+  });
+  document.getElementById('cancelAcademicProfile')?.addEventListener('click', () => profileDialog.close());
+  document.getElementById('academicProfileForm')?.addEventListener('submit', e => {
+    e.preventDefault(); const patch = Object.fromEntries(new FormData(e.currentTarget));
+    const institution = patch.institution || '';
+    patch.institutionBrand = /FER|Faculty of Electrical Engineering and Computing/i.test(institution) ? 'fer' : /Harvard/i.test(institution) ? 'harvard' : /MIT|Massachusetts Institute/i.test(institution) ? 'mit' : 'default';
+    DB.saveProfile(currentUser.id, patch); Object.assign(currentUser, patch); localStorage.setItem('sf_current_user', JSON.stringify(currentUser)); profileDialog.close(); init(); showToast('Student profile updated');
+  });
   document.getElementById('dialogConfirmBtn')?.addEventListener('click', () => {
-    if (pendingAction) { pendingAction(); closeDialog(); }
+    if (pendingAction) Promise.resolve(pendingAction()).then(result=>{if(result!==false)closeDialog();}).catch(error=>showToast(error.message||'The action could not be completed.','error'));
   });
   document.getElementById('confirmDialog')?.addEventListener('click', e => {
     if (e.target === document.getElementById('confirmDialog')) closeDialog();

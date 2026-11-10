@@ -108,6 +108,8 @@ function toggleAddPanel() {
   body.classList.toggle('open', !isOpen);
   chevron.classList.toggle('open', !isOpen);
   if (!isOpen) {
+    const courseSelect = document.getElementById('examCourse');
+    if (courseSelect) courseSelect.innerHTML = '<option value="">Not linked to a course</option>' + DB.getCourses(currentUser.id).map(c => `<option value="${c.id}">${String(c.name).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}</option>`).join('');
     const di = document.getElementById('examDate');
     if (di) di.min = new Date().toISOString().split('T')[0];
     setTimeout(() => { const s = document.getElementById('examSubject'); if (s) s.focus(); }, 350);
@@ -140,6 +142,12 @@ function submitExam(e) {
     examDate:           dueDate,
     difficulty:         selectedType === 'exam' ? selectedDifficulty : 'medium',
     notes,
+    courseId:           document.getElementById('examCourse')?.value || '',
+    examKind:           document.getElementById('examKind')?.value || 'final',
+    startTime:          document.getElementById('examStartTime')?.value || '',
+    endTime:            document.getElementById('examEndTime')?.value || '',
+    location:           document.getElementById('examLocation')?.value.trim() || '',
+    prepRequirements:   notes,
     reminderDaysBefore: selectedType === 'reminder' ? remDays : 0,
   });
 

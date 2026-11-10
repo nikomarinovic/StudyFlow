@@ -53,6 +53,9 @@
     .nav-bar { top: 2rem !important; }
     .hero-section { padding-top: 10rem !important; }
   </style>
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/app-polish.css">
+  <script src="js/theme.js"></script>
 </head>
 <body>
 
@@ -66,12 +69,12 @@
       const icon = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>`;
       const dot = `<span class="sync-dot"></span>`;
       const messages = [
-        `${icon}&nbsp;<strong>Cross-device sync coming soon</strong> — your data is stored on this device only.`,
-        `${icon}&nbsp;<strong>We're working on cloud sync</strong> — stay tuned for updates.`,
-        `${icon}&nbsp;<strong>Sessions &amp; exams</strong> are safely stored locally for now.`,
-        `${icon}&nbsp;<strong>Cross-device sync coming soon</strong> — your data is stored on this device only.`,
-        `${icon}&nbsp;<strong>We're working on cloud sync</strong> — stay tuned for updates.`,
-        `${icon}&nbsp;<strong>Sessions &amp; exams</strong> are safely stored locally for now.`,
+        `${icon}&nbsp;<strong>Firebase setup required</strong> — your data stays on this device until project configuration is added.`,
+        `${icon}&nbsp;<strong>Use Settings → Export</strong> to back up your data until Firebase is configured.`,
+        `${icon}&nbsp;<strong>Accounts are device-local</strong> until a Firebase project is configured.`,
+        `${icon}&nbsp;<strong>Firebase setup required</strong> — your data stays on this device until project configuration is added.`,
+        `${icon}&nbsp;<strong>Use Settings → Export</strong> to back up your data until Firebase is configured.`,
+        `${icon}&nbsp;<strong>Accounts are device-local</strong> until a Firebase project is configured.`,
       ];
       const html = messages.map(m => `<span class="sync-item">${m}</span>${dot}`).join('');
       // Double it for seamless infinite loop
@@ -106,26 +109,26 @@
           <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
           <path d="M5 3v4"></path><path d="M19 17v4"></path><path d="M3 5h4"></path><path d="M17 19h4"></path>
         </svg>
-        Your AI Study Coach
+        Your Study Workspace
       </div>
       <h1 class="hero-title fade-in-delay-1">
         Study Smarter,<br><span class="gradient-text">Not Harder</span>
       </h1>
       <p class="hero-subtitle fade-in-delay-2">
-        The intelligent study planner that creates personalized schedules, tracks your progress, and keeps you accountable — all in one beautiful app.
+        Keep courses, deadlines, exams, and study time organized in one clear workspace.
       </p>
       <div class="hero-cta fade-in-delay-3">
         <a href="auth.html?mode=signup" class="btn btn-hero btn-xl">
-          Start Free Trial
+          Get started
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path>
           </svg>
         </a>
       </div>
       <div class="stats fade-in-delay-4">
-        <div class="stat"><div class="stat-value gradient-text">10K+</div><div class="stat-label">Students</div></div>
-        <div class="stat"><div class="stat-value gradient-text">2M+</div><div class="stat-label">Study Hours</div></div>
-        <div class="stat"><div class="stat-value gradient-text">95%</div><div class="stat-label">Pass Rate</div></div>
+        <div class="stat"><div class="stat-value gradient-text">Courses</div><div class="stat-label">ECTS, grades, and criteria</div></div>
+        <div class="stat"><div class="stat-value gradient-text">Deadlines</div><div class="stat-label">Assignments and exams</div></div>
+        <div class="stat"><div class="stat-value gradient-text">Study plan</div><div class="stat-label">Built around your week</div></div>
       </div>
     </div>
   </section>
@@ -260,6 +263,7 @@
   <script src="js/config.js"></script>
   <script src="js/mobile-nav.js"></script>
   <script src="js/db.js"></script>
+  <script src="js/firebase-config.js"></script><script src="js/firebase.js"></script>
   <script src="js/index.js"></script>
 </body>
 </html>

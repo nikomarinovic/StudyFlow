@@ -9,6 +9,10 @@ const CIRCUMFERENCE    = 2 * Math.PI * 22; // for 52×52 SVG ring r=22 → ~138.
 
 let currentWeekStart = getStartOfWeek(new Date());
 let selectedDate     = new Date();
+let calendarView = localStorage.getItem('sf_calendar_view') || 'week';
+let calendarFilters = {timetable:true,study:true,exams:true,deadlines:true};
+try { calendarFilters={...calendarFilters,...JSON.parse(localStorage.getItem('sf_calendar_filters')||'{}')}; } catch {}
+if(!['day','week','month'].includes(calendarView))calendarView='week';
 
 // ── Utilities ─────────────────────────────────────────────────
 function getStartOfWeek(date) {
@@ -43,6 +47,7 @@ function diffColor(difficulty) {
   if (difficulty==='medium')    return 'warning';
   return 'success';
 }
+function calendarEscape(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 // ── Schedule generator ────────────────────────────────────────
 function generateSchedule(items, sessions) {
@@ -63,14 +68,14 @@ function generateSchedule(items, sessions) {
       // Exam-day marker
       scheduled.push({
         id: `examday-${exam.id}`, blockId: `examday-${exam.id}`,
-        subject: exam.subject, topic: exam.topic || '',
-        time: '—', durationMinutes: 0, duration: '—',
+        subject: exam.subject, topic: [exam.examKind==='midterm'?'Midterm / kolokvij':exam.examKind==='final'?'Final examination':'',exam.topic].filter(Boolean).join(' · '),
+        time: exam.startTime || '—', location:exam.location||'', durationMinutes: 0, duration: '—',
         color: 'exam-day', type: 'exam-day',
         date: new Date(examDate), examId: exam.id,
         difficulty: exam.difficulty
       });
 
-      if (daysUntil <= 0) return;
+      if (daysUntil <= 0 || exam.courseId && DB.getCourses(currentUser.id).some(c=>c.id===exam.courseId)) return;
 
       const totalH   = DIFFICULTY_HOURS[exam.difficulty] || 10;
       const studiedH = sessions.filter(s => s.subject === exam.subject)
@@ -148,6 +153,36 @@ function generateSchedule(items, sessions) {
     } catch(e) { console.error(e); }
   });
 
+  // Add the student's weekly timetable, one-off activities, generated plan,
+  // and coursework to the existing calendar view.
+  const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const visibleDays=calendarView==='month'?42:calendarView==='day'?1:7;
+  const firstDay=calendarView==='month'?getStartOfWeek(new Date(currentWeekStart.getFullYear(),currentWeekStart.getMonth(),1)):calendarView==='day'?new Date(selectedDate):getStartOfWeek(currentWeekStart);
+  for (let offset = 0; offset < visibleDays; offset++) {
+    const day = addDays(firstDay, offset), dayKey = iso(day), weekday = day.getDay(), weekKey=iso(getStartOfWeek(day));
+    const labWeek = DB.getLabWeek?.(currentUser.id, weekKey);
+    const period = DB.getPeriods?.(currentUser.id).find(p => p.suspendClasses && dayKey >= p.startDate && dayKey <= p.endDate);
+    DB.getAcademicEvents?.(currentUser.id).forEach(event => {
+      if (event.type === 'lab' && (event.weekKey === weekKey || event.repeat === 'weekly')) return;
+      if (event.type === 'study') {
+        if (event.date !== dayKey) return;
+      } else if (event.repeat === 'weekly') {
+        if (period || Number(event.day) !== weekday) return;
+        if (event.type === 'lab' && labWeek) return;
+      } else if (event.date !== dayKey) return;
+      const durationMinutes=event.type==='study'&&event.start&&event.end?Math.max(0,(Number(event.end.slice(0,2))*60+Number(event.end.slice(3)))-(Number(event.start.slice(0,2))*60+Number(event.start.slice(3)))):0;
+      scheduled.push({ id:`acad-${event.id}-${dayKey}`, blockId:`acad-${event.id}-${dayKey}`, subject:event.title, topic:[event.type,event.location,event.description].filter(Boolean).join(' · '), time:event.start||'—', end:event.end||'', durationMinutes, duration:durationMinutes?`${durationMinutes} min`:'—', color:event.color||'academic-event', type:event.type==='study'?'scheduled':'academic', date:new Date(day), courseId:event.courseId, eventId:event.id, location:event.location||'' });
+    });
+    if (labWeek?.weekKey === weekKey) (labWeek.events||[]).forEach((event,index) => {
+      if (event.date !== dayKey) return;
+      scheduled.push({ id:`lab-${labWeek.id}-${index}`, blockId:`lab-${labWeek.id}-${index}`, subject:event.title, topic:[event.location,event.description].filter(Boolean).join(' · '), time:event.start||'—', durationMinutes:0, duration:'—', color:event.color||'academic-event', type:'academic', date:new Date(day), courseId:event.courseId, location:event.location||'' });
+    });
+  }
+  DB.getTasks?.(currentUser.id).filter(task => task.status !== 'done' && task.dueDate).forEach(task => {
+    const due = new Date(`${task.dueDate}T12:00:00`);
+    scheduled.push({ id:`task-${task.id}`, blockId:`task-${task.id}`, subject:task.title, topic:[DB.getCourses?.(currentUser.id).find(c=>c.id===task.courseId)?.name,task.dueTime].filter(Boolean).join(' · '), time:task.dueTime||'—', durationMinutes:0, duration:'—', color:'assignment', type:'assignment', date:due, notes:task.description||'' });
+  });
+
   return scheduled;
 }
 
@@ -175,15 +210,18 @@ function toggleComplete(blockId, subject, durationMinutes) {
 // ── Week nav ───────────────────────────────────────────────────
 function renderWeekNav() {
   const end = addDays(currentWeekStart, 6);
-  document.getElementById('weekRange').textContent =
-    `${fmtDate(currentWeekStart,'MMM d')} – ${fmtDate(end,'MMM d, yyyy')}`;
+  document.getElementById('weekRange').textContent = calendarView==='month'
+    ? fmtDate(currentWeekStart,'MMMM yyyy') : calendarView==='day'
+      ? fmtDate(selectedDate,'MMM d, yyyy') : `${fmtDate(currentWeekStart,'MMM d')} – ${fmtDate(end,'MMM d, yyyy')}`;
 }
 
 // ── Week progress + summary ────────────────────────────────────
 function renderWeekProgress(scheduled) {
   // Build set of ISO date strings for the current week
   const weekDays = new Set();
-  for (let i = 0; i < 7; i++) weekDays.add(addDays(currentWeekStart, i).toISOString().split('T')[0]);
+  const visibleDays=calendarView==='month'?42:calendarView==='day'?1:7;
+  const firstDay=calendarView==='month'?getStartOfWeek(new Date(currentWeekStart.getFullYear(),currentWeekStart.getMonth(),1)):calendarView==='day'?new Date(selectedDate):currentWeekStart;
+  for (let i = 0; i < visibleDays; i++) weekDays.add(addDays(firstDay, i).toISOString().split('T')[0]);
 
   const inWeek = s => weekDays.has(new Date(s.date).toISOString().split('T')[0]);
 
@@ -197,23 +235,27 @@ function renderWeekProgress(scheduled) {
   document.getElementById('weekProgressFill').style.width = pct + '%';
   document.getElementById('weekProgressPct').textContent  = pct + '%';
   document.getElementById('weekProgressLabel').textContent =
-    `Week progress — ${completed} of ${total} sessions done`;
+    `${calendarView==='month'?'Month':calendarView==='day'?'Day':'Week'} progress — ${completed} of ${total} sessions done`;
 
   document.getElementById('wssCompleted').textContent = completed;
   document.getElementById('wssTotal').textContent     = total;
   const h = Math.floor(totalMins/60), m = totalMins%60;
   document.getElementById('wssHours').textContent = h > 0 ? `${h}h ${m}m` : `${m}m`;
   document.getElementById('wssExams').textContent  = examsThisWeek;
+  document.querySelector('.wss-exams-label')?.replaceChildren(document.createTextNode(calendarView==='month'?'exams this month':calendarView==='day'?'exams today':'exams this week'));
 }
 
 // ── Week grid ──────────────────────────────────────────────────
 function renderWeekGrid(items, sessions, scheduled) {
   const grid = document.getElementById('weekGrid');
   grid.innerHTML = '';
+  const visibleDays=calendarView==='month'?42:calendarView==='day'?1:7;
+  const firstDay=calendarView==='month'?getStartOfWeek(new Date(currentWeekStart.getFullYear(),currentWeekStart.getMonth(),1)):calendarView==='day'?new Date(selectedDate):currentWeekStart;
+  grid.dataset.view=calendarView;
   const CIRC_SMALL = 2 * Math.PI * 9; // r=9 for the small day-cell rings
 
-  for (let i = 0; i < 7; i++) {
-    const date        = addDays(currentWeekStart, i);
+  for (let i = 0; i < visibleDays; i++) {
+    const date        = addDays(firstDay, i);
     const dayScheduled = scheduled.filter(s => isSameDay(s.date, date));
     const studyBlocks  = dayScheduled.filter(b => b.type === 'scheduled');
     const doneCount    = studyBlocks.filter(b => DB.isCompleted(currentUser.id, b.blockId)).length;
@@ -226,10 +268,11 @@ function renderWeekGrid(items, sessions, scheduled) {
     cell.className = 'day-cell';
     if (isSameDay(date, selectedDate)) cell.classList.add('selected');
     if (isSameDay(date, new Date()))   cell.classList.add('today');
+    if (calendarView==='month'&&date.getMonth()!==currentWeekStart.getMonth()) cell.classList.add('other-month-day');
     if (hasExam)                       cell.classList.add('exam-day-cell');
 
     const indicators = dayScheduled.slice(0,3).map(s =>
-      `<div class="indicator-bar ${s.color}"></div>`).join('') +
+      `<div class="indicator-bar ${/^#[0-9a-f]{6}$/i.test(s.color||'')?'custom':''}" ${/^#[0-9a-f]{6}$/i.test(s.color||'')?`style="background:${s.color}"`:''}></div>`).join('') +
       (dayScheduled.length > 3 ? `<div class="more-indicator">+${dayScheduled.length-3}</div>` : '');
 
     const ringHtml = studyBlocks.length > 0 ? `
@@ -256,6 +299,8 @@ function renderWeekGrid(items, sessions, scheduled) {
 
     cell.addEventListener('click', () => {
       selectedDate = date;
+      if(calendarView==='month'&&date.getMonth()!==currentWeekStart.getMonth()){currentWeekStart=getStartOfWeek(new Date(date.getFullYear(),date.getMonth(),1));refresh();return;}
+      if(calendarView==='day')currentWeekStart=getStartOfWeek(date);
       renderWeekGrid(items, sessions, scheduled);
       renderDayDetails(items, sessions, scheduled);
     });
@@ -269,6 +314,7 @@ function renderDayDetails(items, sessions, scheduled) {
   document.getElementById('selectedDayDate').textContent = fmtDate(selectedDate,'MMM d, yyyy');
 
   const daySessions = sessions
+    .filter(() => calendarFilters.study)
     .filter(s => isSameDay(new Date(s.completedAt), selectedDate))
     .map(s => ({
       subject: s.subject || 'General Study',
@@ -338,9 +384,16 @@ function renderDayDetails(items, sessions, scheduled) {
           </div>
           <div>
             <div class="exam-day-label">Exam Today</div>
-            <div>${s.subject}${s.topic ? ' — ' + s.topic : ''}</div>
+            <div>${calendarEscape(s.subject)}${s.topic ? ' — ' + calendarEscape(s.topic) : ''}${s.time&&s.time!=='—'?` · ${calendarEscape(s.time)}`:''}${s.location?` · ${calendarEscape(s.location)}`:''}</div>
           </div>
         </div>`;
+    }
+
+    if (s.type === 'academic') {
+      return `<article class="calendar-academic-event" style="--event-color:${/^#[0-9a-f]{6}$/i.test(s.color||'')?s.color:'#3978c5'}"><div class="calendar-academic-time">${calendarEscape(s.time)}${s.end?`–${calendarEscape(s.end)}`:''}</div><div><strong>${calendarEscape(s.subject)}</strong><p>${calendarEscape(s.topic||'Academic activity')}</p></div></article>`;
+    }
+    if (s.type === 'assignment') {
+      return `<article class="calendar-assignment"><span>ASSIGNMENT DUE</span><strong>${calendarEscape(s.subject)}</strong><p>${calendarEscape(s.topic||'')}</p><a href="courses.html">Open coursework →</a></article>`;
     }
 
     // ── Project card ─────────────────────────────────────────
@@ -476,7 +529,14 @@ function refresh() {
   const allItems = [...items, ...exams.filter(e => !itemIds.has(e.id))
                                        .map(e => ({...e, type:'exam', dueDate: e.examDate}))];
   const sessions  = DB.getSessions(currentUser.id);
-  const scheduled = generateSchedule(allItems, sessions);
+  let scheduled = generateSchedule(allItems, sessions);
+  scheduled=scheduled.filter(item=>{
+    if(item.type==='academic')return calendarFilters.timetable;
+    if(item.type==='scheduled'||item.type==='session')return calendarFilters.study;
+    if(item.type==='exam-day')return calendarFilters.exams;
+    if(['project','reminder','reminder-notify','assignment'].includes(item.type))return calendarFilters.deadlines;
+    return true;
+  });
 
   renderWeekNav();
   renderWeekProgress(scheduled);
@@ -485,19 +545,26 @@ function refresh() {
 }
 
 function init() {
+  document.getElementById('calendarView').value=calendarView;
+  const filterLabels={timetable:'Classes & labs',study:'Study sessions',exams:'Exams',deadlines:'Assignments & reminders'};
+  document.getElementById('calendarFilters').innerHTML=Object.entries(filterLabels).map(([key,label])=>`<label><input type="checkbox" data-calendar-filter="${key}" ${calendarFilters[key]?'checked':''}> ${label}</label>`).join('');
   refresh();
 
+  document.getElementById('calendarView').addEventListener('change',e=>{calendarView=e.target.value;localStorage.setItem('sf_calendar_view',calendarView);currentWeekStart=getStartOfWeek(selectedDate);refresh();});
+  document.getElementById('calendarFilters').addEventListener('change',e=>{const key=e.target.dataset.calendarFilter;if(!key)return;calendarFilters[key]=e.target.checked;localStorage.setItem('sf_calendar_filters',JSON.stringify(calendarFilters));refresh();});
+  const movePeriod=amount=>{if(calendarView==='day'){selectedDate=addDays(selectedDate,amount);currentWeekStart=getStartOfWeek(selectedDate);}else if(calendarView==='month'){const anchor=new Date(currentWeekStart);anchor.setDate(1);anchor.setMonth(anchor.getMonth()+amount);currentWeekStart=getStartOfWeek(anchor);selectedDate=new Date(anchor);}else{currentWeekStart=addDays(currentWeekStart,amount*7);selectedDate=addDays(selectedDate,amount*7);}refresh();};
+
   document.getElementById('prevWeek').addEventListener('click', () => {
-    currentWeekStart = addDays(currentWeekStart, -7);
-    refresh();
+    movePeriod(-1);
   });
   document.getElementById('nextWeek').addEventListener('click', () => {
-    currentWeekStart = addDays(currentWeekStart, 7);
-    refresh();
+    movePeriod(1);
   });
   document.getElementById('jumpToday').addEventListener('click', () => {
     currentWeekStart = getStartOfWeek(new Date());
     selectedDate     = new Date();
+    if(calendarView==='day')selectedDate=new Date();
+    if(calendarView==='month'){const today=new Date();currentWeekStart=getStartOfWeek(new Date(today.getFullYear(),today.getMonth(),1));}
     refresh();
   });
 }
