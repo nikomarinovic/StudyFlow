@@ -7,7 +7,12 @@ const COLLECTIONS = {
   sf_courses:'courses',sf_tasks:'tasks',sf_academic_events:'academicEvents',sf_availability:'availability',
   sf_lab_weeks:'labWeeks',sf_academic_periods:'academicPeriods',sf_resources:'resources',sf_profiles:'profiles'
 };
-const idOf = (store,row) => String(row.id || row.userId || row.blockId || `${store}_${Math.random().toString(36).slice(2)}`);
+const idOf = (store,row) => String(row.id || row.blockId || row.userId || `${store}_${Math.random().toString(36).slice(2)}`);
+const canonical = value => {
+  if (Array.isArray(value)) return value.map(canonical);
+  if (value && typeof value === 'object') return Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])]));
+  return value;
+};
 const event = (name,detail={}) => window.dispatchEvent(new CustomEvent(name,{detail}));
 const current = () => { try{return JSON.parse(localStorage.getItem('sf_current_user')||'null')}catch{return null} };
 
@@ -48,21 +53,24 @@ export async function connect(config) {
           Object.keys(COLLECTIONS).forEach(store=>{if(localRows(store).some(row=>row.userId===uid))pending.set(store,true)});
           initialSnapshot=true;clearTimeout(flushTimer);flushTimer=setTimeout(async()=>{const stores=[...pending.keys()];pending.clear();try{for(const store of stores)await flushStore(store);sendStatus('Cloud backup ready','synced')}catch(error){console.error(error);sendStatus('Could not sync · changes remain on this device','error')}},0);
         } else {
+          const legacyCompletionDoc=snapshot.docs.some(s=>s.id===`${COLLECTIONS.sf_completions}__${uid}`);
           let changed=false;
           Object.keys(COLLECTIONS).forEach(store=>{
             const all=localRows(store),others=all.filter(row=>row.userId!==uid),local=all.filter(row=>row.userId===uid),next=cloud[store];
             const migrating=localStorage.getItem('sf_pending_migration_uid')===uid;
-            const merged=migrating?[...new Map([...next,...local].map(row=>[idOf(store,row),row])).values()]:next;
-            const stable=rows=>JSON.stringify([...rows].sort((a,b)=>idOf(store,a).localeCompare(idOf(store,b))));
+            const preserveLocal=migrating||(store==='sf_completions'&&legacyCompletionDoc);
+            const merged=preserveLocal?[...new Map([...next,...local].map(row=>[idOf(store,row),row])).values()]:next;
+            const stable=rows=>JSON.stringify([...rows].sort((a,b)=>idOf(store,a).localeCompare(idOf(store,b))).map(canonical));
             if(stable(local)!==stable(merged))changed=true;
             safeWriteCache(store,[...others,...merged]);
-            if(migrating)pending.set(store,true);
+            if(migrating||(store==='sf_completions'&&legacyCompletionDoc))pending.set(store,true);
           });
           const migrating=localStorage.getItem('sf_pending_migration_uid')===uid;
           if(migrating)localStorage.removeItem('sf_pending_migration_uid');
           initialSnapshot=true;
-          if(migrating){const stores=[...pending.keys()];pending.clear();try{for(const store of stores)await flushStore(store);}catch(error){sendStatus('Could not sync migrated data · changes remain on this device','error');}}
-          sendStatus('Synced across devices','synced');
+          let migrationFailed=false;
+          if(migrating||legacyCompletionDoc){const stores=[...pending.keys()];pending.clear();try{for(const store of stores)await flushStore(store);}catch(error){migrationFailed=true;sendStatus('Could not sync migrated data · changes remain on this device','error');}}
+          if(!migrationFailed)sendStatus('Synced across devices','synced');
           if(changed)event('sf:data-sync',{userId:uid});
         }
         resolve();
