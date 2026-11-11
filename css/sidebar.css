@@ -17,7 +17,6 @@
 .sidebar .nav-item:hover { background:#f2f6f5!important;color:#397a78!important;transform:none!important; }
 .sidebar .nav-item.active { background:#eaf2f1!important;color:#397a78!important; }
 .sidebar-bottom { display:flex;flex-direction:column;gap:.45rem;padding-top:1.35rem!important;border-top:1px solid #dfe7e5!important; }
-.main-content.courses-main { margin-left:16rem!important; }
 @media(min-width:1024px){.dashboard-container,.ach-layout,.exams-layout,.s-layout,.shell{display:block!important;min-height:100vh}.ach-main,.ex-main,.s-main,.shell>.main-content,.shell>.main{margin-left:16rem!important;max-width:none!important}.main-container{margin-left:16rem!important}}
 @media(min-width:960px) and (max-width:1023px){.s-layout{display:block!important}.s-main{margin-left:0!important}}
 @media(max-width:1023px){.sidebar{display:none!important}}

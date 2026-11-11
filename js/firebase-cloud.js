@@ -84,7 +84,7 @@ export async function connect(config) {
     if(old){safeWriteCache('sf_users',users.filter(u=>u.id!==old.id));const profile=localRows('sf_profiles').find(p=>p.userId===old.id);if(profile){const all=localRows('sf_profiles').filter(p=>p.userId!==old.id);all.push({...profile,userId:uid});safeWriteCache('sf_profiles',all);}}
   }
   if(firstAuth){const saved=current();await startSync(firstAuth.uid);const profile=window.DB?.getProfile(firstAuth.uid)||{},name=firstAuth.displayName||saved?.name||firstAuth.email?.split('@')[0]||'Student';localStorage.setItem('sf_current_user',JSON.stringify({id:firstAuth.uid,email:firstAuth.email,name,firebaseUser:true,...profile}));const users=window.DB?._get('sf_users')||[];if(!users.some(u=>u.id===firstAuth.uid)){users.push({id:firstAuth.uid,email:firstAuth.email,name,createdAt:Date.now()});window.DB?._set('sf_users',users);}}
-  else {sendStatus('Sign in to sync your academic data','local');const saved=current();if(saved?.firebaseUser){localStorage.removeItem('sf_current_user');if(!location.pathname.endsWith('auth.html'))location.replace('auth.html?mode=signin');}}
+  else {sendStatus('','local');const saved=current();if(saved?.firebaseUser){localStorage.removeItem('sf_current_user');if(!location.pathname.endsWith('auth.html'))location.replace('auth.html?mode=signin');}}
 
   return {
     enabled:true, auth, firestore,

@@ -9,78 +9,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    /* ── Scrolling sync bar ── */
-    .sync-bar {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      background: hsl(199,89%,95%);
-      border-bottom: 1px solid hsl(199,89%,82%);
-      height: 2rem; overflow: hidden;
-    }
-    /* Fade edges */
-    .sync-bar::before,
-    .sync-bar::after {
-      content: ''; position: absolute; top: 0; bottom: 0; width: 4rem; z-index: 1; pointer-events: none;
-    }
-    .sync-bar::before { left: 0;  background: linear-gradient(to right, hsl(199,89%,95%), transparent); }
-    .sync-bar::after  { right: 0; background: linear-gradient(to left,  hsl(199,89%,95%), transparent); }
-
-    .sync-track {
-      display: flex; align-items: center;
-      white-space: nowrap; width: max-content;
-      animation: sync-scroll 35s linear infinite;
-    }
-    .sync-track:hover { animation-play-state: paused; }
-
-    .sync-item {
-      display: inline-flex; align-items: center; gap: .45rem;
-      font-size: .75rem; color: hsl(199,55%,38%); font-weight: 500;
-      padding: 0 2rem; line-height: 2rem;
-    }
-    .sync-item svg { flex-shrink: 0; color: hsl(199,89%,42%); }
-    .sync-item strong { font-weight: 700; color: hsl(199,89%,25%); }
-    .sync-dot {
-      display: inline-block; width: .3rem; height: .3rem; border-radius: 50%;
-      background: hsl(199,60%,72%); margin: 0 .25rem; vertical-align: middle;
-    }
-
-    @keyframes sync-scroll {
-      from { transform: translateX(0); }
-      to   { transform: translateX(-50%); }
-    }
-
-    /* Push navbar + hero down */
-    .nav-bar { top: 2rem !important; }
-    .hero-section { padding-top: 10rem !important; }
-  </style>
   <link rel="stylesheet" href="css/theme.css">
   <link rel="stylesheet" href="css/app-polish.css">
   <script src="js/theme.js"></script>
 </head>
 <body>
-
-  <!-- Scrolling sync notice -->
-  <div class="sync-bar">
-    <div class="sync-track" id="syncTrack"></div>
-  </div>
-
-  <script>
-    (function() {
-      const icon = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>`;
-      const dot = `<span class="sync-dot"></span>`;
-      const messages = [
-        `${icon}&nbsp;<strong>Firebase setup required</strong> — your data stays on this device until project configuration is added.`,
-        `${icon}&nbsp;<strong>Use Settings → Export</strong> to back up your data until Firebase is configured.`,
-        `${icon}&nbsp;<strong>Accounts are device-local</strong> until a Firebase project is configured.`,
-        `${icon}&nbsp;<strong>Firebase setup required</strong> — your data stays on this device until project configuration is added.`,
-        `${icon}&nbsp;<strong>Use Settings → Export</strong> to back up your data until Firebase is configured.`,
-        `${icon}&nbsp;<strong>Accounts are device-local</strong> until a Firebase project is configured.`,
-      ];
-      const html = messages.map(m => `<span class="sync-item">${m}</span>${dot}`).join('');
-      // Double it for seamless infinite loop
-      document.getElementById('syncTrack').innerHTML = html + html;
-    })();
-  </script>
 
   <nav class="nav-bar">
     <div class="container">

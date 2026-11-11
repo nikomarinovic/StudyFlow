@@ -343,6 +343,7 @@
   <script src="js/theme.js"></script>
   <link rel="stylesheet" href="css/sidebar.css">
   <link rel="stylesheet" href="css/dialogs.css">
+  <link rel="stylesheet" href="css/calendar-polish.css">
 </head>
 <body>
   <header class="cal-header">
@@ -353,21 +354,17 @@
           Back
         </a>
         <div class="cal-header-info">
-          <h1 class="cal-header-title">Study Calendar</h1>
-          <p class="cal-header-subtitle">Check off sessions to earn Study Score points</p>
+          <h1 class="cal-header-title">Calendar</h1>
+          <p class="cal-header-subtitle">Your classes, study sessions, and deadlines</p>
         </div>
       </div>
       <div style="display:flex;gap:.6rem;align-items:center">
-        <a href="academic.html" class="btn-outline">Academic planner</a>
-        <a href="courses.html" class="btn-outline">Courses</a>
+        <a href="academic.html" class="btn-outline calendar-header-secondary">Academic planner</a>
+        <a href="courses.html" class="btn-outline calendar-header-secondary">Courses</a>
         <button class="jump-today-btn" id="jumpToday">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><line x1="12" x2="12" y1="14" y2="18"/><line x1="10" x2="14" y1="16" y2="16"/></svg>
           Today
         </button>
-        <a href="exams.html" class="btn-primary">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
-          Add Item
-        </a>
       </div>
     </div>
   </header>
@@ -376,14 +373,12 @@
 
     <!-- Week nav -->
     <div class="week-nav-row week-navigation">
-      <button class="nav-btn" id="prevWeek">
+      <button class="nav-btn" id="prevWeek" aria-label="Previous period">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        Prev
       </button>
       <h2 class="week-range" id="weekRange">Loading…</h2>
       <select id="calendarView" aria-label="Calendar view" style="border:1px solid var(--border);border-radius:.6rem;padding:.5rem;background:var(--card);color:var(--foreground)"><option value="week">Week</option><option value="day">Day</option><option value="month">Month</option></select>
-      <button class="nav-btn" id="nextWeek">
-        Next
+      <button class="nav-btn" id="nextWeek" aria-label="Next period">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
     </div>
@@ -436,6 +431,24 @@
 
     <!-- Calendar layout -->
     <div class="calendar-layout">
+      <aside class="calendar-sidebar-panel" aria-label="Calendar tools">
+        <button type="button" class="btn-primary calendar-create-button" id="addCalendarEvent">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+          Create
+        </button>
+        <section class="mini-calendar" aria-label="Mini calendar">
+          <div class="mini-calendar-heading"><strong id="miniMonthTitle"></strong><div><button type="button" id="miniPrevMonth" aria-label="Previous month">‹</button><button type="button" id="miniNextMonth" aria-label="Next month">›</button></div></div>
+          <div class="mini-calendar-weekdays" aria-hidden="true"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+          <div class="mini-calendar-grid" id="miniCalendarGrid"></div>
+        </section>
+        <div class="calendar-sidebar-section">
+          <h3>My calendars</h3>
+          <label><input type="checkbox" data-calendar-filter="timetable" checked><span class="calendar-color-dot" style="--calendar-color:#4285f4"></span>Classes &amp; labs</label>
+          <label><input type="checkbox" data-calendar-filter="study" checked><span class="calendar-color-dot" style="--calendar-color:#34a853"></span>Study sessions</label>
+          <label><input type="checkbox" data-calendar-filter="exams" checked><span class="calendar-color-dot" style="--calendar-color:#ea4335"></span>Exams</label>
+          <label><input type="checkbox" data-calendar-filter="deadlines" checked><span class="calendar-color-dot" style="--calendar-color:#fbbc04"></span>Deadlines</label>
+        </div>
+      </aside>
       <div class="week-view-card">
         <div class="week-grid" id="weekGrid"></div>
       </div>
@@ -493,6 +506,50 @@
       </div>
     </div>
   </main>
+
+  <dialog id="calendarEventDialog" class="calendar-event-dialog">
+    <form id="calendarEventForm">
+      <div class="dialog-head">
+        <div><p class="eyebrow">CALENDAR EVENT</p><h2 id="calendarEventTitle">Add event</h2></div>
+        <button type="button" class="close" data-calendar-close aria-label="Close">×</button>
+      </div>
+      <input type="hidden" name="id">
+      <div class="form-grid">
+        <label>Subject or activity<input name="title" required maxlength="90" placeholder="e.g. Mathematics lecture"></label>
+        <label>Course
+          <select name="courseId"><option value="">Personal / other</option></select>
+        </label>
+        <label>Type
+          <select name="type">
+            <option value="lecture">Lecture</option>
+            <option value="lab">Laboratory</option>
+            <option value="seminar">Seminar / tutorial</option>
+            <option value="study">Study session</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+        <label>Repeats
+          <select name="repeat"><option value="once">One time</option><option value="weekly">Every week</option></select>
+        </label>
+        <label class="calendar-repeat-date">Date<input name="date" type="date" required></label>
+        <label class="calendar-repeat-day" hidden>Day of week
+          <select name="day">
+            <option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option>
+            <option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option><option value="0">Sunday</option>
+          </select>
+        </label>
+        <label>Starts<input name="start" type="time" required value="09:00"></label>
+        <label>Ends<input name="end" type="time" required value="10:00"></label>
+        <label>Room<input name="location" maxlength="80" placeholder="Optional"></label>
+        <label>Color<input name="color" type="color" value="#3978c5"></label>
+      </div>
+      <label>Description<textarea name="description" rows="2" maxlength="300" placeholder="Optional notes"></textarea></label>
+      <div class="dialog-actions">
+        <button type="button" class="btn-outline" data-calendar-close>Cancel</button>
+        <button type="submit" class="btn-primary">Save event</button>
+      </div>
+    </form>
+  </dialog>
 
   <script src="js/config.js"></script>
   <script src="js/db.js"></script>

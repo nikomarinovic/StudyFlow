@@ -12,7 +12,7 @@
         if(description)description.textContent=message;
         if(badge)badge.textContent=state==='synced'?'Synced':state==='error'?'Needs attention':'Connecting';
         const dashboard=document.getElementById('dashboardSyncNotice');if(dashboard)dashboard.textContent=message;
-        document.querySelectorAll('.sync-notice-text,.sync-bar-mobile span').forEach(node=>node.textContent=message);
+        if(state!=='local'&&!document.querySelector('.auth-container'))document.querySelectorAll('.sync-notice-text').forEach(node=>node.textContent=message);
       }
     };
     if (document.body) paint(); else document.addEventListener('DOMContentLoaded',paint,{once:true});

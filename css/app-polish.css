@@ -366,7 +366,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
   .content { padding:1rem 1rem 5rem; }
   .mob-nav-item { font-size:.68rem; }
   .mob-nav { position:fixed; }
-  .hero-section { min-height:0; padding:8.75rem 1rem 4rem; }
+  .hero-section { min-height:0; padding:7rem 1rem 4rem; }
   .hero-title { font-size:clamp(3rem,13vw,4.6rem); }
   .hero-subtitle { font-size:1rem; }
   .stats { gap:.75rem; }

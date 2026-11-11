@@ -64,7 +64,6 @@
 .btn-submit { min-height:2.9rem; border-radius:9px; font-weight:700; }
 .form-footer { margin-top:1rem; font-size:.88rem; }
 .terms-text { margin-top:1rem; line-height:1.5; }
-.sync-bar-mobile { border-color:var(--border); background:var(--secondary); color:var(--secondary-foreground); }
 :root[data-theme="dark"] .left-panel { background:#10322e; }
 :root[data-theme="dark"] .form-wrapper { background:#182525; border-color:var(--border); box-shadow:none; }
 :root[data-theme="dark"] .form-input { background:#142120; }

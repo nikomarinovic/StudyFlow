@@ -1,4 +1,4 @@
-let isSignUp = new URLSearchParams(window.location.search).get('mode') !== 'signin';
+let isSignUp = new URLSearchParams(window.location.search).get('mode') === 'signup';
 
 const nameGroup = document.getElementById('nameGroup');
 const forgotPassword = document.getElementById('forgotPassword');

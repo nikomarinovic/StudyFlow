@@ -9,6 +9,8 @@ const CIRCUMFERENCE    = 2 * Math.PI * 22; // for 52×52 SVG ring r=22 → ~138.
 
 let currentWeekStart = getStartOfWeek(new Date());
 let selectedDate     = new Date();
+let miniMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+let currentMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
 let calendarView = localStorage.getItem('sf_calendar_view') || 'week';
 let calendarFilters = {timetable:true,study:true,exams:true,deadlines:true};
 try { calendarFilters={...calendarFilters,...JSON.parse(localStorage.getItem('sf_calendar_filters')||'{}')}; } catch {}
@@ -157,17 +159,15 @@ function generateSchedule(items, sessions) {
   // and coursework to the existing calendar view.
   const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   const visibleDays=calendarView==='month'?42:calendarView==='day'?1:7;
-  const firstDay=calendarView==='month'?getStartOfWeek(new Date(currentWeekStart.getFullYear(),currentWeekStart.getMonth(),1)):calendarView==='day'?new Date(selectedDate):getStartOfWeek(currentWeekStart);
+  const firstDay=calendarView==='month'?getStartOfWeek(currentMonth):calendarView==='day'?new Date(selectedDate):getStartOfWeek(currentWeekStart);
   for (let offset = 0; offset < visibleDays; offset++) {
     const day = addDays(firstDay, offset), dayKey = iso(day), weekday = day.getDay(), weekKey=iso(getStartOfWeek(day));
     const labWeek = DB.getLabWeek?.(currentUser.id, weekKey);
     const period = DB.getPeriods?.(currentUser.id).find(p => p.suspendClasses && dayKey >= p.startDate && dayKey <= p.endDate);
     DB.getAcademicEvents?.(currentUser.id).forEach(event => {
-      if (event.type === 'lab' && (event.weekKey === weekKey || event.repeat === 'weekly')) return;
-      if (event.type === 'study') {
-        if (event.date !== dayKey) return;
-      } else if (event.repeat === 'weekly') {
-        if (period || Number(event.day) !== weekday) return;
+      if (event.type === 'lab' && event.weekKey === weekKey) return;
+      if (event.repeat === 'weekly') {
+        if ((event.type !== 'study' && period) || Number(event.day) !== weekday) return;
         if (event.type === 'lab' && labWeek) return;
       } else if (event.date !== dayKey) return;
       const durationMinutes=event.type==='study'&&event.start&&event.end?Math.max(0,(Number(event.end.slice(0,2))*60+Number(event.end.slice(3)))-(Number(event.start.slice(0,2))*60+Number(event.start.slice(3)))):0;
@@ -175,7 +175,7 @@ function generateSchedule(items, sessions) {
     });
     if (labWeek?.weekKey === weekKey) (labWeek.events||[]).forEach((event,index) => {
       if (event.date !== dayKey) return;
-      scheduled.push({ id:`lab-${labWeek.id}-${index}`, blockId:`lab-${labWeek.id}-${index}`, subject:event.title, topic:[event.location,event.description].filter(Boolean).join(' · '), time:event.start||'—', durationMinutes:0, duration:'—', color:event.color||'academic-event', type:'academic', date:new Date(day), courseId:event.courseId, location:event.location||'' });
+      scheduled.push({ id:`lab-${labWeek.id}-${index}`, blockId:`lab-${labWeek.id}-${index}`, subject:event.title, topic:[event.type,event.location,event.description].filter(Boolean).join(' · '), time:event.start||'—', end:event.end||'', durationMinutes:0, duration:'—', color:event.color||'academic-event', type:'academic', date:new Date(day), courseId:event.courseId, eventId:event.id, location:event.location||'' });
     });
   }
   DB.getTasks?.(currentUser.id).filter(task => task.status !== 'done' && task.dueDate).forEach(task => {
@@ -211,7 +211,7 @@ function toggleComplete(blockId, subject, durationMinutes) {
 function renderWeekNav() {
   const end = addDays(currentWeekStart, 6);
   document.getElementById('weekRange').textContent = calendarView==='month'
-    ? fmtDate(currentWeekStart,'MMMM yyyy') : calendarView==='day'
+    ? fmtDate(currentMonth,'MMMM yyyy') : calendarView==='day'
       ? fmtDate(selectedDate,'MMM d, yyyy') : `${fmtDate(currentWeekStart,'MMM d')} – ${fmtDate(end,'MMM d, yyyy')}`;
 }
 
@@ -220,7 +220,7 @@ function renderWeekProgress(scheduled) {
   // Build set of ISO date strings for the current week
   const weekDays = new Set();
   const visibleDays=calendarView==='month'?42:calendarView==='day'?1:7;
-  const firstDay=calendarView==='month'?getStartOfWeek(new Date(currentWeekStart.getFullYear(),currentWeekStart.getMonth(),1)):calendarView==='day'?new Date(selectedDate):currentWeekStart;
+  const firstDay=calendarView==='month'?getStartOfWeek(currentMonth):calendarView==='day'?new Date(selectedDate):currentWeekStart;
   for (let i = 0; i < visibleDays; i++) weekDays.add(addDays(firstDay, i).toISOString().split('T')[0]);
 
   const inWeek = s => weekDays.has(new Date(s.date).toISOString().split('T')[0]);
@@ -249,8 +249,13 @@ function renderWeekProgress(scheduled) {
 function renderWeekGrid(items, sessions, scheduled) {
   const grid = document.getElementById('weekGrid');
   grid.innerHTML = '';
+  grid.className = 'week-grid';
+  if (calendarView !== 'month') {
+    renderTimeGrid(grid, scheduled);
+    return;
+  }
   const visibleDays=calendarView==='month'?42:calendarView==='day'?1:7;
-  const firstDay=calendarView==='month'?getStartOfWeek(new Date(currentWeekStart.getFullYear(),currentWeekStart.getMonth(),1)):calendarView==='day'?new Date(selectedDate):currentWeekStart;
+  const firstDay=calendarView==='month'?getStartOfWeek(currentMonth):calendarView==='day'?new Date(selectedDate):currentWeekStart;
   grid.dataset.view=calendarView;
   const CIRC_SMALL = 2 * Math.PI * 9; // r=9 for the small day-cell rings
 
@@ -268,7 +273,7 @@ function renderWeekGrid(items, sessions, scheduled) {
     cell.className = 'day-cell';
     if (isSameDay(date, selectedDate)) cell.classList.add('selected');
     if (isSameDay(date, new Date()))   cell.classList.add('today');
-    if (calendarView==='month'&&date.getMonth()!==currentWeekStart.getMonth()) cell.classList.add('other-month-day');
+    if (calendarView==='month'&&date.getMonth()!==currentMonth.getMonth()) cell.classList.add('other-month-day');
     if (hasExam)                       cell.classList.add('exam-day-cell');
 
     const indicators = dayScheduled.slice(0,3).map(s =>
@@ -299,13 +304,68 @@ function renderWeekGrid(items, sessions, scheduled) {
 
     cell.addEventListener('click', () => {
       selectedDate = date;
-      if(calendarView==='month'&&date.getMonth()!==currentWeekStart.getMonth()){currentWeekStart=getStartOfWeek(new Date(date.getFullYear(),date.getMonth(),1));refresh();return;}
+      if(calendarView==='month'&&date.getMonth()!==currentMonth.getMonth()){currentMonth=new Date(date.getFullYear(),date.getMonth(),1);currentWeekStart=getStartOfWeek(currentMonth);refresh();return;}
       if(calendarView==='day')currentWeekStart=getStartOfWeek(date);
       renderWeekGrid(items, sessions, scheduled);
       renderDayDetails(items, sessions, scheduled);
     });
     grid.appendChild(cell);
   }
+}
+
+function renderTimeGrid(grid, scheduled) {
+  const firstDay = calendarView === 'day' ? new Date(selectedDate) : currentWeekStart;
+  const count = calendarView === 'day' ? 1 : 7;
+  const days = Array.from({length:count}, (_, index) => addDays(firstDay, index));
+  const startHour = 7, endHour = 22, hourHeight = 56;
+  grid.className = 'week-grid calendar-time-view';
+  grid.innerHTML = `<div class="calendar-time-header"><span></span>${days.map(date=>`<button type="button" class="calendar-day-heading${isSameDay(date,new Date())?' is-today':''}" data-calendar-day="${calendarDateKey(date)}"><span>${fmtDate(date,'EEE')}</span><strong>${fmtDate(date,'d')}</strong></button>`).join('')}</div>
+    <div class="calendar-time-body"><div class="calendar-time-labels">${Array.from({length:endHour-startHour},(_,i)=>`<span>${String(startHour+i).padStart(2,'0')}:00</span>`).join('')}</div>
+    ${days.map(date=>`<div class="calendar-time-column" data-date="${calendarDateKey(date)}">${Array.from({length:endHour-startHour},(_,i)=>`<button type="button" class="calendar-time-slot" data-hour="${startHour+i}" aria-label="Add event ${fmtDate(date,'EEEE')} ${startHour+i}:00"></button>`).join('')}
+      ${scheduled.filter(event=>isSameDay(event.date,date)).map(event=>{
+        const timed=/^\d{2}:\d{2}$/.test(event.time||'');
+        if(!timed)return `<button type="button" class="calendar-all-day-event" data-calendar-event="${calendarEscape(event.eventId||'')}" data-date="${calendarDateKey(date)}" style="--event-color:${/^#[0-9a-f]{6}$/i.test(event.color||'')?event.color:'#4285f4'}">${calendarEscape(event.subject)}${event.eventId?'<span> · Edit</span>':''}</button>`;
+        const [hour,minute]=event.time.split(':').map(Number);
+        const minutes=hour*60+minute;
+        const duration=Math.max(30,Number(event.durationMinutes)||(/^\d{2}:\d{2}$/.test(event.end||'')?((Number(event.end.slice(0,2))*60+Number(event.end.slice(3)))-minutes):60));
+        const top=(minutes-startHour*60)/60*hourHeight;
+        const height=Math.max(26,duration/60*hourHeight);
+        if(top+height<0||top>(endHour-startHour)*hourHeight)return '';
+        return `<button type="button" class="calendar-timed-event${event.completed?' is-completed':''}" data-calendar-event="${calendarEscape(event.eventId||'')}" data-date="${calendarDateKey(date)}" style="--event-color:${/^#[0-9a-f]{6}$/i.test(event.color||'')?event.color:event.type==='exam-day'?'#d93025':event.type==='scheduled'?'#188038':event.type==='assignment'?'#f9ab00':'#4285f4'};top:${Math.max(0,top)}px;height:${Math.min(height,(endHour-startHour)*hourHeight-Math.max(0,top))}px"><strong>${calendarEscape(event.subject)}</strong><span>${calendarEscape(event.time)}${event.end?' – '+calendarEscape(event.end):''}</span></button>`;
+      }).join('')}</div>`).join('')}</div>`;
+  grid.style.setProperty('--calendar-hour-height',`${hourHeight}px`);
+  grid.style.setProperty('--calendar-hours',String(endHour-startHour));
+  grid.style.setProperty('--calendar-days',String(count));
+  grid.querySelectorAll('[data-calendar-day]').forEach(button=>button.addEventListener('click',()=>{selectedDate=new Date(`${button.dataset.calendarDay}T12:00:00`);miniMonth=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);renderMiniCalendar();refresh();}));
+  grid.querySelectorAll('.calendar-time-slot').forEach(slot=>slot.addEventListener('click',()=>{
+    const date=slot.closest('.calendar-time-column').dataset.date;
+    const hour=String(Number(slot.dataset.hour)).padStart(2,'0');
+    openCalendarEvent(null,{date,start:`${hour}:00`,end:`${String(Number(hour)+1).padStart(2,'0')}:00`});
+  }));
+  grid.querySelectorAll('[data-calendar-event]').forEach(button=>button.addEventListener('click',()=>{
+    const id=button.dataset.calendarEvent;
+    if(id){const record=DB.getAcademicEvents(currentUser.id).find(item=>item.id===id);if(record)openCalendarEvent(record);return;}
+    selectedDate=new Date(`${button.dataset.date}T12:00:00`);refresh();
+  }));
+}
+
+function renderMiniCalendar() {
+  const title=document.getElementById('miniMonthTitle'),grid=document.getElementById('miniCalendarGrid');
+  if(!title||!grid)return;
+  title.textContent=fmtDate(miniMonth,'MMMM yyyy');
+  const first=getStartOfWeek(new Date(miniMonth.getFullYear(),miniMonth.getMonth(),1));
+  grid.innerHTML=Array.from({length:42},(_,index)=>{
+    const date=addDays(first,index),key=calendarDateKey(date);
+    const inMonth=date.getMonth()===miniMonth.getMonth();
+    return `<button type="button" class="mini-calendar-day${inMonth?'':' is-outside'}${isSameDay(date,selectedDate)?' is-selected':''}${isSameDay(date,new Date())?' is-today':''}" data-mini-date="${key}">${date.getDate()}</button>`;
+  }).join('');
+  grid.querySelectorAll('[data-mini-date]').forEach(button=>button.addEventListener('click',()=>{
+    selectedDate=new Date(`${button.dataset.miniDate}T12:00:00`);
+    currentWeekStart=getStartOfWeek(selectedDate);
+    miniMonth=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);
+    currentMonth=new Date(miniMonth);
+    refresh();
+  }));
 }
 
 // ── Day details ────────────────────────────────────────────────
@@ -390,7 +450,7 @@ function renderDayDetails(items, sessions, scheduled) {
     }
 
     if (s.type === 'academic') {
-      return `<article class="calendar-academic-event" style="--event-color:${/^#[0-9a-f]{6}$/i.test(s.color||'')?s.color:'#3978c5'}"><div class="calendar-academic-time">${calendarEscape(s.time)}${s.end?`–${calendarEscape(s.end)}`:''}</div><div><strong>${calendarEscape(s.subject)}</strong><p>${calendarEscape(s.topic||'Academic activity')}</p></div></article>`;
+      return `<article class="calendar-academic-event" style="--event-color:${/^#[0-9a-f]{6}$/i.test(s.color||'')?s.color:'#3978c5'}"><div class="calendar-academic-time">${calendarEscape(s.time)}${s.end?`–${calendarEscape(s.end)}`:''}</div><div class="calendar-academic-copy"><strong>${calendarEscape(s.subject)}</strong><p>${calendarEscape(s.topic||'Academic activity')}</p></div>${calendarEventActions(s)}</article>`;
     }
     if (s.type === 'assignment') {
       return `<article class="calendar-assignment"><span>ASSIGNMENT DUE</span><strong>${calendarEscape(s.subject)}</strong><p>${calendarEscape(s.topic||'')}</p><a href="courses.html">Open coursework →</a></article>`;
@@ -497,15 +557,16 @@ function renderDayDetails(items, sessions, scheduled) {
           <div class="session-left">
             <div class="session-icon ${isDone?'completed':s.type}">${typeIcon}</div>
             <div class="session-info">
-              <div class="session-subject">${diffDot}${s.subject}${typeBadge}</div>
-              <div class="session-topic">${s.topic||''}</div>
+              <div class="session-subject">${diffDot}${calendarEscape(s.subject)}${typeBadge}</div>
+              <div class="session-topic">${calendarEscape(s.topic||'')}</div>
               ${scoreTag}
             </div>
           </div>
           <div class="session-right">
-            <div class="session-time">${s.time}</div>
-            ${s.duration!=='—' ? `<div class="session-duration"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${s.duration}</div>` : ''}
+            <div class="session-time">${calendarEscape(s.time)}</div>
+            ${s.duration!=='—' ? `<div class="session-duration"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${calendarEscape(s.duration)}</div>` : ''}
             ${checkBtn}
+            ${calendarEventActions(s)}
           </div>
         </div>
       </div>`;
@@ -539,20 +600,62 @@ function refresh() {
   });
 
   renderWeekNav();
+  renderMiniCalendar();
   renderWeekProgress(scheduled);
   renderWeekGrid(allItems, sessions, scheduled);
   renderDayDetails(allItems, sessions, scheduled);
 }
 
+function calendarEventActions(event) {
+  if (!event.eventId) return '';
+  return `<div class="calendar-event-actions"><button type="button" data-calendar-edit="${calendarEscape(event.eventId)}" aria-label="Edit event">Edit</button><button type="button" data-calendar-delete="${calendarEscape(event.eventId)}" aria-label="Delete event">Delete</button></div>`;
+}
+
+function openCalendarEvent(event, defaults = {}) {
+  const form = document.getElementById('calendarEventForm');
+  const title = document.getElementById('calendarEventTitle');
+  const courseSelect = form.elements.courseId;
+  const courses = DB.getCourses(currentUser.id);
+  courseSelect.innerHTML = '<option value="">Personal / other</option>' +
+    courses.map(course => `<option value="${calendarEscape(course.id)}">${calendarEscape(course.name)}</option>`).join('');
+  form.reset();
+  form.elements.id.value = event?.id || '';
+  form.elements.title.value = event?.title || '';
+  form.elements.courseId.value = event?.courseId || '';
+  form.elements.type.value = event?.type || 'lecture';
+  form.elements.repeat.value = event?.repeat || 'once';
+  const eventDate = event?.date || defaults.date || calendarDateKey(selectedDate);
+  form.elements.date.value = eventDate;
+  form.elements.day.value = String(event?.day ?? new Date(`${eventDate}T12:00:00`).getDay());
+  form.elements.start.value = event?.start || defaults.start || '09:00';
+  form.elements.end.value = event?.end || defaults.end || '10:00';
+  form.elements.location.value = event?.location || '';
+  form.elements.color.value = /^#[0-9a-f]{6}$/i.test(event?.color || '') ? event.color : '#3978c5';
+  form.elements.description.value = event?.description || '';
+  title.textContent = event ? 'Edit event' : 'Add event';
+  form.elements.repeat.dispatchEvent(new Event('change'));
+  document.getElementById('calendarEventDialog').showModal();
+}
+
+function calendarDateKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+}
+
 function init() {
   document.getElementById('calendarView').value=calendarView;
+  miniMonth=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);
   const filterLabels={timetable:'Classes & labs',study:'Study sessions',exams:'Exams',deadlines:'Assignments & reminders'};
   document.getElementById('calendarFilters').innerHTML=Object.entries(filterLabels).map(([key,label])=>`<label><input type="checkbox" data-calendar-filter="${key}" ${calendarFilters[key]?'checked':''}> ${label}</label>`).join('');
+  document.querySelectorAll('.calendar-sidebar-section [data-calendar-filter]').forEach(input=>{input.checked=calendarFilters[input.dataset.calendarFilter];});
   refresh();
 
-  document.getElementById('calendarView').addEventListener('change',e=>{calendarView=e.target.value;localStorage.setItem('sf_calendar_view',calendarView);currentWeekStart=getStartOfWeek(selectedDate);refresh();});
-  document.getElementById('calendarFilters').addEventListener('change',e=>{const key=e.target.dataset.calendarFilter;if(!key)return;calendarFilters[key]=e.target.checked;localStorage.setItem('sf_calendar_filters',JSON.stringify(calendarFilters));refresh();});
-  const movePeriod=amount=>{if(calendarView==='day'){selectedDate=addDays(selectedDate,amount);currentWeekStart=getStartOfWeek(selectedDate);}else if(calendarView==='month'){const anchor=new Date(currentWeekStart);anchor.setDate(1);anchor.setMonth(anchor.getMonth()+amount);currentWeekStart=getStartOfWeek(anchor);selectedDate=new Date(anchor);}else{currentWeekStart=addDays(currentWeekStart,amount*7);selectedDate=addDays(selectedDate,amount*7);}refresh();};
+  document.getElementById('calendarView').addEventListener('change',e=>{calendarView=e.target.value;localStorage.setItem('sf_calendar_view',calendarView);currentWeekStart=getStartOfWeek(selectedDate);currentMonth=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);refresh();});
+  const updateFilter=e=>{const key=e.target.dataset.calendarFilter;if(!key)return;calendarFilters[key]=e.target.checked;document.querySelectorAll(`[data-calendar-filter="${key}"]`).forEach(input=>input.checked=e.target.checked);localStorage.setItem('sf_calendar_filters',JSON.stringify(calendarFilters));refresh();};
+  document.getElementById('calendarFilters').addEventListener('change',updateFilter);
+  document.querySelector('.calendar-sidebar-section').addEventListener('change',updateFilter);
+  document.getElementById('miniPrevMonth').addEventListener('click',()=>{miniMonth.setMonth(miniMonth.getMonth()-1);renderMiniCalendar();});
+  document.getElementById('miniNextMonth').addEventListener('click',()=>{miniMonth.setMonth(miniMonth.getMonth()+1);renderMiniCalendar();});
+  const movePeriod=amount=>{if(calendarView==='day'){selectedDate=addDays(selectedDate,amount);currentWeekStart=getStartOfWeek(selectedDate);}else if(calendarView==='month'){currentMonth=new Date(currentMonth.getFullYear(),currentMonth.getMonth()+amount,1);currentWeekStart=getStartOfWeek(currentMonth);selectedDate=new Date(currentMonth);}else{currentWeekStart=addDays(currentWeekStart,amount*7);selectedDate=addDays(selectedDate,amount*7);}miniMonth=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);refresh();};
 
   document.getElementById('prevWeek').addEventListener('click', () => {
     movePeriod(-1);
@@ -563,9 +666,73 @@ function init() {
   document.getElementById('jumpToday').addEventListener('click', () => {
     currentWeekStart = getStartOfWeek(new Date());
     selectedDate     = new Date();
-    if(calendarView==='day')selectedDate=new Date();
-    if(calendarView==='month'){const today=new Date();currentWeekStart=getStartOfWeek(new Date(today.getFullYear(),today.getMonth(),1));}
+    miniMonth=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);
+    if(calendarView==='month'){currentMonth=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);currentWeekStart=getStartOfWeek(currentMonth);}
     refresh();
+  });
+
+  const eventDialog = document.getElementById('calendarEventDialog');
+  const eventForm = document.getElementById('calendarEventForm');
+  document.getElementById('addCalendarEvent').addEventListener('click', () => openCalendarEvent());
+  eventForm.elements.repeat.addEventListener('change', () => {
+    const weekly = eventForm.elements.repeat.value === 'weekly';
+    document.querySelector('.calendar-repeat-date').hidden = weekly;
+    document.querySelector('.calendar-repeat-day').hidden = !weekly;
+    eventForm.elements.date.required = !weekly;
+  });
+  eventForm.elements.date.addEventListener('change', () => {
+    const value = eventForm.elements.date.value;
+    if (value) eventForm.elements.day.value = String(new Date(`${value}T12:00:00`).getDay());
+  });
+  eventForm.elements.courseId.addEventListener('change', () => {
+    const course = DB.getCourses(currentUser.id).find(item => item.id === eventForm.elements.courseId.value);
+    if (course && !eventForm.elements.title.value) eventForm.elements.title.value = course.name;
+  });
+  eventForm.addEventListener('submit', event => {
+    event.preventDefault();
+    const values = Object.fromEntries(new FormData(event.currentTarget));
+    if (values.end <= values.start) {
+      eventForm.elements.end.setCustomValidity('End time must be after start time.');
+      eventForm.elements.end.reportValidity();
+      eventForm.elements.end.setCustomValidity('');
+      return;
+    }
+    const id = values.id;
+    delete values.id;
+    values.day = Number(values.day);
+    values.weekKey = values.type === 'lab' && values.repeat === 'once'
+      ? calendarDateKey(getStartOfWeek(new Date(`${values.date}T12:00:00`)))
+      : '';
+    const saved = id ? DB.updateAcademicEvent(id, values) : DB.addAcademicEvent(currentUser.id, values);
+    if (!saved) {
+      console.error(`Could not save calendar event${id ? ` ${id}` : ''}.`);
+      alert('This calendar event could not be saved. Please try again.');
+      return;
+    }
+    if (values.type === 'lab' && values.repeat === 'once') {
+      const week = DB.getLabWeek(currentUser.id, values.weekKey);
+      const events = (week?.events || []).filter(item => item.id !== id);
+      DB.saveLabWeek(currentUser.id, values.weekKey, [...events, saved]);
+    }
+    eventDialog.close();
+    refresh();
+  });
+  eventDialog.querySelectorAll('[data-calendar-close]').forEach(button => button.addEventListener('click', () => eventDialog.close()));
+  eventDialog.addEventListener('click', event => {
+    if (event.target === eventDialog) eventDialog.close();
+  });
+  document.addEventListener('click', event => {
+    const edit = event.target.closest('[data-calendar-edit]');
+    if (edit) {
+      const record = DB.getAcademicEvents(currentUser.id).find(item => item.id === edit.dataset.calendarEdit);
+      if (record) openCalendarEvent(record);
+      return;
+    }
+    const remove = event.target.closest('[data-calendar-delete]');
+    if (remove) {
+      DB.deleteAcademicEvent(remove.dataset.calendarDelete);
+      refresh();
+    }
   });
 }
 

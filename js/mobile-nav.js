@@ -32,7 +32,7 @@
     {id:'timer',href:'timer.html',label:'Study timer',icon:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="14" r="8"/><path d="M10 2h4M12 6v2m3 6-3 3"/></svg>'},
     {id:'exams',href:'exams.html',label:'Exams',icon:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v17H4zM8 8h8M8 12h8M8 16h5"/></svg>'},
     {id:'achievements',href:'achievements.html',label:'Achievements',icon:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8m-4-4v4M7 4h10v6a5 5 0 0 1-10 0zM7 7H4a3 3 0 0 0 3 4m10-4h3a3 3 0 0 1-3 4"/></svg>'},
-    {id:'settings',href:'settings.html',label:'Settings',icon:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.7-1.4-2.4 1.4-1.1a7 7 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.7 1.4 2.4-1.4 1.1a7 7 0 0 1 0 2z"/></svg>'}
+    {id:'settings',href:'settings.html',label:'Settings',icon:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>'}
   ];
 
   var logoIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>';
@@ -113,13 +113,13 @@
   function inject() {
     if (!isApp) return;
 
-    // Top header — skip on calendar (has its own) and timer (uses mode strip)
+    // Calendar and timer have page-specific mobile headers.
     var skipHeader = ['calendar', 'timer'];
     if (skipHeader.indexOf(current) === -1) {
       document.body.insertBefore(buildHeader(), document.body.firstChild);
     }
 
-    document.body.appendChild(buildNav());
+    if (skipHeader.indexOf(current) === -1) document.body.appendChild(buildNav());
   }
 
   if (document.readyState === 'loading') {
@@ -131,7 +131,7 @@
   // ── Timer page: inject mode strip + bottom nav ─────────────
   if (current === 'timer') {
     function injectTimerStrip() {
-      if (window.innerWidth > 1079) return;
+      if (window.innerWidth > 1023) return;
 
       // Top header for timer
       document.body.insertBefore(buildHeader(), document.body.firstChild);
