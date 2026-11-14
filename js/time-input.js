@@ -4,9 +4,14 @@
 (() => {
   const PATTERN = '([01][0-9]|2[0-3]):[0-5][0-9]';
   function format(raw) {
-    const d = raw.replace(/\D/g, '').slice(0, 4);
-    if (d.length <= 2) return d;
-    return d.slice(0, 2) + ':' + d.slice(2);
+    const value = raw.replace(/[^\d:]/g, '').slice(0, 5);
+    if (value.includes(':')) {
+      const [hours, minutes = ''] = value.split(':');
+      return hours.slice(0, 2) + ':' + minutes.slice(0, 2);
+    }
+    const digits = value.slice(0, 4);
+    if (digits.length <= 2) return digits;
+    return digits.slice(0, 2) + ':' + digits.slice(2);
   }
   function normalise(value) {
     const m = String(value || '').match(/^(\d{1,2}):?(\d{2})?/);
