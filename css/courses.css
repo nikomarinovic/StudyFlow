@@ -30,3 +30,6 @@ body.dark-mode { --course-surface:#202832;--course-ink:#eef3f7;--course-muted:#a
 .schedule-preview-row { display:flex; justify-content:space-between; padding:.3rem .45rem; border-left:3px solid var(--course-color, var(--primary)); background:#fff; font-size:.72rem; }
 .schedule-preview-row span { color:var(--course-muted); }
 .dark-mode .schedule-preview-wrap { background:#293540; }.dark-mode .schedule-preview-row { background:#202832; }
+.assistant-form { display:flex; gap:.75rem; align-items:flex-end; }
+.assistant-form textarea { flex:1; min-height:5rem; resize:vertical; }
+@media(max-width:640px) { .assistant-form { flex-direction:column; align-items:stretch; } }

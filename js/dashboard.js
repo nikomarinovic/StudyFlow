@@ -5,7 +5,7 @@ if (!currentUser) { window.location.replace('auth.html'); }
 else {
 
 // ── Shared constants (must match calendar.js) ─────────────────
-const DIFFICULTY_HOURS = { easy: 5, medium: 10, hard: 15, 'very-hard': 20 };
+const DIFFICULTY_HOURS = DB.getPlannerSettings(currentUser.id);
 const DAILY_LIMIT      = 2; // max study hours per day
 
 // ── Helpers ────────────────────────────────────────────────────
@@ -62,7 +62,7 @@ function generateAllScheduled(items, sessions) {
 
       if (daysUntil <= 0) return;
 
-      const totalH   = DIFFICULTY_HOURS[exam.difficulty] || 10;
+      const totalH   = DIFFICULTY_HOURS[exam.difficulty]?.max || 10;
       const studiedH = sessions
         .filter(s => s.subject === exam.subject)
         .reduce((sum, s) => sum + s.duration / 60, 0);

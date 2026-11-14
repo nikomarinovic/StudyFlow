@@ -72,7 +72,7 @@ async function doDeleteAccount() {
     if(!sync?.enabled)throw new Error('Firebase is not available. No account data was deleted.');
     await sync.deleteAccount(password);
   }
-  [DB.SESSIONS_KEY, DB.EXAMS_KEY, DB.ITEMS_KEY, DB.STATS_KEY, DB.COMPLETIONS_KEY, DB.COURSES_KEY, DB.TASKS_KEY, DB.EVENTS_KEY, DB.AVAILABILITY_KEY, DB.LAB_WEEKS_KEY, DB.PERIODS_KEY, DB.RESOURCES_KEY, DB.SCHEDULES_KEY, 'sf_profiles'].forEach(key => {
+  [DB.SESSIONS_KEY, DB.EXAMS_KEY, DB.ITEMS_KEY, DB.STATS_KEY, DB.COMPLETIONS_KEY, DB.COURSES_KEY, DB.TASKS_KEY, DB.EVENTS_KEY, DB.AVAILABILITY_KEY, DB.LAB_WEEKS_KEY, DB.PERIODS_KEY, DB.RESOURCES_KEY, DB.SCHEDULES_KEY, DB.PLANNER_SETTINGS_KEY, 'sf_profiles'].forEach(key => {
     DB._set(key, DB._get(key).filter(r => r.userId !== currentUser.id));
   });
   DB._set(DB.USERS_KEY, DB.getUsers().filter(u => u.id !== currentUser.id));
@@ -104,6 +104,7 @@ function exportData() {
     academicPeriods: DB.getPeriods(currentUser.id),
     resources: DB.getResources(currentUser.id),
     profile: DB.getProfile(currentUser.id),
+    plannerSettings: DB.getPlannerSettings(currentUser.id),
     localePreferences: SFLocale.get(),
   };
 
@@ -257,6 +258,25 @@ function initLocaleSettings() {
   timeFormat.addEventListener('change', update);
 }
 
+function initPlannerSettings() {
+  const targets = DB.getPlannerSettings(currentUser.id);
+  document.querySelectorAll('.planner-target').forEach(input => {
+    input.value = targets[input.dataset.difficulty][input.dataset.bound];
+  });
+  document.getElementById('savePlannerTargets')?.addEventListener('click', () => {
+    const next = {};
+    document.querySelectorAll('.planner-target').forEach(input => {
+      next[input.dataset.difficulty] ||= {};
+      next[input.dataset.difficulty][input.dataset.bound] = Math.max(1, Number(input.value) || 1);
+    });
+    Object.values(next).forEach(target => {
+      target.max = Math.max(target.min, target.max);
+    });
+    DB.savePlannerSettings(currentUser.id, next);
+    showToast('Study targets updated');
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const profileDialog = document.getElementById('academicProfileDialog');
   document.getElementById('editAcademicProfile')?.addEventListener('click', () => {
@@ -278,6 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target === document.getElementById('confirmDialog')) closeDialog();
   });
   initLocaleSettings();
+  initPlannerSettings();
   init();
 });
 

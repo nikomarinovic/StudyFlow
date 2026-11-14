@@ -17,6 +17,7 @@ const DB = {
   PERIODS_KEY:     'sf_academic_periods',
   RESOURCES_KEY:   'sf_resources',
   SCHEDULES_KEY:   'sf_schedules',
+  PLANNER_SETTINGS_KEY: 'sf_planner_settings',
 
   _get(key) {
     try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; }
@@ -149,6 +150,42 @@ const DB = {
     else all.push({ userId, totalStudyHours: 0, streak: 0, lastStudyDate: null, studyScore: 0, ...patch });
     this._set(this.STATS_KEY, all);
   },
+  getPlannerSettings(userId) {
+    const defaults = {
+      easy: { min: 5, max: 5 },
+      medium: { min: 10, max: 10 },
+      hard: { min: 20, max: 25 },
+      'very-hard': { min: 30, max: 30 }
+    };
+    const saved = this._get(this.PLANNER_SETTINGS_KEY).find(row => row.userId === userId)?.targets || {};
+    return Object.fromEntries(Object.entries(defaults).map(([difficulty, fallback]) => {
+      const value = saved[difficulty] || {};
+      const min = Math.max(1, Number(value.min ?? fallback.min) || fallback.min);
+      const max = Math.max(min, Number(value.max ?? fallback.max) || fallback.max);
+      return [difficulty, { min, max }];
+    }));
+  },
+  savePlannerSettings(userId, targets) {
+    const rows = this._get(this.PLANNER_SETTINGS_KEY);
+    const value = { userId, targets, updatedAt: Date.now() };
+    const index = rows.findIndex(row => row.userId === userId);
+    if (index < 0) rows.push(value);
+    else rows[index] = value;
+    this._set(this.PLANNER_SETTINGS_KEY, rows);
+    return this.getPlannerSettings(userId);
+  },
+  recordActivity(userId) {
+    const stats = this.getStats(userId);
+    const today = new Date();
+    const todayKey = today.toDateString();
+    const lastKey = stats.lastStudyDate ? new Date(stats.lastStudyDate).toDateString() : null;
+    if (lastKey === todayKey) return stats;
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const streak = lastKey === yesterday.toDateString() ? (stats.streak || 0) + 1 : 1;
+    this.updateStats(userId, { streak, lastStudyDate: Date.now() });
+    return this.getStats(userId);
+  },
 
   // ── EXAMS (legacy — proxies to items) ──────────────────────
   getExams(userId) {
@@ -207,18 +244,10 @@ const DB = {
     const hoursAdded = (durationMinutes || 0) / 60;
     const scoreGain  = Math.round((durationMinutes || 0) * 1.5);
     const stats      = this.getStats(userId);
-    const today      = new Date().toDateString();
-    const lastStudy  = stats.lastStudyDate ? new Date(stats.lastStudyDate).toDateString() : null;
-    const yesterday  = new Date(Date.now() - 86400000).toDateString();
-    let streak = stats.streak || 0;
-    if      (lastStudy === today)     { /* same day — no streak change */ }
-    else if (lastStudy === yesterday) { streak += 1; }
-    else                              { streak = 1; }
+    this.recordActivity(userId);
 
     this.updateStats(userId, {
       totalStudyHours: (stats.totalStudyHours || 0) + hoursAdded,
-      streak,
-      lastStudyDate:   Date.now(),
       studyScore:      (stats.studyScore || 0) + scoreGain
     });
 
@@ -253,18 +282,10 @@ const DB = {
     const hoursAdded = (session.duration || 0) / 60;
     const scoreGain  = Math.round((session.duration || 0) * 1.5);
     const stats      = this.getStats(userId);
-    const today      = new Date().toDateString();
-    const lastStudy  = stats.lastStudyDate ? new Date(stats.lastStudyDate).toDateString() : null;
-    const yesterday  = new Date(Date.now() - 86400000).toDateString();
-    let streak = stats.streak || 0;
-    if      (lastStudy === today)     { /* same day */ }
-    else if (lastStudy === yesterday) { streak += 1; }
-    else                              { streak = 1; }
+    this.recordActivity(userId);
 
     this.updateStats(userId, {
       totalStudyHours: (stats.totalStudyHours || 0) + hoursAdded,
-      streak,
-      lastStudyDate:   Date.now(),
       studyScore:      (stats.studyScore || 0) + scoreGain
     });
     return newSession;
@@ -272,3 +293,5 @@ const DB = {
 };
 
 window.DB = DB;
+const openedUser = JSON.parse(localStorage.getItem('sf_current_user') || 'null');
+if (openedUser?.id) DB.recordActivity(openedUser.id);

@@ -247,6 +247,21 @@
       </div>
     </div>
 
+    <div class="s-section" style="animation-delay:.14s">
+      <div class="s-section-header"><div class="s-section-icon green">◒</div><div><div class="s-section-title">Exam study targets</div><div class="s-section-sub">Set the planned study-hour range for each difficulty level</div></div></div>
+      <div style="padding:1rem 1.5rem">
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 6.5rem 6.5rem;gap:.55rem .75rem;align-items:center;font-size:.78rem">
+          <strong>Difficulty</strong><strong>Minimum hours</strong><strong>Maximum hours</strong>
+          <span>Easy</span><input class="s-select planner-target" data-difficulty="easy" data-bound="min" aria-label="Easy minimum hours" type="number" min="1" step="1"><input class="s-select planner-target" data-difficulty="easy" data-bound="max" aria-label="Easy maximum hours" type="number" min="1" step="1">
+          <span>Medium</span><input class="s-select planner-target" data-difficulty="medium" data-bound="min" aria-label="Medium minimum hours" type="number" min="1" step="1"><input class="s-select planner-target" data-difficulty="medium" data-bound="max" aria-label="Medium maximum hours" type="number" min="1" step="1">
+          <span>Hard</span><input class="s-select planner-target" data-difficulty="hard" data-bound="min" aria-label="Hard minimum hours" type="number" min="1" step="1"><input class="s-select planner-target" data-difficulty="hard" data-bound="max" aria-label="Hard maximum hours" type="number" min="1" step="1">
+          <span>Very hard</span><input class="s-select planner-target" data-difficulty="very-hard" data-bound="min" aria-label="Very hard minimum hours" type="number" min="1" step="1"><input class="s-select planner-target" data-difficulty="very-hard" data-bound="max" aria-label="Very hard maximum hours" type="number" min="1" step="1">
+        </div>
+        <p class="s-row-sub" style="margin:.75rem 0 0">The maximum is used when calculating exam progress and scheduling study time.</p>
+        <button class="s-btn s-btn-primary" id="savePlannerTargets" type="button" style="margin-top:.75rem">Save study targets</button>
+      </div>
+    </div>
+
     <!-- Stats -->
     <div class="s-stats">
       <div class="s-stat">

@@ -3,7 +3,7 @@ if (!currentUser) { window.location.replace('auth.html'); }
 
 else {
 
-const DIFFICULTY_HOURS = { easy: 5, medium: 10, hard: 15, 'very-hard': 20 };
+const DIFFICULTY_HOURS = DB.getPlannerSettings(currentUser.id);
 const DAILY_LIMIT      = 2;
 const CIRCUMFERENCE    = 2 * Math.PI * 22; // for 52×52 SVG ring r=22 → ~138.2
 
@@ -79,7 +79,7 @@ function generateSchedule(items, sessions) {
 
       if (daysUntil <= 0 || exam.courseId && DB.getCourses(currentUser.id).some(c=>c.id===exam.courseId)) return;
 
-      const totalH   = DIFFICULTY_HOURS[exam.difficulty] || 10;
+      const totalH   = DIFFICULTY_HOURS[exam.difficulty]?.max || 10;
       const studiedH = sessions.filter(s => s.subject === exam.subject)
                                .reduce((sum,s) => sum + s.duration/60, 0);
       let hoursLeft  = Math.max(0, totalH - studiedH);
@@ -335,7 +335,9 @@ function renderTimeGrid(grid, scheduled) {
         const top=(minutes-startHour*60)/60*hourHeight;
         const height=Math.max(26,duration/60*hourHeight);
         if(top+height<0||top>(endHour-startHour)*hourHeight)return '';
-        return `<button type="button" class="calendar-timed-event${event.completed?' is-completed':''}" data-calendar-event="${calendarEscape(event.eventId||'')}" data-date="${calendarDateKey(date)}" style="--event-color:${/^#[0-9a-f]{6}$/i.test(event.color||'')?event.color:event.type==='exam-day'?'#d93025':event.type==='scheduled'?'#188038':event.type==='assignment'?'#f9ab00':'#4285f4'};top:${Math.max(0,top)}px;height:${Math.min(height,(endHour-startHour)*hourHeight-Math.max(0,top))}px"><strong>${calendarEscape(event.subject)}</strong><span>${calendarEscape(SFLocale.time(event.time))}${event.end?' – '+calendarEscape(SFLocale.time(event.end)):''}</span>${event.topic?`<small>${calendarEscape(event.topic)}</small>`:''}</button>`;
+        const compact=height<64;
+        const eventLabel=[event.subject,event.topic,SFLocale.time(event.time),event.end?SFLocale.time(event.end):''].filter(Boolean).join(' · ');
+        return `<button type="button" title="${calendarEscape(eventLabel)}" class="calendar-timed-event${compact?' is-compact':''}${event.completed?' is-completed':''}" data-calendar-event="${calendarEscape(event.eventId||'')}" data-date="${calendarDateKey(date)}" style="--event-color:${/^#[0-9a-f]{6}$/i.test(event.color||'')?event.color:event.type==='exam-day'?'#d93025':event.type==='scheduled'?'#188038':event.type==='assignment'?'#f9ab00':'#4285f4'};top:${Math.max(0,top)}px;height:${Math.min(height,(endHour-startHour)*hourHeight-Math.max(0,top))}px"><strong>${calendarEscape(event.subject)}</strong><span>${calendarEscape(SFLocale.time(event.time))}${event.end?' – '+calendarEscape(SFLocale.time(event.end)):''}</span>${event.topic?`<small>${calendarEscape(event.topic)}</small>`:''}</button>`;
       }).join('')}</div>`).join('')}</div>`;
   grid.style.setProperty('--calendar-hour-height',`${hourHeight}px`);
   grid.style.setProperty('--calendar-hours',String(endHour-startHour));

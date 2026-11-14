@@ -9,7 +9,7 @@ let selectedDifficulty = 'medium';
 let selectedType       = 'exam';
 let currentFilter      = 'all';
 
-const DIFF_HOURS  = { easy: 5, medium: 10, hard: 15, 'very-hard': 20 };
+const DIFF_HOURS  = DB.getPlannerSettings(currentUser.id);
 const DIFF_LABELS = { easy: 'Easy', medium: 'Medium', hard: 'Hard', 'very-hard': 'Very Hard' };
 
 const TYPE_ICONS = {
@@ -43,7 +43,7 @@ function getStudiedHours(item, sessions, completions) {
 
 function getProgressPct(item, sessions, completions) {
   if (item.type !== 'exam') return null;
-  const req = DIFF_HOURS[item.difficulty] || 10;
+  const req = DIFF_HOURS[item.difficulty]?.max || 10;
   return Math.min(100, Math.round((getStudiedHours(item, sessions, completions) / req) * 100));
 }
 

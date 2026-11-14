@@ -165,3 +165,6 @@
   .calendar-event-actions { width:100%;justify-content:flex-end; }
 }
 .calendar-timed-event small{white-space:pre-line}
+.calendar-timed-event strong { display:block; white-space:nowrap; }
+.calendar-timed-event.is-compact { padding:.2rem .3rem; line-height:1.15; }
+.calendar-timed-event.is-compact small { display:none; }
