@@ -200,6 +200,8 @@ function handleAssistantRequest(event){
   assistantState.action=null;assistantState.fields={};input.value='';render();
 }
 $('#generatePlan').onclick=generatePlan;
+$('#toggleStudyPlan').onclick=()=>{const panel=$('#studyPlanPanel'),collapsed=panel.classList.toggle('is-collapsed'),button=$('#toggleStudyPlan');button.textContent=collapsed?'Expand':'Collapse';button.setAttribute('aria-expanded',String(!collapsed));};
+$('#clearStudyPlan').onclick=()=>{const generated=DB.getAcademicEvents(user.id).filter(e=>e.type==='study'&&(e.generatedPlanId==='exam-horizon'||e.generatedWeek));if(!generated.length){addAssistantMessage('There is no generated study plan to remove.');return;}if(!confirm(`Remove ${generated.length} generated study sessions everywhere?`))return;const ids=new Set(generated.map(e=>e.id));DB._set(DB.EVENTS_KEY,DB._get(DB.EVENTS_KEY).filter(e=>!ids.has(e.id)));render();};
 $('#assistantForm').addEventListener('submit',handleAssistantRequest);
 $('#assistantToggle').onclick=()=>{$('#assistantDrawer').classList.add('is-open');$('#assistantDrawer').setAttribute('aria-hidden','false');$('#assistantInput').focus();};
 $('#assistantClose').onclick=()=>{$('#assistantDrawer').classList.remove('is-open');$('#assistantDrawer').setAttribute('aria-hidden','true');};
