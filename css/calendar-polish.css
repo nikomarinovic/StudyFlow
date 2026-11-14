@@ -97,6 +97,9 @@
 .calendar-time-labels { display:grid;grid-template-rows:repeat(var(--calendar-hours),var(--calendar-hour-height));color:var(--muted-foreground);font-size:.63rem;text-align:right;padding-right:.55rem; }
 .calendar-time-labels span { position:relative;top:-.45rem; }
 .calendar-time-column { position:relative;height:calc(var(--calendar-hours)*var(--calendar-hour-height));border-left:1px solid var(--border);background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(var(--calendar-hour-height) - 1px),var(--border) calc(var(--calendar-hour-height) - 1px),var(--border) var(--calendar-hour-height)); }
+.calendar-now-line { position:absolute;left:0;right:0;z-index:4;height:2px;background:#dc2626;pointer-events:none;box-shadow:0 0 0 1px rgba(220,38,38,.08); }
+.calendar-now-line::before { content:"";position:absolute;left:-4px;top:-4px;width:10px;height:10px;border-radius:50%;background:#dc2626; }
+.calendar-now-line span { position:absolute;right:.25rem;top:-.8rem;padding:.1rem .3rem;border-radius:.25rem;background:#dc2626;color:#fff;font-size:.58rem;font-weight:700;line-height:1.2; }
 .calendar-time-column::before { content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(var(--calendar-hour-height)/2 - 1px),color-mix(in srgb,var(--border) 45%,transparent) calc(var(--calendar-hour-height)/2 - 1px),color-mix(in srgb,var(--border) 45%,transparent) calc(var(--calendar-hour-height)/2)); }
 .calendar-time-slot { position:relative;z-index:1;display:block;width:100%;height:var(--calendar-hour-height);border:0;background:transparent;cursor:pointer; }
 .calendar-time-slot:hover { background:#1a73e80b; }

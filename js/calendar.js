@@ -322,7 +322,7 @@ function renderTimeGrid(grid, scheduled) {
   grid.className = 'week-grid calendar-time-view';
   grid.innerHTML = `<div class="calendar-time-header"><span></span>${days.map(date=>`<button type="button" class="calendar-day-heading${isSameDay(date,new Date())?' is-today':''}" data-calendar-day="${calendarDateKey(date)}"><span>${fmtDate(date,'EEE')}</span><strong>${fmtDate(date,'d')}</strong></button>`).join('')}</div>
     <div class="calendar-time-body"><div class="calendar-time-labels">${Array.from({length:endHour-startHour},(_,i)=>`<span>${String(startHour+i).padStart(2,'0')}:00</span>`).join('')}</div>
-    ${days.map(date=>`<div class="calendar-time-column" data-date="${calendarDateKey(date)}">${Array.from({length:endHour-startHour},(_,i)=>`<button type="button" class="calendar-time-slot" data-hour="${startHour+i}" aria-label="Add event ${fmtDate(date,'EEEE')} ${startHour+i}:00"></button>`).join('')}
+    ${days.map(date=>`<div class="calendar-time-column" data-date="${calendarDateKey(date)}">${Array.from({length:endHour-startHour},(_,i)=>`<button type="button" class="calendar-time-slot" data-hour="${startHour+i}" aria-label="Add event ${fmtDate(date,'EEEE')} ${startHour+i}:00"></button>`).join('')}${isSameDay(date,new Date())?`<div class="calendar-now-line" aria-label="Current time"><span>${new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',hour12:false})}</span></div>`:''}
       ${scheduled.filter(event=>isSameDay(event.date,date)).map(event=>{
         const timed=/^\d{2}:\d{2}$/.test(event.time||'');
         if(!timed)return `<button type="button" class="calendar-all-day-event" data-calendar-event="${calendarEscape(event.eventId||'')}" data-date="${calendarDateKey(date)}" style="--event-color:${/^#[0-9a-f]{6}$/i.test(event.color||'')?event.color:'#4285f4'}">${calendarEscape(event.subject)}${event.eventId?'<span> · Edit</span>':''}</button>`;
@@ -337,6 +337,8 @@ function renderTimeGrid(grid, scheduled) {
   grid.style.setProperty('--calendar-hour-height',`${hourHeight}px`);
   grid.style.setProperty('--calendar-hours',String(endHour-startHour));
   grid.style.setProperty('--calendar-days',String(count));
+  const now=new Date(), nowMinutes=now.getHours()*60+now.getMinutes()+now.getSeconds()/60;
+  if(nowMinutes>=startHour*60&&nowMinutes<=endHour*60)grid.querySelector('.calendar-now-line')?.style.setProperty('top',`${(nowMinutes-startHour*60)/60*hourHeight}px`);
   grid.querySelectorAll('[data-calendar-day]').forEach(button=>button.addEventListener('click',()=>{selectedDate=new Date(`${button.dataset.calendarDay}T12:00:00`);miniMonth=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);renderMiniCalendar();refresh();}));
   grid.querySelectorAll('.calendar-time-slot').forEach(slot=>slot.addEventListener('click',()=>{
     const date=slot.closest('.calendar-time-column').dataset.date;
@@ -671,6 +673,7 @@ function init() {
     if(calendarView==='month'){currentMonth=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);currentWeekStart=getStartOfWeek(currentMonth);}
     refresh();
   });
+  setInterval(()=>{if(document.visibilityState==='visible')refresh();},30000);
 
   const eventDialog = document.getElementById('calendarEventDialog');
   const eventForm = document.getElementById('calendarEventForm');
