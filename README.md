@@ -18,7 +18,7 @@
 
 - Exam tracking with difficulty levels and countdown timers
 - Pomodoro-style focus sessions with multiple session modes
-- Auto-generated weekly study schedules based on your exams
+- Adaptive study planner: no "generate" button, the plan rebuilds itself whenever anything changes
 - Progress analytics — streaks, study hours, and weekly goals
 - Calendar view with scheduled and completed sessions
 - Full account system with session history and stats
@@ -49,11 +49,26 @@ Getting started with StudyFlow is fast:
 
 - **Focus Timer** — Pomodoro, Deep Focus, Flow State, Short & Long Break
 - **Exam Tracker** — subject, topic, date, and difficulty level
-- **Smart Schedule** — auto-generates daily study slots from your exams
+- **Adaptive Planner** — keeps your study plan up to date automatically (see below)
 - **Calendar** — weekly view with session indicators and day detail
 - **Analytics** — study score, streak, and weekly goal progress
 - **Settings** — clear sessions, delete account, view stats
 - **Courses** — track ECTS, assessment weights, mandatory minimums, earned points, and assignment deadlines
+
+---
+
+## Adaptive Planner
+
+The study plan is no longer generated with a button. `js/planner.js` recomputes it automatically whenever your timetable, availability, exams, assignments, one-day activities, exam periods, per-subject hours or completed sessions change, and as time passes.
+
+- **Grouped days** — at most two subjects per day, each in one longer block (45–120 min), most urgent first. A third subject is only added when the next two weeks are very full.
+- **Starts early** — study time is filled from the beginning of your availability window. If you can study from 10:00 on Sunday, the first session is at 10:00.
+- **Hours per subject** — set Less / Normal / More / Maximum or extra hours per course on the Academic planner page, or tell the assistant ("više sati za linearnu algebru", "linearna algebra 10h tjedno").
+- **One-day activities** — driving lessons, appointments and similar. The plan moves around them immediately; they disappear from the calendar once over and stay in the activity log. Recurring commitments can be added as weekly blocks.
+- **Exam preparation** — each session is labelled Learn → Practice → Final review depending on how close the exam is; the subject whose exam is tomorrow always gets a final review. Hours ramp up towards the exam and are weighted by difficulty, ECTS and midterm/final.
+- **Self-correcting** — missed or unfinished work flows back into the plan, a session you delete is treated as time you cannot study, a session you edit is left where you put it, and the plan tells you when a subject will not fit.
+
+The assistant understands requests such as `autoškola u utorak od 17 do 18`, `svaki četvrtak 19:00-20:00 trening`, `u nedjelju mogu učiti od 10` and `ne mogu učiti u subotu`.
 
 ---
 

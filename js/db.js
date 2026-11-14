@@ -18,6 +18,8 @@ const DB = {
   RESOURCES_KEY:   'sf_resources',
   SCHEDULES_KEY:   'sf_schedules',
   PLANNER_SETTINGS_KEY: 'sf_planner_settings',
+  PLANNER_PREFS_KEY: 'sf_planner_prefs',
+  ACTIVITY_LOG_KEY: 'sf_activity_log',
 
   _get(key) {
     try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; }
@@ -27,6 +29,8 @@ const DB = {
     const pending = this._get('sf_pending_sync_stores');
     if (!pending.includes(key)) localStorage.setItem('sf_pending_sync_stores', JSON.stringify([...pending, key]));
     window.FirebaseSync?.queue?.(key);
+    // The adaptive planner listens for this and re-plans automatically.
+    try { window.dispatchEvent(new CustomEvent('sf:store-changed', { detail: { key } })); } catch {}
   },
   _id() { return Date.now().toString(36) + Math.random().toString(36).slice(2); },
 
@@ -69,7 +73,10 @@ const DB = {
   getAcademicEvents(userId) { return this._get(this.EVENTS_KEY).filter(e => e.userId === userId); },
   addAcademicEvent(userId, event) { const rows=this._get(this.EVENTS_KEY), record={id:this._id(),userId,type:'lecture',color:'#3978c5',...event,createdAt:Date.now()}; rows.push(record);this._set(this.EVENTS_KEY,rows);return record; },
   updateAcademicEvent(id, patch) { const rows=this._get(this.EVENTS_KEY),i=rows.findIndex(e=>e.id===id);if(i<0)return null;const previous=rows[i];rows[i]={...previous,...patch,updatedAt:Date.now()};this._set(this.EVENTS_KEY,rows);if(previous.weekKey||rows[i].weekKey){const weeks=this._get(this.LAB_WEEKS_KEY).map(w=>{if(w.weekKey!==previous.weekKey&&w.weekKey!==rows[i].weekKey)return w;const entries=(w.events||[]).filter(e=>e.id!==id);if(w.weekKey===rows[i].weekKey&&rows[i].type==='lab'&&rows[i].repeat==='once')entries.push(rows[i]);return {...w,events:entries};});this._set(this.LAB_WEEKS_KEY,weeks);}return rows[i]; },
-  deleteAcademicEvent(id) { const rows=this._get(this.EVENTS_KEY),found=rows.some(e=>e.id===id);if(!found)return false;this._set(this.EVENTS_KEY,rows.filter(e=>e.id!==id));this._set(this.LAB_WEEKS_KEY,this._get(this.LAB_WEEKS_KEY).map(w=>({...w,events:(w.events||[]).filter(e=>e.id!==id)})));return true; },
+  deleteAcademicEvent(id) { const rows=this._get(this.EVENTS_KEY),target=rows.find(e=>e.id===id),found=Boolean(target);if(!found)return false;
+    // Removing a generated session means "I can't study then": remember the slot so the planner works around it.
+    if(target.type==='study'&&(target.generatedPlanId||target.generatedWeek)&&target.date&&target.date>=new Date().toISOString().slice(0,10)&&!this.isCompleted(target.userId,`acad-${target.id}-${target.date}`)){const prefs=this.getPlannerPrefs(target.userId);this.savePlannerPrefs(target.userId,{dismissed:[...(prefs.dismissed||[]),{date:target.date,start:target.start,end:target.end}]});}
+    this._set(this.EVENTS_KEY,this._get(this.EVENTS_KEY).filter(e=>e.id!==id));this._set(this.LAB_WEEKS_KEY,this._get(this.LAB_WEEKS_KEY).map(w=>({...w,events:(w.events||[]).filter(e=>e.id!==id)})));return true; },
   getSchedules(userId) { return this._get(this.SCHEDULES_KEY).filter(s=>s.userId===userId); },
   addSchedule(userId, schedule) {
     const rows=this._get(this.SCHEDULES_KEY), record={id:this._id(),userId,name:'Schedule',active:false,createdAt:Date.now(),...schedule};
@@ -173,6 +180,34 @@ const DB = {
     else rows[index] = value;
     this._set(this.PLANNER_SETTINGS_KEY, rows);
     return this.getPlannerSettings(userId);
+  },
+  // ── ADAPTIVE PLANNER PREFERENCES ───────────────────────────
+  // { auto, courseHours: { [courseId]: { boost, extraHours, weeklyHours } }, dismissed: [{date,start,end}], ...overrides }
+  getPlannerPrefs(userId) {
+    const saved = this._get(this.PLANNER_PREFS_KEY).find(row => row.userId === userId)?.prefs || {};
+    return { courseHours: {}, dismissed: [], ...saved };
+  },
+  savePlannerPrefs(userId, patch) {
+    const rows = this._get(this.PLANNER_PREFS_KEY);
+    const index = rows.findIndex(row => row.userId === userId);
+    const prefs = { ...this.getPlannerPrefs(userId), ...patch };
+    const value = { userId, prefs, updatedAt: Date.now() };
+    if (index < 0) rows.push(value); else rows[index] = value;
+    this._set(this.PLANNER_PREFS_KEY, rows);
+    return prefs;
+  },
+  setCourseHours(userId, courseId, patch) {
+    const prefs = this.getPlannerPrefs(userId);
+    const next = { ...(prefs.courseHours || {}) };
+    next[courseId] = { ...(next[courseId] || {}), ...patch };
+    return this.savePlannerPrefs(userId, { courseHours: next });
+  },
+  // One-day activity: blocks study time, disappears from the calendar after it ends, stays in the activity log.
+  addTemporaryActivity(userId, activity) {
+    return this.addAcademicEvent(userId, { type: 'other', repeat: 'once', color: '#94a3b8', location: '', ...activity, temporary: true });
+  },
+  getActivityLog(userId) {
+    return this._get(this.ACTIVITY_LOG_KEY).filter(e => e.userId === userId).sort((a, b) => (b.date + b.start).localeCompare(a.date + a.start));
   },
   recordActivity(userId) {
     const stats = this.getStats(userId);

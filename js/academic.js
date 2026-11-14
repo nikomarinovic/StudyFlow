@@ -97,13 +97,13 @@ function importTimetable(){
   alert('Raspored, kolegiji i periodi su uspješno uneseni.');
 }
 function render(){ensureSchedule();renderScheduleControls();const wk=currentWeekKey(),answer=DB.getLabWeek(user.id,wk);const prompt=$('#labPrompt');prompt.hidden=false;prompt.innerHTML=answer?`<div><strong>Laboratory schedule confirmed for this week.</strong><p>${answer.events.length?`${answer.events.length} lab session${answer.events.length===1?'':'s'} saved.`:'You marked that there are no labs this week.'} Your regular timetable stays saved; this request stays here until next week.</p></div><button class="btn-outline" id="answerLabs">Edit this week’s labs</button>`:`<div><strong>Kako izgledaju tvoje laboratorijske vježbe ovaj tjedan?</strong><p>Confirm this week’s lab times so the planner blocks the correct hours. Your regular timetable stays saved; this request stays pending until you answer.</p></div><button class="btn-primary" id="answerLabs">Set this week’s labs</button><button class="btn-outline" id="noLabs">No labs this week</button>`;
-const list=events().filter(e=>e.type!=='study'), groups=[], grouped=new Map();
+const list=events().filter(e=>e.type!=='study'&&!e.temporary), groups=[], grouped=new Map();
 list.forEach(event=>{const key=event.scheduleGroupId||`${event.courseId}|${event.title}|${event.start}|${event.end}|${event.location}|${event.repeat}`;if(!grouped.has(key)){const group={...event,ids:[],days:[]};grouped.set(key,group);groups.push(group);}const group=grouped.get(key);group.ids.push(event.id);if(event.repeat==='weekly'&&!group.days.includes(Number(event.day)))group.days.push(Number(event.day));});
 const dayLabel=day=>days[((Number(day)+6)%7)].slice(0,3);
 $('#eventList').innerHTML=groups.length?groups.map(e=>`<div class="task-row timetable-row" style="--course-color:${color(e.color)}"><div><span class="task-title">${esc(e.title)}</span><span class="task-meta">${esc(courseName(e.courseId))} · ${e.repeat==='weekly'?(e.days.length?e.days.sort((a,b)=>a-b).map(dayLabel).join(', '):'Every week'):SFLocale.date(e.date)} ${e.weekKey?' · this week':''} · ${esc(e.location||e.type)}${e.description?` · ${esc(e.description)}`:''}</span></div><span class="task-due">${esc(SFLocale.time(e.start))}–${esc(SFLocale.time(e.end))}</span><button class="tiny-btn" data-edit-group="${esc(e.ids[0])}">Edit</button><button class="tiny-btn" data-delete-group="${esc(e.ids.join(','))}">×</button></div>`).join(''):'<p class="empty">Add lectures and labs to make them unavailable to the study planner.</p>';
 const avail=DB.getAvailability(user.id);$('#availabilityForm').innerHTML=days.map((d,i)=>{const x=avail[i]||{};return `<label class="availability-day"><span class="availability-name">${d}</span><input aria-label="${d} available from" class="military-time" type="text" inputmode="numeric" pattern="[0-2][0-9]:[0-5][0-9]" maxlength="5" placeholder="16:00" data-day="${i}" data-part="start" value="${esc(x.start||'16:00')}"><span class="availability-to">to</span><input aria-label="${d} available until" class="military-time" type="text" inputmode="numeric" pattern="[0-2][0-9]:[0-5][0-9]" maxlength="5" placeholder="20:00" data-day="${i}" data-part="end" value="${esc(x.end||'20:00')}"><input aria-label="${d} study day enabled" type="checkbox" data-day="${i}" data-part="enabled" ${x.enabled===false?'':'checked'}></label>`}).join('');
 const periods=DB.getPeriods(user.id);$('#periodList').innerHTML=periods.length?periods.map(p=>`<div class="task-row"><div><span class="task-title">${esc(p.title)}</span><span class="task-meta">${esc(p.startDate)} to ${esc(p.endDate)} · ${p.suspendClasses?'Classes suspended':'Regular timetable active'}</span></div><span class="task-due">${esc(p.studyStart)}–${esc(p.studyEnd)}</span><button class="tiny-btn" data-delete-period="${esc(p.id)}">×</button></div>`).join(''):'<p class="empty">If lectures pause during exams, add the dates here to free the timetable for study.</p>';
-const plans=events().filter(e=>e.type==='study').sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start));$('#planList').innerHTML=plans.length?plans.map(e=>`<div class="task-row"><div><span class="task-title">${esc(e.title)}</span><span class="task-meta">${SFLocale.date(e.date)} · ${esc(courseName(e.courseId))}</span></div><span class="task-due">${esc(SFLocale.time(e.start))}–${esc(SFLocale.time(e.end))}</span><button type="button" class="tiny-btn" data-edit-event="${esc(e.id)}">Edit</button><button type="button" class="tiny-btn" data-delete-event="${esc(e.id)}">Remove</button></div>`).join(''):'<p class="empty">Set your weekly availability and add courses to generate a plan.</p>';}
+const plans=events().filter(e=>e.type==='study'&&e.date>=dateKey(new Date())).sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start)).slice(0,60);$('#planList').innerHTML=plans.length?plans.map(e=>`<div class="task-row"><div><span class="task-title">${esc(e.title)}</span><span class="task-meta">${SFLocale.date(e.date)} · ${esc(courseName(e.courseId))}</span></div><span class="task-due">${esc(SFLocale.time(e.start))}–${esc(SFLocale.time(e.end))}</span><button type="button" class="tiny-btn" data-edit-event="${esc(e.id)}">Edit</button><button type="button" class="tiny-btn" data-delete-event="${esc(e.id)}">Remove</button></div>`).join(''):'<p class="empty">Nothing planned yet. Save your availability and add exams or assignments; the plan builds itself.</p>';renderPlannerPanels();}
 function openEvent(arg=false){const f=$('#eventForm'),editing=typeof arg==='object';f.reset();f.elements.courseId.innerHTML='<option value="">Personal / other</option>'+courses().map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');$('#eventDialogTitle').textContent=editing?'Edit academic activity':'Add academic activity';if(editing){Object.keys(arg).forEach(k=>{if(f.elements[k])f.elements[k].value=arg[k]??'';});}else if(arg){f.elements.type.value='lab';f.elements.repeat.value='once';f.elements.date.value=currentWeekKey();}f.elements.repeat.dispatchEvent(new Event('change'));$('#eventDialog').showModal();}
 function fillCourseOptions(form){form.elements.courseId.innerHTML=courses().map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');}
 function groupForEvent(id){const all=events(),target=all.find(e=>e.id===id);if(!target)return[];const key=target.scheduleGroupId||`${target.courseId}|${target.title}|${target.start}|${target.end}|${target.location}|${target.repeat}`;return all.filter(e=>(target.scheduleGroupId?e.scheduleGroupId===target.scheduleGroupId:`${e.courseId}|${e.title}|${e.start}|${e.end}|${e.location}|${e.repeat}`===key));}
@@ -125,37 +125,112 @@ $('#importSchedule').onchange=e=>{const file=e.target.files?.[0];if(!file)return
 document.addEventListener('click',e=>{if(e.target.closest('#answerLabs'))openEvent(true);if(e.target.closest('#noLabs')){events().filter(x=>x.type==='lab'&&x.weekKey===currentWeekKey()).forEach(x=>DB.deleteAcademicEvent(x.id));DB.saveLabWeek(user.id,currentWeekKey(),[]);render();}});
 $('#saveAvailability').onclick=()=>{const out={},timePattern=/^(?:[01]\d|2[0-3]):[0-5]\d$/;let invalid=false;document.querySelectorAll('[data-day][data-part]').forEach(el=>{const d=el.dataset.day;out[d]||={};out[d][el.dataset.part]=el.type==='checkbox'?el.checked:el.value;if(el.type==='text'&&el.value&&!timePattern.test(el.value))invalid=true;});if(invalid){alert('Use 24-hour time in HH:MM format, for example 16:00.');return;}for(const day of Object.values(out)){if(day.start&&day.end&&day.end<=day.start){alert('Available until must be after available from.');return;}}DB.saveAvailability(user.id,out);render();};
 $('#addPeriod').onclick=()=>$('#periodDialog').showModal();$('#periodForm').addEventListener('submit',e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.currentTarget));d.suspendClasses=d.suspendClasses==='true';if(d.endDate<d.startDate){alert('Resume date must be on or after the start date.');return;}DB.addPeriod(user.id,d);$('#periodDialog').close();render();});
-function overlaps(a,b,c,d){return a<d&&c<b;}
-function courseProgress(course){const criteria=course.assessments||[];const earned=criteria.reduce((total,assessment)=>{const score=assessment.score===''||assessment.score==null?0:Number(assessment.score)||0;return total+Math.min(score,Number(assessment.maxPoints)||0)/Math.max(Number(assessment.maxPoints)||1,1)*(Number(assessment.weight)||0);},0);return {earned};}
-function generatePlan(){const availability=DB.getAvailability(user.id);if(!Object.keys(availability).length){alert('Set your weekly availability first.');return;}const allEvents=DB._get(DB.EVENTS_KEY);DB._set(DB.EVENTS_KEY,allEvents.filter(e=>!(e.userId===user.id&&e.type==='study'&&(e.generatedPlanId==='exam-horizon'||e.generatedWeek))));const today=new Date();today.setHours(0,0,0,0);const tomorrow=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);const exams=DB.getExams(user.id).filter(exam=>exam.dueDate&&exam.dueDate>=dateKey(tomorrow));const examDates=new Set(exams.map(exam=>exam.dueDate));const plannedTasks=DB.getTasks(user.id).filter(task=>task.status!=='done'&&task.dueDate&&task.dueDate>=dateKey(today)&&Number(task.planningMinutes)>0);const latestDate=[...exams.map(exam=>exam.dueDate),...plannedTasks.map(task=>task.dueDate)].sort().pop();if(!latestDate){alert('Add an upcoming exam or assignment with a due date before generating a study plan.');return;}const horizonEnd=new Date(`${latestDate}T12:00:00`),coursesNow=courses();if(!coursesNow.length){alert('Add courses and ECTS credits first.');return;}const targets=DB.getPlannerSettings(user.id),courseById=new Map(coursesNow.map(course=>[course.id,course]));const courseNeeds=coursesNow.map(c=>{const exam=exams.filter(x=>x.courseId===c.id||x.subject===c.name).sort((a,b)=>a.dueDate.localeCompare(b.dueDate))[0],due=exam?.dueDate||'',daysLeft=due?Math.max(0,(new Date(due+'T12:00:00')-tomorrow)/86400000):99;const assessmentRemaining=(c.assessments||[]).reduce((s,a)=>s+(a.score===''||a.score==null?Number(a.weight)||0:0),0),progress=courseProgress(c),risk=Math.max(0,(Number(c.passPercent||50)-progress.earned)/Math.max(1,Number(c.passPercent||50))),targetHours=exam?(targets[exam.difficulty]?.max||10):Math.max(1,(Number(c.ects)||1)*.4);return {course:c,priority:(Number(c.ects)||1)*(1+Math.max(0,14-daysLeft)/14)*(1+assessmentRemaining/100)*(1+risk),targetHours,due};}).sort((a,b)=>b.priority-a.priority);const taskNeeds=plannedTasks.filter(task=>courseById.has(task.courseId)).map(task=>({course:courseById.get(task.courseId),task,taskHours:Number(task.planningMinutes)/60,targetHours:Number(task.planningMinutes)/60,priority:1000,due:task.dueDate}));let needs=[...taskNeeds,...courseNeeds];let blocks=[],rotationIndex=0;
-for(let day=new Date(tomorrow);day<horizonEnd;day.setDate(day.getDate()+1)){const iso=dateKey(day),dayOfWeek=day.getDay(),setting=availability[dayOfWeek];if(examDates.has(iso)||!setting||setting.enabled===false)continue;const periods=DB.getPeriods(user.id).filter(p=>p.suspendClasses&&iso>=p.startDate&&iso<=p.endDate);let start=setting.start||'16:00',end=setting.end||'20:00';if(periods.length){start=periods[0].studyStart||'09:00';end=periods[0].studyEnd||'18:00';}let min=+start.slice(0,2)*60+ +start.slice(3),max=+end.slice(0,2)*60+ +end.slice(3);if(max<=min)continue;let pointer=min,dailyStudyMinutes=0;const dailyLimit=periods.length?360:240,weekKey=dateKey(weekStart(day));
-const blocked=events().filter(e=>e.type!=='study'&&!(e.type==='lab'&&e.repeat==='weekly')&&(e.repeat==='weekly'&&Number(e.day)===dayOfWeek||e.repeat==='once'&&e.date===iso)&&(!periods.length||e.repeat!=='weekly')).concat((DB.getLabWeek(user.id,weekKey)?.events||[]).filter(e=>e.date===iso),blocks.filter(b=>b.date===iso)).map(e=>({a:+e.start.slice(0,2)*60+ +e.start.slice(3),b:+e.end.slice(0,2)*60+ +e.end.slice(3)})).sort((a,b)=>a.a-b.a);
-const activeNeeds=needs.filter(item=>(!item.due||iso<item.due)&&(item.hours||0)<item.targetHours).sort((a,b)=>b.priority-a.priority),dailyNeeds=[];for(let offset=0;offset<activeNeeds.length&&dailyNeeds.length<2;offset++){const candidate=activeNeeds[(rotationIndex+offset)%activeNeeds.length];if(!dailyNeeds.some(item=>item.course.id===candidate.course.id))dailyNeeds.push(candidate);}rotationIndex=(rotationIndex+1)%Math.max(1,activeNeeds.length);let slotIndex=0;
-while(pointer+45<=max&&dailyStudyMinutes<dailyLimit){if(periods.length&&pointer<13*60&&pointer+45>12*60)pointer=13*60;if(pointer+45>max)break;const conflict=blocked.find(x=>overlaps(pointer,pointer+45,x.a,x.b));if(conflict){pointer=conflict.b+15;continue;}if(!dailyNeeds.length)break;const pick=dailyNeeds[slotIndex%dailyNeeds.length];if(!pick||(pick.hours||0)>=pick.targetHours){if(pick)dailyNeeds.splice(dailyNeeds.indexOf(pick),1);continue;}const isTask=pick.task&&(pick.hours||0)<pick.taskHours;const event={title:isTask?`Task · ${pick.task.title}`:`Study · ${pick.course.name}`,courseId:pick.course.id,taskId:isTask?pick.task.id:'',type:'study',repeat:'once',date:iso,start:`${String(Math.floor(pointer/60)).padStart(2,'0')}:${String(pointer%60).padStart(2,'0')}`,end:`${String(Math.floor((pointer+45)/60)).padStart(2,'0')}:${String((pointer+45)%60).padStart(2,'0')}`,color:pick.course.color,generatedPlanId:'exam-horizon',generatedWeek:weekKey,description:isTask?'Scheduled time for your assignment.':'Generated from tomorrow through your last upcoming exam.'};blocks.push(event);pick.hours=(pick.hours||0)+.75;dailyStudyMinutes+=45;if(pick.hours>=pick.targetHours)dailyNeeds.splice(dailyNeeds.indexOf(pick),1);else slotIndex++;pointer+=60;}}
-blocks.forEach(b=>DB.addAcademicEvent(user.id,b));render();}
+// ── Adaptive planner UI ───────────────────────────────────────
+// The plan is built by js/planner.js and re-computed automatically; this section only shows it.
+const boostOptions=[[0.5,'Much less'],[0.75,'Less'],[1,'Normal'],[1.25,'More'],[1.5,'Much more'],[2,'Maximum']];
+const hoursText=min=>`${(Math.round(min/6)/10).toString()}h`;
+function renderPlannerPanels(){
+  const status=$('#planStatus');if(!status)return;
+  const prefs=DB.getPlannerPrefs(user.id),report=Planner.getReport(user.id),auto=prefs.auto!==false,toggle=$('#autoPlanToggle');
+  if(toggle)toggle.checked=auto;
+  const hasAvailability=Object.keys(DB.getAvailability(user.id)).length>0,warnings=(report?.warnings||[]).filter(w=>w.minutes>=30);
+  let headline,detail='';
+  if(!hasAvailability)headline='Save your weekly availability and the planner starts on its own.';
+  else if(!auto)headline='Auto-planning is paused.';
+  else if(!report)headline='Planning your week…';
+  else if(!report.totalPlannedMin)headline='Nothing to plan yet. Add an exam date, an assignment, or ECTS for your courses.';
+  else{const f=report.firstSession;headline=`Auto-planning is on · ${hoursText(report.totalPlannedMin)} planned · first session ${SFLocale.date(f.date)} at ${SFLocale.time(f.start)}`;}
+  if(report?.stretched)detail+='<p class="hint">Some days run longer than usual so everything fits before your exams.</p>';
+  if(warnings.length)detail+=`<ul>${warnings.slice(0,5).map(w=>`<li><strong>${esc(w.title||w.name)}</strong> is short by ${hoursText(w.minutes)} before ${SFLocale.date(w.due)}. Free up hours (availability, a one-day activity) or lower another subject.</li>`).join('')}</ul>`;
+  status.className=`plan-status${warnings.length?' is-warning':''}`;
+  status.innerHTML=`<strong>${esc(headline)}</strong>${detail}`;
+
+  const rows=report?.courses||[];
+  $('#planHealth').innerHTML=rows.length?rows.map(r=>{const c=courses().find(x=>x.id===r.courseId),late=r.shortfallMin>=30;return `<div class="plan-health-row" style="--course-color:${color(c?.color)}"><span class="plan-dot"></span><span class="name">${esc(r.name)}</span><span class="meta">${hoursText(r.doneMin)} done · ${hoursText(r.plannedMin)} planned of ${hoursText(r.targetMin)}${r.nextDue?` · due ${SFLocale.date(r.nextDue)}`:''}</span>${late?`<span class="plan-badge">short ${hoursText(r.shortfallMin)}</span>`:'<span class="plan-badge ok">on track</span>'}</div>`;}).join(''):'';
+
+  const hoursBox=$('#courseHours'),list=courses().filter(c=>Number(c.ects)>0||prefs.courseHours?.[c.id]);
+  hoursBox.innerHTML=list.length?list.map(c=>{const h=prefs.courseHours?.[c.id]||{},boost=Number(h.boost)||1,row=rows.find(r=>r.courseId===c.id);return `<div class="hours-row" style="--course-color:${color(c.color)}"><span class="plan-dot"></span><span class="name">${esc(c.name)}</span><span class="meta">${row?`${hoursText(row.plannedMin)} planned of ${hoursText(row.targetMin)}`:'no exam date yet'}</span><label>Amount<select data-hours-course="${esc(c.id)}" data-hours-field="boost">${boostOptions.map(([v,l])=>`<option value="${v}" ${Math.abs(v-boost)<.001?'selected':''}>${l}</option>`).join('')}${boostOptions.some(([v])=>Math.abs(v-boost)<.001)?'':`<option value="${boost}" selected>×${boost.toFixed(2)}</option>`}</select></label><label>+ extra hours<input type="number" step="0.5" min="-10" max="60" data-hours-course="${esc(c.id)}" data-hours-field="extraHours" value="${Number(h.extraHours)||0}"></label></div>`;}).join(''):'<p class="empty">Add courses with ECTS to tune hours per subject.</p>';
+
+  const today=dateKey(new Date()),temps=events().filter(e=>e.temporary&&e.date>=today).sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start));
+  $('#tempList').innerHTML=temps.length?temps.map(e=>`<div class="task-row"><div><span class="task-title">${esc(e.title)}</span><span class="task-meta">${SFLocale.date(e.date)} · removed automatically after it ends</span></div><span class="task-due">${esc(SFLocale.time(e.start))}–${esc(SFLocale.time(e.end))}</span><button type="button" class="tiny-btn" data-delete-event="${esc(e.id)}">×</button></div>`).join(''):'<p class="empty">Driving lesson, appointment, a trip? Add it and study time moves around it. It disappears from your calendar when it is over.</p>';
+  const log=DB.getActivityLog(user.id).slice(0,6);
+  $('#activityLog').innerHTML=log.length?`<p class="eyebrow">RECENTLY FINISHED</p>${log.map(e=>`<div class="task-row"><div><span class="task-title">${esc(e.title)}</span><span class="task-meta">${SFLocale.date(e.date)}</span></div><span class="task-due">${esc(SFLocale.time(e.start))}–${esc(SFLocale.time(e.end))}</span></div>`).join('')}`:'';
+}
+function replanNow(){
+  if(!Object.keys(DB.getAvailability(user.id)).length){alert('Set and save your weekly availability first.');return null;}
+  DB.savePlannerPrefs(user.id,{auto:true});
+  const result=Planner.sync({force:true});render();return result;
+}
+$('#tempForm').addEventListener('submit',e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.currentTarget)),ok=/^([01]\d|2[0-3]):[0-5]\d$/;if(!ok.test(d.start)||!ok.test(d.end)){alert('Use 24-hour time in HH:MM format, for example 17:00.');return;}if(d.end<=d.start){alert('End time must be after start time.');return;}DB.addTemporaryActivity(user.id,{title:d.title.trim(),date:d.date,start:d.start,end:d.end});$('#tempDialog').close();render();});
+$('#addTemp').onclick=()=>{const f=$('#tempForm');f.reset();f.elements.date.value=dateKey(new Date());$('#tempDialog').showModal();};
+document.addEventListener('change',e=>{const el=e.target.closest('[data-hours-course]');if(!el)return;const field=el.dataset.hoursField,value=Number(el.value);DB.setCourseHours(user.id,el.dataset.hoursCourse,{[field]:Number.isFinite(value)?value:(field==='boost'?1:0)});render();});
+window.addEventListener('sf:planner-updated',e=>{if(e.detail?.changed||!Planner.getReport(user.id))render();else renderPlannerPanels();});
+// ── Assistant ─────────────────────────────────────────────────
 const assistantState={action:null,fields:{}};
-function assistantDate(text, fallback=''){
-  const lower=normalizeName(text),base=new Date();base.setHours(0,0,0,0);
+const pad2=v=>String(v).padStart(2,'0');
+const wordRe=(source,flags='giu')=>new RegExp(`(?<!\\p{L})(?:${source})(?!\\p{L})`,flags);
+const weekdayWords=[[0,'nedjelj\\p{L}*|sunday'],[1,'ponedjelj\\p{L}*|monday'],[2,'utor\\p{L}*|tuesday'],[3,'srijed\\p{L}*|wednesday'],[4,'[cč]etvrt\\p{L}*|thursday'],[5,'petak|petk\\p{L}*|friday'],[6,'subot\\p{L}*|saturday']];
+function assistantWeekday(text){const hit=weekdayWords.find(([,re])=>wordRe(re,'iu').test(String(text)));return hit?hit[0]:null;}
+function assistantDate(text,fallback=''){
+  const lower=normalizeName(text),base=new Date();base.setHours(12,0,0,0);
+  if(/\b(prekosutra|day after tomorrow)\b/.test(lower)){base.setDate(base.getDate()+2);return dateKey(base);}
   if(/\b(sutra|tomorrow)\b/.test(lower)){base.setDate(base.getDate()+1);return dateKey(base);}
   if(/\b(danas|today)\b/.test(lower))return dateKey(base);
-  const match=lower.match(/\b(\d{1,2})[./-](\d{1,2})(?:[./-](\d{2,4}))?\b/);
-  if(match){const year=Number(match[3]||base.getFullYear());return `${String(year<100?2000+year:year).padStart(4,'0')}-${String(Number(match[2])).padStart(2,'0')}-${String(Number(match[1])).padStart(2,'0')}`;}
+  const match=lower.match(/\b(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?\.?(?![\d:])/);
+  if(match&&Number(match[2])>=1&&Number(match[2])<=12&&Number(match[1])>=1&&Number(match[1])<=31){
+    let year=Number(match[3]||base.getFullYear());if(year<100)year+=2000;
+    let found=new Date(year,Number(match[2])-1,Number(match[1]),12);
+    if(!match[3]&&found<new Date(new Date().setHours(0,0,0,0)))found=new Date(year+1,Number(match[2])-1,Number(match[1]),12);
+    return dateKey(found);
+  }
+  const weekday=assistantWeekday(text);
+  if(weekday!=null){let add=(weekday-base.getDay()+7)%7;if(add===0)add=7;base.setDate(base.getDate()+add);return dateKey(base);}
   return fallback;
 }
 function assistantCourse(text){
   const lower=normalizeName(text);
-  return courses().find(item=>normalizeName(item.name)===lower)||courses().find(item=>normalizeName(item.name).split(/\s+/).some(word=>word.length>3&&lower.includes(word)));
+  return courses().find(item=>normalizeName(item.name)===lower)||courses().find(item=>normalizeName(item.name).split(/\s+/).some(word=>word.length>3&&lower.includes(word.slice(0,Math.max(4,word.length-2)))));
 }
 function assistantTime(text){
-  const matches=[...String(text).matchAll(/\b([01]?\d|2[0-3])(?::|[.h])([0-5]\d)\b/g)].map(match=>`${String(match[1]).padStart(2,'0')}:${match[2]}`);
-  return {start:matches[0]||'',end:matches[1]||''};
+  const s=String(text),hm=[...s.matchAll(/(?<![\d.])([01]?\d|2[0-3])(?:([:h])([0-5]\d)|\.([0-5]\d)(?![\d.]))/g)].filter(m=>{if(m[2])return true;const minutes=Number(m[4]),cue=/(?:\bod|\bfrom|\bu|\bat|\boko)\s*$/i.test(s.slice(0,m.index));return !(minutes>=1&&minutes<=12)||cue;}).map(m=>`${pad2(m[1])}:${m[3]||m[4]}`);
+  if(hm.length)return {start:hm[0]||'',end:hm[1]||''};
+  let m=s.match(/(?:\bod|\bfrom)\s*(\d{1,2})\s*(?:h|sati?)?\s*(?:do|to|-|–|until)\s*(\d{1,2})(?!\d)/i)||s.match(/(?<![\d.])(\d{1,2})\s*(?:-|–|do|to)\s*(\d{1,2})\s*h\b/i);
+  if(m&&Number(m[1])<24&&Number(m[2])<=24&&Number(m[2])>Number(m[1]))return {start:`${pad2(m[1])}:00`,end:Number(m[2])===24?'23:59':`${pad2(m[2])}:00`};
+  m=s.match(/(?:\bod|\bfrom|\bu|\bat|\boko)\s*(\d{1,2})\s*(?:h|sati?)?(?![\d:.]|\s*(?:sat|sata|minut|min|hour|hrs?))/i);
+  if(m&&Number(m[1])<24)return {start:`${pad2(m[1])}:00`,end:''};
+  return {start:'',end:''};
 }
+function assistantTitle(text){
+  let t=String(text).replace(/^(ej|hej|bok)[,!.\s]*/i,'');
+  t=t.replace(/(?<![\d.])([01]?\d|2[0-3])(?::|[.h])[0-5]\d(?!\d)/g,'').replace(/(?:\bod|\bfrom)\s*\d{1,2}\s*(?:h|sati?)?\s*(?:do|to|-|–|until)\s*\d{1,2}\s*h?/ig,'').replace(/\d{1,2}\s*(?:-|–|do|to)\s*\d{1,2}\s*h\b/ig,'').replace(/(?:\bod|\bfrom|\bu|\bat)\s*\d{1,2}\s*h?(?![\d:])/ig,'');
+  t=t.replace(/\b\d{1,2}[./]\d{1,2}(?:[./]\d{2,4})?\.?/g,'');
+  weekdayWords.forEach(([,re])=>{t=t.replace(wordRe(re),' ');});
+  t=t.replace(wordRe('dodaj|add|schedule|put|stavi|napravi|create|raspored|calendar|kalendar|termin|event|activity|imam|trebam|i have|prekosutra|sutra|tomorrow|danas|today|svaki|svake|svaki tjedan|every|every week|tjedno|weekly|mi|me|u|na|od|do|in|on|at|from|to|the|a'),' ');
+  t=t.replace(/\s+/g,' ').trim();
+  const known=[[/autoskol/,'Autoškola'],[/trening|teretan/,'Trening'],[/doktor|lijecnik/,'Liječnik'],[/zubar/,'Zubar'],[/sastanak|meeting/,'Sastanak'],[/posao|\bwork\b/,'Posao']].find(([re])=>re.test(normalizeName(text)));
+  if(known)return known[1];
+  return t?t.charAt(0).toUpperCase()+t.slice(1):'';
+}
+const busyWords=/\b(autoskol\w*|doktor\w*|lijecnik\w*|zubar\w*|trening\w*|teretan\w*|sastanak|meeting|appointment|posao|putovanje|trip|rodjendan|birthday)\b/;
 function assistantIntent(text){
-  const lower=normalizeName(text);
+  const lower=normalizeName(text),time=assistantTime(text),hasDay=assistantDate(text)||assistantWeekday(text)!=null;
   if(/\b(novi|new|create|make|add|dodaj|napravi|kreiraj)\b.*\b(course|kolegij|kolegija|predmet)\b|\b(course|kolegij|predmet)\b.*\b(novi|new|create|add|dodaj)\b/.test(lower))return 'course';
-  if(/\b(schedule|calendar|calendaru|raspored|termin|event|activity|blok|block|lecture|predavanje|lab|vjezbe)\b/.test(lower)&&!/\b(assignment|task|homework|project|priprem|zadatak|domacu|domaca)\b/.test(lower))return 'schedule';
-  if(/\b(assignment|task|homework|project|priprem|zadatak|domacu|domaca|labos)\b/.test(lower))return 'assignment';
+  if(/\b(replan|re-plan)\b|\b(ponovno|opet|again|obnovi|osvjezi|slozi)\b.*\b(raspored|plan|schedule)\b/.test(lower))return 'replan';
+  if(/\b(ne mogu|cannot|can't|cant|mogu|can)\b/.test(lower)&&/\b(ucit|ucim|uciti|study|learn)\b/.test(lower)&&assistantWeekday(text)!=null)return 'availability';
+  if(assistantCourse(text)&&/\b(vise|more|povecaj|increase|manje|less|smanji|reduce|tjedno|weekly|per week|na tjedan)\b/.test(lower)&&!(time.start&&time.end))return 'boost';
+  if(/\b(assignment|task|homework|project|priprem\w*|zadatak|zadatk\w*|zadac\w*|domac\w*|domacu|labos)\b/.test(lower)&&!(time.start&&time.end&&hasDay))return 'assignment';
+  if(/\b(schedule|calendar|calendaru|raspored|termin|event|activity|blok|block|lecture|predavanje|lab|vjezbe)\b/.test(lower)||busyWords.test(lower)||(time.start&&hasDay))return 'schedule';
   return 'unknown';
+}
+function parseBoost(text){
+  const lower=normalizeName(text),less=/\b(manje|less|smanji|reduce)\b/.test(lower);
+  const weekly=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:h|sat|sata|sati|hours?)?\s*(?:tjedno|weekly|per week|na tjedan)/);
+  if(weekly)return {mode:'weekly',value:Number(weekly[1].replace(',','.'))};
+  const pct=lower.match(/(\d+)\s*%/);if(pct)return {mode:'boost',factor:less?1-Number(pct[1])/100:1+Number(pct[1])/100,absolute:true};
+  const times=lower.match(/\bx\s*(\d+(?:[.,]\d+)?)\b|\b(\d+(?:[.,]\d+)?)\s*x\b/);if(times)return {mode:'boost',factor:Number((times[1]||times[2]).replace(',','.')),absolute:true};
+  const hours=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:h|sat|sata|sati|hours?)\b/);if(hours){const n=Number(hours[1].replace(',','.'));return {mode:'extra',value:less?-n:n};}
+  if(/\b(puno|much|max|dosta|znatno)\b/.test(lower))return {mode:'boost',factor:less?0.6:1.5};
+  return {mode:'boost',factor:less?0.8:1.25};
 }
 function parseAssistantRequest(input){
   const text=String(input||'').trim(),lower=normalizeName(text),intent=assistantIntent(text);
@@ -163,46 +238,79 @@ function parseAssistantRequest(input){
     const name=text.replace(/^(ej|hej|bok)[,!.\s]*/i,'').replace(/\b(novi|new|create|make|add|dodaj|napravi|kreiraj)\b/ig,'').replace(/\b(course|kolegij|kolegija|predmet)\b/ig,'').replace(/^(a|an|the|novi|new)\s+/i,'').replace(/\s+/g,' ').trim();
     return {action:'course',name:name.replace(/^(za|for)\s+/i,'').trim()};
   }
+  if(intent==='replan')return {action:'replan'};
+  if(intent==='availability'){
+    const time=assistantTime(text),off=/\b(ne mogu|cannot|can't|cant)\b/.test(lower);
+    if(!off&&!time.start)return {error:'Od kada možeš učiti? / From what time can you study? Npr. "u nedjelju mogu učiti od 10 do 18".'};
+    return {action:'availability',day:assistantWeekday(text),off,start:time.start,end:time.end};
+  }
+  if(intent==='boost')return {action:'boost',course:assistantCourse(text),...parseBoost(text)};
   const durationMatch=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:h|hr|hrs|hour|hours|sat|sata|min|minute|minutes)/);
   const durationMinutes=durationMatch?Math.round(Number(durationMatch[1].replace(',','.'))*(/min|minute/.test(durationMatch[0])?1:60)):0;
   const date=assistantDate(text),time=assistantTime(text);
   if(intent==='schedule'){
-    const title=text.replace(/^(ej|hej|bok)[,!.\s]*/i,'').replace(/\b(dodaj|add|schedule|put|stavi|napravi|create|u raspored|to my calendar|on my calendar|sutra|tomorrow|danas|today|raspored|calendar|kalendar|termin|event|activity)\b/ig,'').replace(/\b(?:[01]?\d|2[0-3])(?::|[.h])[0-5]\d\b/g,'').replace(/\s+/g,' ').trim();
-    return {action:'schedule',title:title.replace(/^(mi|me|a|an)\s+/i,'').trim(),date,start:time.start,end:time.end,course:assistantCourse(title)};
+    const weekday=assistantWeekday(text),recurring=/\b(svaki|svake|every|tjedno|weekly)\b/.test(lower)&&weekday!=null;
+    return {action:'schedule',title:assistantTitle(text),date:recurring?'':date,start:time.start,end:time.end,course:assistantCourse(text),repeat:recurring?'weekly':'once',day:recurring?weekday:null};
   }
   if(intent==='assignment'){
     if(!durationMinutes)return {error:'Koliko vremena treba? / How long will it take? Napiši npr. 2h ili 90 minuta.'};
     if(!date)return {error:'Koji je rok? / What is the due date? Napiši danas, sutra ili datum poput 18.11.'};
-    const course=assistantCourse(text),cleaned=text.replace(/^(ej|hej|bok)[,!.\s]*/i,'').replace(/\b(?:sutra|tomorrow|danas|today)\b/ig,'').replace(/\b\d+(?:[.,]\d+)?\s*(?:h|hr|hrs|hour|hours|sat|sata|min|minute|minutes)\b/ig,'').replace(/\b(assignment|task|homework|project|pripremu?|zadatak)\b/ig,'').replace(/^(imam|i have|trebam|i need|moram|i must|napravi|napraviti|make)\s+/i,'').replace(/\s+za to\s+mi\s+trebati\s*$/i,'').replace(/\s+/g,' ').trim();
-    const title=cleaned||'Novi assignment';
+    const course=assistantCourse(text),cleaned=text.replace(/^(ej|hej|bok)[,!.\s]*/i,'').replace(/\b(?:sutra|tomorrow|danas|today)\b/ig,'').replace(/\b\d+(?:[.,]\d+)?\s*(?:h|hr|hrs|hour|hours|sat|sata|min|minute|minutes)\b/ig,'').replace(/\b\d{1,2}[./]\d{1,2}(?:[./]\d{2,4})?\.?/g,'').replace(wordRe('do|rok|until|by|due'),' ').replace(/^(imam|i have|trebam|i need|moram|i must|napravi|napraviti|make)\s+/i,'').replace(/\s+za to\s+mi\s+trebati\s*$/i,'').replace(/\s+/g,' ').trim();
+    const title=cleaned.replace(/\s+/g,' ').trim()||'Novi assignment';
     return {action:'assignment',title:title.charAt(0).toUpperCase()+title.slice(1),course,dueDate:date,durationMinutes};
   }
-  return {error:'Mogu napraviti course, assignment ili dodati termin u raspored. / I can create a course, assignment, or schedule event. Reci što želiš.'};
+  return {error:'Mogu: dodati kolegij, zadaću (s rokom i trajanjem), jednokratnu ili tjednu obvezu (npr. "autoškola utorak od 17 do 18"), promijeniti sate za predmet (npr. "više sati za linearnu algebru"), ili tvoju dostupnost (npr. "u nedjelju mogu učiti od 10"). / I can add a course, assignment, activity, change hours per subject, or your availability.'};
 }
 function addAssistantMessage(text,type='bot'){const messages=$('#assistantMessages');if(!messages)return;const item=document.createElement('div');item.className=`assistant-message assistant-message-${type}`;item.textContent=text;messages.appendChild(item);messages.scrollTop=messages.scrollHeight;}
+function planSummary(result){
+  const r=result?.report;if(!r)return '';if(r.needsAvailability)return ' Spremi prvo dostupne sate da ga mogu složiti.';
+  const f=r.firstSession,short=(r.warnings||[]).filter(w=>w.minutes>=30);
+  return f?` Raspored je složen: ${hoursText(r.totalPlannedMin)} ukupno, prva sesija ${SFLocale.date(f.date)} u ${SFLocale.time(f.start)}.${short.length?` Pazi: ${short[0].title||short[0].name} fali ${hoursText(short[0].minutes)}.`:''}`:' Trenutno nema što planirati.';
+}
 function handleAssistantRequest(event){
   event?.preventDefault();const input=$('#assistantInput'),text=input.value.trim();if(!text)return;addAssistantMessage(text,'user');
+  if(assistantState.action&&/\b(odustani|cancel|stop|nista|ne treba)\b/.test(normalizeName(text))){assistantState.action=null;assistantState.fields={};input.value='';addAssistantMessage('U redu, odustajem. / Okay, cancelled.');return;}
+  if(assistantState.action==='schedule'){const fresh=assistantIntent(text);if(!['unknown','schedule'].includes(fresh)&&!assistantTime(text).start){assistantState.action=null;assistantState.fields={};}}
   let parsed;
   if(assistantState.action==='course') parsed={action:'course',name:text};
   else if(assistantState.action==='schedule'){
-    const time=assistantTime(text);
-    parsed={action:'schedule',...assistantState.fields,title:assistantState.fields.title||'',date:assistantDate(text,assistantState.fields.date||''),start:time.start||assistantState.fields.start||'',end:time.end||assistantState.fields.end||''};
-    if(!parsed.title&&!parsed.date&&!parsed.start)parsed.title=text;
+    const time=assistantTime(text),prior=assistantState.fields;
+    parsed={action:'schedule',...prior,title:prior.title||'',date:prior.repeat==='weekly'?'':assistantDate(text,prior.date||''),start:time.start||prior.start||'',end:time.end||prior.end||''};
+    if(!parsed.title&&!(parsed.date&&parsed.start)&&!time.start)parsed.title=text;
   } else parsed=parseAssistantRequest(text);
   if(parsed.error){addAssistantMessage(parsed.error);return;}
   if(parsed.action==='course'&&!parsed.name){assistantState.action='course';assistantState.fields={};addAssistantMessage('Kako se zove course? / What is the course name?');return;}
-  if(parsed.action==='schedule'&&(!parsed.title||!parsed.date||!parsed.start||!parsed.end)){
-    assistantState.action='schedule';assistantState.fields={...parsed};const missing=!parsed.title?'naziv termina / event title':!parsed.date?'datum / date':!parsed.start||!parsed.end?'vrijeme od-do / start and end time':'';
+  if(parsed.action==='schedule'&&(!parsed.title||(!parsed.date&&parsed.repeat!=='weekly')||!parsed.start||!parsed.end)){
+    assistantState.action='schedule';assistantState.fields={...parsed};const missing=!parsed.title?'naziv termina / event title':(!parsed.date&&parsed.repeat!=='weekly')?'datum / date':'vrijeme od-do / start and end time (npr. 17:00-18:00)';
     addAssistantMessage(`Treba mi još: ${missing}.`);input.value='';return;
   }
+  if(parsed.action==='boost'&&!parsed.course){addAssistantMessage('Za koji predmet? / Which course?');return;}
+  let result=null;
   if(parsed.action==='course'){const course=DB.addCourse(user.id,{name:parsed.name.trim(),ects:0,assessments:[]});addAssistantMessage(`Course "${course.name}" je dodan. / Course "${course.name}" was created.`);}
-  else if(parsed.action==='schedule'){const schedule=ensureSchedule(),record=DB.addAcademicEvent(user.id,{title:parsed.title.trim(),courseId:parsed.course?.id||'',type:'other',repeat:'once',date:parsed.date,start:parsed.start,end:parsed.end,location:'',description:'Added by the StudyFlow assistant.',scheduleId:schedule?.id||''});addAssistantMessage(`Dodano u raspored: ${record.title} · ${SFLocale.date(record.date)} · ${record.start}–${record.end}.`);}
-  else if(parsed.action==='assignment'){const task=DB.addTask(user.id,{title:parsed.title,courseId:parsed.course?.id||'',dueDate:parsed.dueDate,dueTime:'',status:'open',planningMinutes:parsed.durationMinutes,description:'Added by the StudyFlow assistant.'});const hasAvailability=Object.keys(DB.getAvailability(user.id)).length>0;if(hasAvailability)generatePlan();addAssistantMessage(`Dodano: ${task.title} · ${SFLocale.date(task.dueDate)} · ${Math.round(task.planningMinutes/60*10)/10}h. ${hasAvailability?'Raspored je ponovno složen.':'Spremi prvo svoje dostupne sate da ga mogu ubaciti u raspored.'}`);}
+  else if(parsed.action==='schedule'){
+    if(parsed.repeat==='weekly'){const schedule=ensureSchedule(),record=DB.addAcademicEvent(user.id,{title:parsed.title.trim(),courseId:parsed.course?.id||'',type:'other',repeat:'weekly',day:parsed.day,start:parsed.start,end:parsed.end,location:'',description:'Added by the StudyFlow assistant.',scheduleId:schedule?.id||''});result=Planner.sync({force:true});addAssistantMessage(`Dodano svaki tjedan: ${record.title} · ${days[(parsed.day+6)%7]} · ${record.start}–${record.end}. Učenje se miče oko toga.${planSummary(result)}`);}
+    else{const record=DB.addTemporaryActivity(user.id,{title:parsed.title.trim(),courseId:parsed.course?.id||'',date:parsed.date,start:parsed.start,end:parsed.end,description:'Added by the StudyFlow assistant.'});result=Planner.sync({force:true});addAssistantMessage(`Dodano samo za taj dan: ${record.title} · ${SFLocale.date(record.date)} · ${record.start}–${record.end}. Nestaje s rasporeda kad završi, a ostaje u zapisniku.${planSummary(result)}`);}
+  }
+  else if(parsed.action==='assignment'){const task=DB.addTask(user.id,{title:parsed.title,courseId:parsed.course?.id||'',dueDate:parsed.dueDate,dueTime:'',status:'open',planningMinutes:parsed.durationMinutes,description:'Added by the StudyFlow assistant.'});const hasAvailability=Object.keys(DB.getAvailability(user.id)).length>0;if(hasAvailability)result=Planner.sync({force:true});addAssistantMessage(`Dodano: ${task.title} · ${SFLocale.date(task.dueDate)} · ${Math.round(task.planningMinutes/60*10)/10}h.${hasAvailability?planSummary(result):' Spremi prvo svoje dostupne sate da ga mogu ubaciti u raspored.'}`);}
+  else if(parsed.action==='boost'){
+    const current=DB.getPlannerPrefs(user.id).courseHours?.[parsed.course.id]||{};let label='';
+    if(parsed.mode==='weekly'){DB.setCourseHours(user.id,parsed.course.id,{weeklyHours:parsed.value});label=`${parsed.value}h tjedno`;}
+    else if(parsed.mode==='extra'){const extra=Math.max(-10,Math.min(60,(Number(current.extraHours)||0)+parsed.value));DB.setCourseHours(user.id,parsed.course.id,{extraHours:extra});label=`${extra>=0?'+':''}${extra}h dodatno`;}
+    else{const boost=Math.max(0.4,Math.min(3,parsed.absolute?parsed.factor:(Number(current.boost)||1)*parsed.factor));DB.setCourseHours(user.id,parsed.course.id,{boost:Math.round(boost*100)/100});label=`×${(Math.round(boost*100)/100)}`;}
+    result=Planner.sync({force:true});addAssistantMessage(`${parsed.course.name}: ${label}.${planSummary(result)}`);
+  }
+  else if(parsed.action==='availability'){
+    const avail={...DB.getAvailability(user.id)},index=(parsed.day+6)%7,existing=avail[index]||{start:'16:00',end:'20:00',enabled:true};
+    if(parsed.off){avail[index]={...existing,enabled:false};DB.saveAvailability(user.id,avail);result=Planner.sync({force:true});addAssistantMessage(`${days[index]}: bez učenja.${planSummary(result)}`);}
+    else{let end=parsed.end||existing.end||'20:00';if(end<=parsed.start)end=parsed.start<'18:00'?'20:00':'23:00';avail[index]={...existing,start:parsed.start,end,enabled:true};DB.saveAvailability(user.id,avail);result=Planner.sync({force:true});addAssistantMessage(`${days[index]}: možeš učiti ${parsed.start}–${end}. Prva sesija kreće od ${parsed.start}.${planSummary(result)}`);}
+  }
+  else if(parsed.action==='replan'){result=replanNow();addAssistantMessage(`Ponovno složeno.${planSummary(result)}`);}
   assistantState.action=null;assistantState.fields={};input.value='';render();
 }
-$('#generatePlan').onclick=generatePlan;
+$('#generatePlan').onclick=()=>{const r=replanNow();if(r&&r.report?.needsAvailability)alert('Set and save your weekly availability first.');};
+$('#autoPlanToggle').onchange=e=>{DB.savePlannerPrefs(user.id,{auto:e.target.checked});if(e.target.checked)Planner.sync({force:true});render();};
 $('#toggleStudyPlan').onclick=()=>{const panel=$('#studyPlanPanel'),collapsed=panel.classList.toggle('is-collapsed'),button=$('#toggleStudyPlan');button.textContent=collapsed?'Expand':'Collapse';button.setAttribute('aria-expanded',String(!collapsed));};
-$('#clearStudyPlan').onclick=()=>{const generated=DB.getAcademicEvents(user.id).filter(e=>e.type==='study'&&(e.generatedPlanId==='exam-horizon'||e.generatedWeek));if(!generated.length){addAssistantMessage('There is no generated study plan to remove.');return;}if(!confirm(`Remove ${generated.length} generated study sessions everywhere?`))return;const ids=new Set(generated.map(e=>e.id));DB._set(DB.EVENTS_KEY,DB._get(DB.EVENTS_KEY).filter(e=>!ids.has(e.id)));render();};
+$('#clearStudyPlan').onclick=()=>{if(!confirm('Pause auto-planning and remove all generated study sessions? Sessions you completed stay.'))return;DB.savePlannerPrefs(user.id,{auto:false});const removed=Planner.clearGenerated(user.id);addAssistantMessage(removed?`Removed ${removed} generated sessions. Auto-planning is paused.`:'Auto-planning is paused.');render();};
 $('#assistantForm').addEventListener('submit',handleAssistantRequest);
 $('#assistantToggle').onclick=()=>{$('#assistantDrawer').classList.add('is-open');$('#assistantDrawer').setAttribute('aria-hidden','false');$('#assistantInput').focus();};
 $('#assistantClose').onclick=()=>{$('#assistantDrawer').classList.remove('is-open');$('#assistantDrawer').setAttribute('aria-hidden','true');};
