@@ -164,3 +164,4 @@
   .calendar-academic-event { flex-wrap:wrap; }
   .calendar-event-actions { width:100%;justify-content:flex-end; }
 }
+.calendar-timed-event small{white-space:pre-line}

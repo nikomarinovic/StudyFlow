@@ -175,11 +175,11 @@ function generateSchedule(items, sessions) {
       } else if (event.date !== dayKey) return;
       const durationMinutes=event.type==='study'&&event.start&&event.end?Math.max(0,(Number(event.end.slice(0,2))*60+Number(event.end.slice(3)))-(Number(event.start.slice(0,2))*60+Number(event.start.slice(3)))):0;
       const description=event.description||({lecture:'Predavanje',seminar:'Auditorne vježbe',lab:'Laboratorijske vježbe'}[event.type]||'');
-      scheduled.push({ id:`acad-${event.id}-${dayKey}`, blockId:`acad-${event.id}-${dayKey}`, subject:event.title, topic:[description,event.location].filter(Boolean).join(' · '), time:event.start||'—', end:event.end||'', durationMinutes, duration:durationMinutes?`${durationMinutes} min`:'—', color:event.color||'academic-event', type:event.type==='study'?'scheduled':'academic', date:new Date(day), courseId:event.courseId, eventId:event.id, location:event.location||'' });
+      scheduled.push({ id:`acad-${event.id}-${dayKey}`, blockId:`acad-${event.id}-${dayKey}`, subject:event.title, topic:[event.type,event.location].filter(Boolean).join(' · ')+(description?`\n${description}`:''), time:event.start||'—', end:event.end||'', durationMinutes, duration:durationMinutes?`${durationMinutes} min`:'—', color:event.color||'academic-event', type:event.type==='study'?'scheduled':'academic', date:new Date(day), courseId:event.courseId, eventId:event.id, location:event.location||'' });
     });
     if (labWeek?.weekKey === weekKey) (labWeek.events||[]).forEach((event,index) => {
       if (event.date !== dayKey) return;
-      scheduled.push({ id:`lab-${labWeek.id}-${index}`, blockId:`lab-${labWeek.id}-${index}`, subject:event.title, topic:[event.type,event.location,event.description].filter(Boolean).join(' · '), time:event.start||'—', end:event.end||'', durationMinutes:0, duration:'—', color:event.color||'academic-event', type:'academic', date:new Date(day), courseId:event.courseId, eventId:event.id, location:event.location||'' });
+      scheduled.push({ id:`lab-${labWeek.id}-${index}`, blockId:`lab-${labWeek.id}-${index}`, subject:event.title, topic:[event.type,event.location].filter(Boolean).join(' · ')+(event.description?`\n${event.description}`:''), time:event.start||'—', end:event.end||'', durationMinutes:0, duration:'—', color:event.color||'academic-event', type:'academic', date:new Date(day), courseId:event.courseId, eventId:event.id, location:event.location||'' });
     });
   }
   DB.getTasks?.(currentUser.id).filter(task => task.status !== 'done' && task.dueDate).forEach(task => {
