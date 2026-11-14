@@ -248,17 +248,14 @@ function init() {
 function initLocaleSettings() {
   const preferences = SFLocale.get();
   const dateOrder = document.getElementById('localeDateOrder');
-  const timeFormat = document.getElementById('localeTimeFormat');
-  if (!dateOrder || !timeFormat) return;
+  if (!dateOrder) return;
   dateOrder.value = preferences.dateOrder;
-  timeFormat.value = preferences.time24 ? '24' : '12';
   const update = () => {
-    const saved = SFLocale.save({ dateOrder: dateOrder.value, time24: timeFormat.value === '24' });
+    const saved = SFLocale.save({ dateOrder: dateOrder.value, time24: true });
     document.documentElement.lang = saved.dateOrder === 'mdy' ? 'en-US' : 'en-GB';
     showToast('Regional format updated');
   };
   dateOrder.addEventListener('change', update);
-  timeFormat.addEventListener('change', update);
 }
 
 function initPlannerSettings() {
@@ -306,3 +303,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 } // end else
+
+
+// Appearance: light / dark / system
+(function initThemeSetting(){
+  const select = document.getElementById('themeSelect');
+  if (!select || !window.SFTheme) return;
+  select.value = SFTheme.get();
+  select.addEventListener('change', () => { SFTheme.set(select.value); });
+})();

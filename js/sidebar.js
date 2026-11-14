@@ -3,7 +3,7 @@
   'use strict';
   var map = {
     'index.html': 'dashboard', 'dashboard.html': 'dashboard', 'calendar.html': 'calendar',
-    'courses.html': 'courses', 'academic.html': 'academic', 'timer.html': 'timer',
+    'courses.html': 'courses', 'academic.html': 'academic',
     'exams.html': 'exams', 'achievements.html': 'achievements', 'settings.html': 'settings'
   };
   var current = map[location.pathname.split('/').pop()] || '';
@@ -22,7 +22,7 @@
   function svg(name) { return '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + icon[name] + '</svg>'; }
   var nav = [
     ['dashboard','dashboard.html','Dashboard'],['calendar','calendar.html','Calendar'],['courses','courses.html','Courses'],
-    ['academic','academic.html','Academic Planner'],['timer','timer.html','Study Timer'],['exams','exams.html','Exams'],['achievements','achievements.html','Achievements']
+    ['academic','academic.html','Academic Planner'],['exams','exams.html','Exams'],['achievements','achievements.html','Achievements']
   ];
   var aside = document.querySelector('.sidebar, #achSidenav, #exSidenav, #sSidebar');
   if (!aside) {
@@ -37,7 +37,7 @@
       return '<a href="' + item[1] + '" class="nav-item' + (current === item[0] ? ' active' : '') + '"' + (current === item[0] ? ' aria-current="page"' : '') + '>' + svg(item[0]) + '<span>' + item[2] + '</span></a>';
     }).join('') + '</nav>' +
     '<div class="sidebar-bottom"><a href="settings.html" class="nav-item' + (current === 'settings' ? ' active' : '') + '"' + (current === 'settings' ? ' aria-current="page"' : '') + '>' + svg('settings') + '<span>Settings</span></a><button id="signOutBtn" class="nav-item">' + svg('signout') + '<span>Sign Out</span></button></div>';
-  if (['calendar','timer','exams','achievements','settings'].indexOf(current) !== -1) {
+  if (['calendar','exams','achievements','settings'].indexOf(current) !== -1) {
     document.getElementById('signOutBtn').addEventListener('click', async function () {
       var sync = await window.FirebaseSyncReady;
       if (sync && sync.enabled) await sync.signOut();

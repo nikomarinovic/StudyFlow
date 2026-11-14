@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="theme-color" content="#ffffff">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Settings - StudyFlow</title>
   <link rel="stylesheet" href="css/style.css">
@@ -152,6 +153,7 @@
   <link rel="stylesheet" href="css/theme.css">
   <link rel="stylesheet" href="css/app-polish.css">
   <script src="js/theme.js"></script>
+  <script src="js/time-input.js" defer></script>
   <link rel="stylesheet" href="css/sidebar.css">
   <link rel="stylesheet" href="css/dialogs.css">
 </head>
@@ -168,7 +170,6 @@
     <a href="calendar.html" class="s-nav-link"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>Calendar</a>
     <a href="courses.html" class="s-nav-link">▤ Courses</a>
     <a href="academic.html" class="s-nav-link">◷ Academic planner</a>
-    <a href="timer.html" class="s-nav-link"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>Study Timer</a>
     <a href="exams.html" class="nav-item">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
       <span>Exams</span>
@@ -226,7 +227,7 @@
 
     <div class="s-section" style="animation-delay:.1s">
       <div class="s-section-header"><div class="s-section-icon blue">◐</div><div><div class="s-section-title">Appearance</div><div class="s-section-sub">Choose a comfortable reading theme</div></div></div>
-      <div class="s-row"><div class="s-row-left"><div class="s-row-dot"></div><div><div class="s-row-label">Color theme</div><div class="s-row-sub">A consistent light theme on every device</div></div></div><span aria-label="Color theme: Light" style="padding:.55rem .75rem;border:1px solid var(--border);border-radius:.6rem;background:var(--card);color:var(--foreground)">Light</span></div>
+      <div class="s-row"><div class="s-row-left"><div class="s-row-dot"></div><div><div class="s-row-label">Color theme</div><div class="s-row-sub">Light, dark, or follow your device</div></div></div><select id="themeSelect" class="s-select" aria-label="Color theme"><option value="light">Light</option><option value="dark">Dark</option><option value="system">System</option></select></div>
     </div>
 
     <div class="s-section" style="animation-delay:.12s">
@@ -236,13 +237,6 @@
         <select id="localeDateOrder" class="s-select" aria-label="Date format">
           <option value="dmy">DD/MM/YYYY (European)</option>
           <option value="mdy">MM/DD/YYYY (US)</option>
-        </select>
-      </div>
-      <div class="s-row">
-        <div class="s-row-left"><div class="s-row-dot"></div><div><div class="s-row-label">Time format</div><div class="s-row-sub">24-hour time is used by default</div></div></div>
-        <select id="localeTimeFormat" class="s-select" aria-label="Time format">
-          <option value="24">24-hour</option>
-          <option value="12">12-hour</option>
         </select>
       </div>
     </div>

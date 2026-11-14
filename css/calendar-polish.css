@@ -168,3 +168,38 @@
 .calendar-timed-event strong { display:block; white-space:nowrap; }
 .calendar-timed-event.is-compact { padding:.2rem .3rem; line-height:1.15; }
 .calendar-timed-event.is-compact small { display:none; }
+
+/* ---- Calendar: nothing gets cut off ---- */
+.calendar-time-labels span:first-child { top:.15rem; }            /* "07:00" was half hidden under the header */
+.calendar-time-labels { font-variant-numeric:tabular-nums; white-space:nowrap; }
+.calendar-timed-event { gap:.1rem; min-width:0; padding:.28rem .4rem; line-height:1.25; box-sizing:border-box; }
+.calendar-timed-event strong {
+  display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2;
+  white-space:normal; overflow:hidden; overflow-wrap:anywhere; max-width:100%;
+  font-size:.74rem; line-height:1.2;
+}
+.calendar-timed-event.is-compact strong { -webkit-line-clamp:1; line-clamp:1; }
+.calendar-timed-event .calendar-event-time { display:block; white-space:nowrap; font-size:.66rem; opacity:.85; font-variant-numeric:tabular-nums; }
+.calendar-timed-event small { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2; white-space:normal; overflow:hidden; overflow-wrap:anywhere; font-size:.64rem; }
+.calendar-timed-event.is-compact small { display:none; }
+.calendar-all-day-event { white-space:normal; overflow-wrap:anywhere; line-height:1.25; }
+
+/* Tests / exams are black so they stand out from everything else */
+.calendar-timed-event.is-test, .calendar-all-day-event.is-test { background:#111; color:#fff; border-left-color:#000; box-shadow:0 0 0 1px #000; }
+.calendar-timed-event.is-test .calendar-event-time, .calendar-timed-event.is-test small, .calendar-all-day-event.is-test span { color:#e5e5e5; opacity:1; }
+:root[data-theme="dark"] .calendar-timed-event.is-test, :root[data-theme="dark"] .calendar-all-day-event.is-test { background:#000; box-shadow:0 0 0 1px #ffffff80; }
+
+@media(max-width:767px) {
+  .calendar-time-view { min-width:700px; }
+  .calendar-time-view.is-day-view { min-width:0; }
+  .calendar-time-header, .calendar-time-body { grid-template-columns:44px repeat(var(--calendar-days,7),minmax(0,1fr)); }
+  .calendar-time-labels { font-size:.62rem; padding-right:.35rem; }
+  .calendar-timed-event { font-size:.7rem; }
+  .calendar-timed-event strong { font-size:.76rem; }
+  .calendar-timed-event span, .calendar-timed-event .calendar-event-time { font-size:.68rem; }
+  .calendar-timed-event small { font-size:.66rem; }
+  .week-view-card { -webkit-overflow-scrolling:touch; }
+}
+/* dark mode: pastel event cards must not be white-mixed */
+:root[data-theme="dark"] .calendar-timed-event:not(.is-test) { background:color-mix(in srgb,var(--event-color) 38%,#101a1b); color:#f1f6f4; }
+:root[data-theme="dark"] .calendar-all-day-event:not(.is-test) { background:color-mix(in srgb,var(--event-color) 34%,#101a1b); color:#f1f6f4; }

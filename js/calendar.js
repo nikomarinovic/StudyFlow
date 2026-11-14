@@ -11,7 +11,7 @@ let currentWeekStart = getStartOfWeek(new Date());
 let selectedDate     = new Date();
 let miniMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 let currentMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
-let calendarView = localStorage.getItem('sf_calendar_view') || 'week';
+let calendarView = localStorage.getItem('sf_calendar_view') || (window.innerWidth < 768 ? 'day' : 'week');
 let calendarFilters = {timetable:true,study:true,exams:true,deadlines:true};
 try { calendarFilters={...calendarFilters,...JSON.parse(localStorage.getItem('sf_calendar_filters')||'{}')}; } catch {}
 if(!['day','week','month'].includes(calendarView))calendarView='week';
@@ -72,7 +72,7 @@ function generateSchedule(items, sessions) {
         id: `examday-${exam.id}`, blockId: `examday-${exam.id}`,
         subject: exam.subject, topic: [exam.examKind==='midterm'?'Midterm / kolokvij':exam.examKind==='final'?'Final examination':'',exam.topic].filter(Boolean).join(' · '),
         time: exam.startTime || '—', location:exam.location||'', durationMinutes: 0, duration: '—',
-        color: 'exam-day', type: 'exam-day',
+        color: 'exam-day', type: 'exam-day', end: exam.endTime || '',
         date: new Date(examDate), examId: exam.id,
         difficulty: exam.difficulty
       });
@@ -321,28 +321,59 @@ function renderWeekGrid(items, sessions, scheduled) {
   }
 }
 
+/* Lay out one day's events: wrap text instead of cutting it, give every event a readable
+   minimum height, put overlapping events side by side, and mark tests/exams in black. */
+function renderDayEvents(events,date,startHour,endHour,hourHeight){
+  const total=(endHour-startHour)*hourHeight;
+  const colorOf=event=>/^#[0-9a-f]{6}$/i.test(event.color||'')?event.color:event.type==='exam-day'?'#111111':event.type==='scheduled'?'#188038':event.type==='assignment'?'#f9ab00':'#4285f4';
+  let html='';
+  const items=[];
+  events.forEach(event=>{
+    if(!/^\d{2}:\d{2}$/.test(event.time||'')){
+      html+=`<button type="button" class="calendar-all-day-event${event.type==='exam-day'?' is-test':''}" data-calendar-event="${calendarEscape(event.eventId||'')}" data-date="${calendarDateKey(date)}" style="--event-color:${colorOf(event)}">${calendarEscape(event.subject)}${event.eventId?'<span> · Edit</span>':''}</button>`;
+      return;
+    }
+    const [hour,minute]=event.time.split(':').map(Number);
+    const minutes=hour*60+minute;
+    const hasEnd=/^\d{2}:\d{2}$/.test(event.end||'');
+    const duration=Math.max(30,Number(event.durationMinutes)||(hasEnd?((Number(event.end.slice(0,2))*60+Number(event.end.slice(3)))-minutes):60));
+    const top=(minutes-startHour*60)/60*hourHeight;
+    const height=Math.max(44,duration/60*hourHeight);
+    if(top+height<0||top>total)return;
+    items.push({event,top:Math.max(0,top),height:Math.min(height,total-Math.max(0,top))});
+  });
+  items.sort((x,y)=>x.top-y.top||y.height-x.height);
+  const clusters=[];let cluster=[],clusterEnd=-1;
+  items.forEach(it=>{
+    if(cluster.length&&it.top>=clusterEnd){clusters.push(cluster);cluster=[];clusterEnd=-1;}
+    cluster.push(it);clusterEnd=Math.max(clusterEnd,it.top+it.height);
+  });
+  if(cluster.length)clusters.push(cluster);
+  clusters.forEach(group=>{
+    const lanes=[];
+    group.forEach(it=>{let lane=lanes.findIndex(laneEnd=>laneEnd<=it.top);if(lane<0){lane=lanes.length;lanes.push(0);}lanes[lane]=it.top+it.height;it.lane=lane;});
+    group.forEach(it=>it.lanes=lanes.length);
+  });
+  items.forEach(({event,top,height,lane,lanes})=>{
+    const time=`${SFLocale.time(event.time)}${event.end?'–'+SFLocale.time(event.end):''}`;
+    const label=[event.subject,event.topic,time].filter(Boolean).join(' · ');
+    const isTest=event.type==='exam-day';
+    const roomy=height>=76;
+    html+=`<button type="button" title="${calendarEscape(label)}" class="calendar-timed-event${isTest?' is-test':''}${roomy?'':' is-compact'}${event.completed?' is-completed':''}" data-calendar-event="${calendarEscape(event.eventId||'')}" data-date="${calendarDateKey(date)}" style="--event-color:${colorOf(event)};top:${top}px;height:${height}px;left:calc(${lane}*100%/${lanes} + 2px);width:calc(100%/${lanes} - 4px);right:auto"><strong>${calendarEscape(event.subject)}</strong><span class="calendar-event-time">${calendarEscape(time)}</span>${event.topic&&roomy?`<small>${calendarEscape(event.topic)}</small>`:''}</button>`;
+  });
+  return html;
+}
+
 function renderTimeGrid(grid, scheduled) {
   const firstDay = calendarView === 'day' ? new Date(selectedDate) : currentWeekStart;
   const count = calendarView === 'day' ? 1 : 7;
   const days = Array.from({length:count}, (_, index) => addDays(firstDay, index));
-  const startHour = 7, endHour = 22, hourHeight = 56;
-  grid.className = 'week-grid calendar-time-view';
+  const startHour = 7, endHour = 22, hourHeight = window.innerWidth < 768 ? 72 : 60;
+  grid.className = 'week-grid calendar-time-view' + (count === 1 ? ' is-day-view' : '');
   grid.innerHTML = `<div class="calendar-time-header"><span></span>${days.map(date=>`<button type="button" class="calendar-day-heading${isSameDay(date,new Date())?' is-today':''}" data-calendar-day="${calendarDateKey(date)}"><span>${fmtDate(date,'EEE')}</span><strong>${fmtDate(date,'d')}</strong></button>`).join('')}</div>
     <div class="calendar-time-body"><div class="calendar-time-labels">${Array.from({length:endHour-startHour},(_,i)=>`<span>${String(startHour+i).padStart(2,'0')}:00</span>`).join('')}</div>
     ${days.map(date=>`<div class="calendar-time-column" data-date="${calendarDateKey(date)}">${Array.from({length:endHour-startHour},(_,i)=>`<button type="button" class="calendar-time-slot" data-hour="${startHour+i}" aria-label="Add event ${fmtDate(date,'EEEE')} ${startHour+i}:00"></button>`).join('')}${isSameDay(date,new Date())?`<div class="calendar-now-line" aria-label="Current time"><span>${SFLocale.time(new Date())}</span></div>`:''}
-      ${scheduled.filter(event=>isSameDay(event.date,date)).map(event=>{
-        const timed=/^\d{2}:\d{2}$/.test(event.time||'');
-        if(!timed)return `<button type="button" class="calendar-all-day-event" data-calendar-event="${calendarEscape(event.eventId||'')}" data-date="${calendarDateKey(date)}" style="--event-color:${/^#[0-9a-f]{6}$/i.test(event.color||'')?event.color:'#4285f4'}">${calendarEscape(event.subject)}${event.eventId?'<span> · Edit</span>':''}</button>`;
-        const [hour,minute]=event.time.split(':').map(Number);
-        const minutes=hour*60+minute;
-        const duration=Math.max(30,Number(event.durationMinutes)||(/^\d{2}:\d{2}$/.test(event.end||'')?((Number(event.end.slice(0,2))*60+Number(event.end.slice(3)))-minutes):60));
-        const top=(minutes-startHour*60)/60*hourHeight;
-        const height=Math.max(26,duration/60*hourHeight);
-        if(top+height<0||top>(endHour-startHour)*hourHeight)return '';
-        const compact=height<64;
-        const eventLabel=[event.subject,event.topic,SFLocale.time(event.time),event.end?SFLocale.time(event.end):''].filter(Boolean).join(' · ');
-        return `<button type="button" title="${calendarEscape(eventLabel)}" class="calendar-timed-event${compact?' is-compact':''}${event.completed?' is-completed':''}" data-calendar-event="${calendarEscape(event.eventId||'')}" data-date="${calendarDateKey(date)}" style="--event-color:${/^#[0-9a-f]{6}$/i.test(event.color||'')?event.color:event.type==='exam-day'?'#d93025':event.type==='scheduled'?'#188038':event.type==='assignment'?'#f9ab00':'#4285f4'};top:${Math.max(0,top)}px;height:${Math.min(height,(endHour-startHour)*hourHeight-Math.max(0,top))}px"><strong>${calendarEscape(event.subject)}</strong><span>${calendarEscape(SFLocale.time(event.time))}${event.end?' – '+calendarEscape(SFLocale.time(event.end)):''}</span>${event.topic?`<small>${calendarEscape(event.topic)}</small>`:''}</button>`;
-      }).join('')}</div>`).join('')}</div>`;
+      ${renderDayEvents(scheduled.filter(event=>isSameDay(event.date,date)),date,startHour,endHour,hourHeight)}</div>`).join('')}</div>`;
   grid.style.setProperty('--calendar-hour-height',`${hourHeight}px`);
   grid.style.setProperty('--calendar-hours',String(endHour-startHour));
   grid.style.setProperty('--calendar-days',String(count));
@@ -750,6 +781,11 @@ function init() {
   });
 }
 
+let calendarWasMobile = window.innerWidth < 768;
+window.addEventListener('resize', () => {
+  const mobile = window.innerWidth < 768;
+  if (mobile !== calendarWasMobile) { calendarWasMobile = mobile; if (typeof refresh === 'function') refresh(); }
+});
 document.addEventListener('DOMContentLoaded', init);
 
 } // end else
