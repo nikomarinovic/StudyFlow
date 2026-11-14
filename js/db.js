@@ -20,7 +20,12 @@ const DB = {
   _get(key) {
     try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; }
   },
-  _set(key, val) { localStorage.setItem(key, JSON.stringify(val)); window.FirebaseSync?.queue?.(key); },
+  _set(key, val) {
+    localStorage.setItem(key, JSON.stringify(val));
+    const pending = this._get('sf_pending_sync_stores');
+    if (!pending.includes(key)) localStorage.setItem('sf_pending_sync_stores', JSON.stringify([...pending, key]));
+    window.FirebaseSync?.queue?.(key);
+  },
   _id() { return Date.now().toString(36) + Math.random().toString(36).slice(2); },
 
   // Courses and coursework live alongside the original exam planner data.

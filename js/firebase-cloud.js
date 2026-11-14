@@ -35,6 +35,8 @@ export async function connect(config) {
     local.forEach(row=>ops.push({type:'set',ref:doc(firestore,'users',activeUid,'records',docId(store,row)),data:{userId:activeUid,store,value:row}}));
     existing.forEach((ref,id)=>{if(!keep.has(id))ops.push({type:'delete',ref});});
     for(let offset=0;offset<ops.length;offset+=450){const batch=writeBatch(firestore);ops.slice(offset,offset+450).forEach(op=>op.type==='set'?batch.set(op.ref,op.data):batch.delete(op.ref));await batch.commit();}
+    const pending=localRows('sf_pending_sync_stores').filter(key=>key!==store);
+    safeWriteCache('sf_pending_sync_stores',pending);
   }
   function queueStore(store) {
     if(!activeUid||!initialSnapshot||!COLLECTIONS[store])return;
@@ -47,6 +49,7 @@ export async function connect(config) {
     sendStatus('Loading your cloud data…','syncing');
     return new Promise((resolve,reject)=>{
       unsubscribe=onSnapshot(collection(firestore,'users',uid,'records'),async snapshot=>{
+        const preSyncPending=new Set(localRows('sf_pending_sync_stores'));
         const cloud={};Object.keys(COLLECTIONS).forEach(k=>cloud[k]=[]);
         snapshot.forEach(s=>{const data=s.data();if(data.userId===uid&&cloud[data.store]&&data.value)cloud[data.store].push(data.value)});
         if(snapshot.empty){
@@ -58,12 +61,12 @@ export async function connect(config) {
           Object.keys(COLLECTIONS).forEach(store=>{
             const all=localRows(store),others=all.filter(row=>row.userId!==uid),local=all.filter(row=>row.userId===uid),next=cloud[store];
             const migrating=localStorage.getItem('sf_pending_migration_uid')===uid;
-            const preserveLocal=migrating||(store==='sf_completions'&&legacyCompletionDoc);
+            const preserveLocal=preSyncPending.has(store)||migrating||(store==='sf_completions'&&legacyCompletionDoc);
             const merged=preserveLocal?[...new Map([...next,...local].map(row=>[idOf(store,row),row])).values()]:next;
             const stable=rows=>JSON.stringify([...rows].sort((a,b)=>idOf(store,a).localeCompare(idOf(store,b))).map(canonical));
             if(stable(local)!==stable(merged))changed=true;
             safeWriteCache(store,[...others,...merged]);
-            if(migrating||(store==='sf_completions'&&legacyCompletionDoc))pending.set(store,true);
+            if(preSyncPending.has(store)||migrating||(store==='sf_completions'&&legacyCompletionDoc))pending.set(store,true);
           });
           const migrating=localStorage.getItem('sf_pending_migration_uid')===uid;
           if(migrating)localStorage.removeItem('sf_pending_migration_uid');
