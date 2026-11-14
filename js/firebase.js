@@ -3,9 +3,7 @@
   const configured = Boolean(config.apiKey && config.authDomain && config.projectId && config.appId);
   function showStatus(message, state='local') {
     const paint = () => {
-      let el = document.getElementById('sfSyncStatus');
-      if (!el) { el=document.createElement('div'); el.id='sfSyncStatus'; el.setAttribute('role','status'); el.setAttribute('aria-live','polite'); document.body.appendChild(el); }
-      el.dataset.state=state; el.textContent=message;
+      document.getElementById('sfSyncStatus')?.remove(); // no floating "Synced across devices" bubble
       if(configured){
         const title=document.getElementById('settingsSyncTitle'),description=document.getElementById('settingsSyncDescription'),badge=document.getElementById('settingsSyncBadge');
         if(title)title.textContent=state==='synced'?'Cross-device sync active':state==='error'?'Sync needs attention':'Connecting to cloud';

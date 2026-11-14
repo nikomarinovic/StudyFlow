@@ -55,9 +55,7 @@ window.SFLocale = (() => {
     const match=String(value||'').match(/(\d{1,2}):(\d{2})/);
     if(!match)return '—';
     const hour=Number(match[1]),minute=match[2];
-    if(get().time24)return `${pad(hour)}:${minute}`;
-    const suffix=hour>=12?'PM':'AM',display=hour%12||12;
-    return `${display}:${minute} ${suffix}`;
+    return `${pad(hour)}:${minute}`; // 24-hour (military) time everywhere
   }
   const preferences = get();
   document.documentElement.lang = preferences.dateOrder === 'mdy' ? 'en-US' : 'en-GB';

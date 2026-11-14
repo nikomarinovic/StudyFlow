@@ -1,10 +1,10 @@
 /**
  * StudyFlow — Mobile Navigation v2
-  * - Navigation across Home, Courses, Calendar, Planner, Exams, Timer, Awards, and Settings
+  * - Navigation across Home, Courses, Calendar, Planner, Exams, Awards, and Settings
  * - Always visible on <= 768px
  * - Auto-marks active page
  * Include: <script src="js/mobile-nav.js"></script> at bottom of <body>
- * on every app page (dashboard, calendar, timer, exams, achievements, settings).
+ * on every app page (dashboard, calendar, exams, achievements, settings).
  */
 (function () {
   'use strict';
@@ -15,7 +15,6 @@
     'courses.html':      'courses',
     'academic.html':     'academic',
     'calendar.html':     'calendar',
-    'timer.html':        'timer',
     'exams.html':        'exams',
     'achievements.html': 'achievements',
     'settings.html':     'settings',
@@ -29,16 +28,14 @@
     {id:'academic',href:'academic.html',label:'Plan',icon:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>'}
   ];
   var moreItems = [
-    {id:'timer',href:'timer.html',label:'Study timer',icon:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="14" r="8"/><path d="M10 2h4M12 6v2m3 6-3 3"/></svg>'},
     {id:'exams',href:'exams.html',label:'Exams',icon:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v17H4zM8 8h8M8 12h8M8 16h5"/></svg>'},
     {id:'achievements',href:'achievements.html',label:'Achievements',icon:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8m-4-4v4M7 4h10v6a5 5 0 0 1-10 0zM7 7H4a3 3 0 0 0 3 4m10-4h3a3 3 0 0 1-3 4"/></svg>'},
     {id:'settings',href:'settings.html',label:'Settings',icon:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>'}
   ];
 
   var logoIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>';
-  var timerIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>';
 
-  var appPages = ['dashboard','courses','academic','calendar','timer','exams','achievements','settings'];
+  var appPages = ['dashboard','courses','academic','calendar','exams','achievements','settings'];
   var isApp    = appPages.indexOf(current) !== -1;
 
   // ── Build top header ────────────────────────────────────────
@@ -50,9 +47,7 @@
         '<div class="mob-header-logo-icon">' + logoIcon + '</div>' +
         '<span class="mob-header-logo-text">StudyFlow</span>' +
       '</a>' +
-      '<div class="mob-header-action">' +
-        '<a href="timer.html" class="mob-header-study-btn">' + timerIcon + ' Study</a>' +
-      '</div>';
+      '<div class="mob-header-action"></div>';
     return el;
   }
 
@@ -114,7 +109,7 @@
     if (!isApp) return;
 
     // Calendar and timer have page-specific mobile headers.
-    var skipHeader = ['calendar', 'timer'];
+    var skipHeader = ['calendar'];
     if (skipHeader.indexOf(current) === -1) {
       document.body.insertBefore(buildHeader(), document.body.firstChild);
     }
@@ -126,116 +121,6 @@
     document.addEventListener('DOMContentLoaded', inject);
   } else {
     inject();
-  }
-
-  // ── Timer page: inject mode strip + bottom nav ─────────────
-  if (current === 'timer') {
-    function injectTimerStrip() {
-      if (window.innerWidth > 1023) return;
-
-      // Top header for timer
-      document.body.insertBefore(buildHeader(), document.body.firstChild);
-
-      // Mode strip
-      var strip = document.createElement('div');
-      strip.id = 'timerMobStrip';
-      Object.assign(strip.style, {
-        position: 'fixed',
-        top: '3.25rem',
-        left: '0',
-        right: '0',
-        zIndex: '188',
-        background: 'rgba(255,253,250,0.97)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(228,221,211,0.5)',
-        padding: '0.45rem 1rem',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.45rem',
-        overflowX: 'auto',
-        scrollbarWidth: 'none',
-        WebkitOverflowScrolling: 'touch',
-      });
-
-      var modes = [
-        { min: 25, label: '🍅 25m' },
-        { min: 50, label: '🧠 50m' },
-        { min: 90, label: '⚡ 90m' },
-        { min: 5,  label: '☕ 5m'  },
-        { min: 15, label: '🌿 15m' },
-      ];
-
-      // Subject clone
-      var origSel = document.getElementById('subjectSel');
-      if (origSel) {
-        var clone = origSel.cloneNode(true);
-        clone.id = 'subjectSelMob';
-        Object.assign(clone.style, {
-          flexShrink: '0',
-          maxWidth: '135px',
-          padding: '.3rem .6rem',
-          border: '1px solid hsl(40,20%,86%)',
-          borderRadius: '.5rem',
-          fontSize: '.72rem',
-          background: 'white',
-          fontFamily: 'inherit',
-          color: 'hsl(20,20%,15%)',
-        });
-        clone.addEventListener('change', function () {
-          origSel.value = clone.value;
-          origSel.dispatchEvent(new Event('change'));
-        });
-        origSel.addEventListener('change', function () { clone.value = origSel.value; });
-        strip.appendChild(clone);
-      }
-
-      modes.forEach(function (m, i) {
-        var btn = document.createElement('button');
-        btn.textContent = m.label;
-        btn.setAttribute('data-min', m.min);
-        Object.assign(btn.style, {
-          flexShrink: '0',
-          padding: '.28rem .65rem',
-          borderRadius: '999px',
-          border: '1px solid hsl(40,20%,86%)',
-          background: i === 0 ? 'hsl(270,74%,32%)' : 'white',
-          color: i === 0 ? '#fff' : 'hsl(20,10%,45%)',
-          fontSize: '.72rem',
-          fontWeight: '600',
-          cursor: 'pointer',
-          fontFamily: 'inherit',
-          transition: 'all .18s',
-        });
-
-        btn.addEventListener('click', function () {
-          document.querySelectorAll('.mode-btn').forEach(function (sb) {
-            if (parseInt(sb.getAttribute('data-min')) === m.min) sb.click();
-          });
-          strip.querySelectorAll('button').forEach(function (b) {
-            b.style.background = 'white';
-            b.style.color = 'hsl(20,10%,45%)';
-          });
-          btn.style.background = 'hsl(270,74%,32%)';
-          btn.style.color = '#fff';
-        });
-
-        strip.appendChild(btn);
-      });
-
-      document.body.insertBefore(strip, document.body.childNodes[1]);
-
-      // Push main area below both bars (3.25 header + ~2.25 strip)
-      var mainArea = document.getElementById('mainArea');
-      if (mainArea) mainArea.style.paddingTop = '7.75rem';
-
-      document.body.appendChild(buildNav());
-    }
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', injectTimerStrip);
-    } else {
-      injectTimerStrip();
-    }
   }
 
   // ── Calendar: just add bottom nav ─────────────────────────
