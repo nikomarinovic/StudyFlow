@@ -47,3 +47,21 @@ body.dark-mode { --course-surface:#202832;--course-ink:#eef3f7;--course-muted:#a
 .assistant-compose { display:flex; gap:.5rem; align-items:flex-end; padding:.75rem; border-top:1px solid var(--course-line); }
 .assistant-compose textarea { flex:1; min-width:0; resize:none; padding:.6rem .65rem; border:1px solid var(--course-line); border-radius:9px; font:inherit; font-size:.78rem; }
 @media(max-width:640px) { .assistant-drawer { right:.75rem; bottom:8rem; width:calc(100vw - 1.5rem); height:min(560px,calc(100vh - 9rem)); }.assistant-fab { right:.75rem; bottom:4.4rem; } }
+
+/* Adaptive planner panels */
+.plan-status{margin:.2rem 0 .8rem;padding:.7rem .9rem;border-radius:12px;background:rgba(57,120,197,.08);border:1px solid rgba(57,120,197,.18);font-size:.92rem}
+.plan-status strong{display:block;margin-bottom:.15rem}.plan-status ul{margin:.4rem 0 0 1.1rem;padding:0}.plan-status li{margin:.1rem 0}
+.plan-status.is-warning{background:rgba(245,158,11,.09);border-color:rgba(245,158,11,.3)}
+.auto-plan-toggle{display:inline-flex;align-items:center;gap:.4rem;font-size:.88rem;cursor:pointer;margin-right:.3rem}
+.plan-health-row,.hours-row{display:flex;align-items:center;gap:.8rem;padding:.55rem .2rem;border-bottom:1px solid var(--course-line,rgba(128,128,128,.18));flex-wrap:wrap}
+.plan-health-row:last-child,.hours-row:last-child{border-bottom:0}
+.plan-dot{width:.7rem;height:.7rem;border-radius:50%;background:var(--course-color,#3978c5);flex:none}
+.plan-health-row .name,.hours-row .name{flex:1 1 11rem;font-weight:600}
+.plan-health-row .meta,.hours-row .meta{color:var(--course-muted,#6b7280);font-size:.85rem}
+.plan-badge{font-size:.75rem;padding:.12rem .5rem;border-radius:99px;background:rgba(245,158,11,.16);color:#9a6700}
+.plan-badge.ok{background:rgba(16,185,129,.14);color:#0b7a56}
+.hours-row select,.hours-row input[type=number]{width:auto;min-width:6.5rem;padding:.3rem .45rem}.hours-row input[type=number]{width:5.2rem;min-width:0}
+.hours-row label{display:inline-flex;align-items:center;gap:.35rem;font-size:.85rem}
+#activityLog{margin-top:.8rem}#activityLog .task-row{opacity:.7}
+:root[data-theme="dark"] .plan-status{background:rgba(57,120,197,.14)}
+:root[data-theme="dark"] .plan-badge{color:#f3c76b}:root[data-theme="dark"] .plan-badge.ok{color:#6fe0b4}

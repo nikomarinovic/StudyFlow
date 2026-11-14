@@ -72,7 +72,7 @@ async function doDeleteAccount() {
     if(!sync?.enabled)throw new Error('Firebase is not available. No account data was deleted.');
     await sync.deleteAccount(password);
   }
-  [DB.SESSIONS_KEY, DB.EXAMS_KEY, DB.ITEMS_KEY, DB.STATS_KEY, DB.COMPLETIONS_KEY, DB.COURSES_KEY, DB.TASKS_KEY, DB.EVENTS_KEY, DB.AVAILABILITY_KEY, DB.LAB_WEEKS_KEY, DB.PERIODS_KEY, DB.RESOURCES_KEY, DB.SCHEDULES_KEY, DB.PLANNER_SETTINGS_KEY, 'sf_profiles'].forEach(key => {
+  [DB.SESSIONS_KEY, DB.EXAMS_KEY, DB.ITEMS_KEY, DB.STATS_KEY, DB.COMPLETIONS_KEY, DB.COURSES_KEY, DB.TASKS_KEY, DB.EVENTS_KEY, DB.AVAILABILITY_KEY, DB.LAB_WEEKS_KEY, DB.PERIODS_KEY, DB.RESOURCES_KEY, DB.SCHEDULES_KEY, DB.PLANNER_SETTINGS_KEY, DB.PLANNER_PREFS_KEY, DB.ACTIVITY_LOG_KEY, 'sf_profiles'].forEach(key => {
     DB._set(key, DB._get(key).filter(r => r.userId !== currentUser.id));
   });
   DB._set(DB.USERS_KEY, DB.getUsers().filter(u => u.id !== currentUser.id));
@@ -105,6 +105,8 @@ function exportData() {
     resources: DB.getResources(currentUser.id),
     profile: DB.getProfile(currentUser.id),
     plannerSettings: DB.getPlannerSettings(currentUser.id),
+    plannerPrefs: DB._get(DB.PLANNER_PREFS_KEY).filter(x=>x.userId===currentUser.id),
+    activityLog: DB.getActivityLog(currentUser.id),
     localePreferences: SFLocale.get(),
   };
 
@@ -165,7 +167,8 @@ function doImport(data, mode) {
   const specs=[
     [DB.ITEMS_KEY,'items'],[DB.SESSIONS_KEY,'sessions'],[DB.COMPLETIONS_KEY,'completions'],
     [DB.COURSES_KEY,'courses'],[DB.TASKS_KEY,'tasks'],[DB.EVENTS_KEY,'academicEvents'],
-    [DB.AVAILABILITY_KEY,'availability'],[DB.LAB_WEEKS_KEY,'labWeeks'],[DB.PERIODS_KEY,'academicPeriods'],[DB.RESOURCES_KEY,'resources'],[DB.SCHEDULES_KEY,'schedules']
+    [DB.AVAILABILITY_KEY,'availability'],[DB.LAB_WEEKS_KEY,'labWeeks'],[DB.PERIODS_KEY,'academicPeriods'],[DB.RESOURCES_KEY,'resources'],[DB.SCHEDULES_KEY,'schedules'],
+    [DB.PLANNER_PREFS_KEY,'plannerPrefs'],[DB.ACTIVITY_LOG_KEY,'activityLog']
   ];
   let count=0, skipped=0;
   specs.forEach(([key,field])=>{

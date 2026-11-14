@@ -77,7 +77,11 @@ function generateSchedule(items, sessions) {
         difficulty: exam.difficulty
       });
 
-      if (daysUntil <= 0 || exam.courseId && DB.getCourses(currentUser.id).some(c=>c.id===exam.courseId)) return;
+      // Exams that belong to a course are planned by the adaptive planner (js/planner.js).
+      const plannedByPlanner = window.Planner
+        ? Planner.courseForExam(exam, DB.getCourses(currentUser.id))
+        : exam.courseId && DB.getCourses(currentUser.id).some(c=>c.id===exam.courseId);
+      if (daysUntil <= 0 || plannedByPlanner) return;
 
       const totalH   = DIFFICULTY_HOURS[exam.difficulty]?.max || 10;
       const studiedH = sessions.filter(s => s.subject === exam.subject)
@@ -656,6 +660,7 @@ function init() {
   document.getElementById('calendarFilters').innerHTML=Object.entries(filterLabels).map(([key,label])=>`<label><input type="checkbox" data-calendar-filter="${key}" ${calendarFilters[key]?'checked':''}> ${label}</label>`).join('');
   document.querySelectorAll('.calendar-sidebar-section [data-calendar-filter]').forEach(input=>{input.checked=calendarFilters[input.dataset.calendarFilter];});
   refresh();
+  window.addEventListener('sf:planner-updated', e => { if (e.detail?.changed) refresh(); });
 
   document.getElementById('calendarView').addEventListener('change',e=>{calendarView=e.target.value;localStorage.setItem('sf_calendar_view',calendarView);currentWeekStart=getStartOfWeek(selectedDate);currentMonth=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);refresh();});
   const updateFilter=e=>{const key=e.target.dataset.calendarFilter;if(!key)return;calendarFilters[key]=e.target.checked;document.querySelectorAll(`[data-calendar-filter="${key}"]`).forEach(input=>input.checked=e.target.checked);localStorage.setItem('sf_calendar_filters',JSON.stringify(calendarFilters));refresh();};
