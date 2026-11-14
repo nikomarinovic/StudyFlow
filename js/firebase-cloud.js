@@ -5,7 +5,7 @@ import { getFirestore, collection, doc, onSnapshot, writeBatch, getDocs } from '
 const COLLECTIONS = {
   sf_sessions:'sessions',sf_exams:'exams',sf_items:'items',sf_stats:'stats',sf_completions:'completions',
   sf_courses:'courses',sf_tasks:'tasks',sf_academic_events:'academicEvents',sf_availability:'availability',
-  sf_lab_weeks:'labWeeks',sf_academic_periods:'academicPeriods',sf_resources:'resources',sf_profiles:'profiles'
+  sf_lab_weeks:'labWeeks',sf_academic_periods:'academicPeriods',sf_resources:'resources',sf_schedules:'schedules',sf_profiles:'profiles'
 };
 const idOf = (store,row) => String(row.id || row.blockId || row.userId || `${store}_${Math.random().toString(36).slice(2)}`);
 const canonical = value => {

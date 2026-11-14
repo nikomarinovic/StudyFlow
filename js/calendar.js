@@ -160,11 +160,13 @@ function generateSchedule(items, sessions) {
   const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   const visibleDays=calendarView==='month'?42:calendarView==='day'?1:7;
   const firstDay=calendarView==='month'?getStartOfWeek(currentMonth):calendarView==='day'?new Date(selectedDate):getStartOfWeek(currentWeekStart);
+  const activeScheduleId=DB.getActiveSchedule?.(currentUser.id)?.id;
   for (let offset = 0; offset < visibleDays; offset++) {
     const day = addDays(firstDay, offset), dayKey = iso(day), weekday = day.getDay(), weekKey=iso(getStartOfWeek(day));
     const labWeek = DB.getLabWeek?.(currentUser.id, weekKey);
     const period = DB.getPeriods?.(currentUser.id).find(p => p.suspendClasses && dayKey >= p.startDate && dayKey <= p.endDate);
     DB.getAcademicEvents?.(currentUser.id).forEach(event => {
+      if (event.scheduleId && event.scheduleId !== activeScheduleId) return;
       if (event.activeFrom && dayKey < event.activeFrom || event.activeUntil && dayKey > event.activeUntil) return;
       if (event.type === 'lab' && event.weekKey === weekKey) return;
       if (event.repeat === 'weekly') {
@@ -172,7 +174,8 @@ function generateSchedule(items, sessions) {
         if (event.type === 'lab' && labWeek) return;
       } else if (event.date !== dayKey) return;
       const durationMinutes=event.type==='study'&&event.start&&event.end?Math.max(0,(Number(event.end.slice(0,2))*60+Number(event.end.slice(3)))-(Number(event.start.slice(0,2))*60+Number(event.start.slice(3)))):0;
-      scheduled.push({ id:`acad-${event.id}-${dayKey}`, blockId:`acad-${event.id}-${dayKey}`, subject:event.title, topic:[event.type,event.location,event.description].filter(Boolean).join(' · '), time:event.start||'—', end:event.end||'', durationMinutes, duration:durationMinutes?`${durationMinutes} min`:'—', color:event.color||'academic-event', type:event.type==='study'?'scheduled':'academic', date:new Date(day), courseId:event.courseId, eventId:event.id, location:event.location||'' });
+      const description=event.description||({lecture:'Predavanje',seminar:'Auditorne vježbe',lab:'Laboratorijske vježbe'}[event.type]||'');
+      scheduled.push({ id:`acad-${event.id}-${dayKey}`, blockId:`acad-${event.id}-${dayKey}`, subject:event.title, topic:[description,event.location].filter(Boolean).join(' · '), time:event.start||'—', end:event.end||'', durationMinutes, duration:durationMinutes?`${durationMinutes} min`:'—', color:event.color||'academic-event', type:event.type==='study'?'scheduled':'academic', date:new Date(day), courseId:event.courseId, eventId:event.id, location:event.location||'' });
     });
     if (labWeek?.weekKey === weekKey) (labWeek.events||[]).forEach((event,index) => {
       if (event.date !== dayKey) return;
@@ -332,7 +335,7 @@ function renderTimeGrid(grid, scheduled) {
         const top=(minutes-startHour*60)/60*hourHeight;
         const height=Math.max(26,duration/60*hourHeight);
         if(top+height<0||top>(endHour-startHour)*hourHeight)return '';
-        return `<button type="button" class="calendar-timed-event${event.completed?' is-completed':''}" data-calendar-event="${calendarEscape(event.eventId||'')}" data-date="${calendarDateKey(date)}" style="--event-color:${/^#[0-9a-f]{6}$/i.test(event.color||'')?event.color:event.type==='exam-day'?'#d93025':event.type==='scheduled'?'#188038':event.type==='assignment'?'#f9ab00':'#4285f4'};top:${Math.max(0,top)}px;height:${Math.min(height,(endHour-startHour)*hourHeight-Math.max(0,top))}px"><strong>${calendarEscape(event.subject)}</strong><span>${calendarEscape(event.time)}${event.end?' – '+calendarEscape(event.end):''}</span></button>`;
+        return `<button type="button" class="calendar-timed-event${event.completed?' is-completed':''}" data-calendar-event="${calendarEscape(event.eventId||'')}" data-date="${calendarDateKey(date)}" style="--event-color:${/^#[0-9a-f]{6}$/i.test(event.color||'')?event.color:event.type==='exam-day'?'#d93025':event.type==='scheduled'?'#188038':event.type==='assignment'?'#f9ab00':'#4285f4'};top:${Math.max(0,top)}px;height:${Math.min(height,(endHour-startHour)*hourHeight-Math.max(0,top))}px"><strong>${calendarEscape(event.subject)}</strong><span>${calendarEscape(event.time)}${event.end?' – '+calendarEscape(event.end):''}</span>${event.topic?`<small>${calendarEscape(event.topic)}</small>`:''}</button>`;
       }).join('')}</div>`).join('')}</div>`;
   grid.style.setProperty('--calendar-hour-height',`${hourHeight}px`);
   grid.style.setProperty('--calendar-hours',String(endHour-startHour));

@@ -16,6 +16,7 @@ const DB = {
   LAB_WEEKS_KEY:   'sf_lab_weeks',
   PERIODS_KEY:     'sf_academic_periods',
   RESOURCES_KEY:   'sf_resources',
+  SCHEDULES_KEY:   'sf_schedules',
 
   _get(key) {
     try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; }
@@ -68,6 +69,23 @@ const DB = {
   addAcademicEvent(userId, event) { const rows=this._get(this.EVENTS_KEY), record={id:this._id(),userId,type:'lecture',color:'#3978c5',...event,createdAt:Date.now()}; rows.push(record);this._set(this.EVENTS_KEY,rows);return record; },
   updateAcademicEvent(id, patch) { const rows=this._get(this.EVENTS_KEY),i=rows.findIndex(e=>e.id===id);if(i<0)return null;const previous=rows[i];rows[i]={...previous,...patch,updatedAt:Date.now()};this._set(this.EVENTS_KEY,rows);if(previous.weekKey||rows[i].weekKey){const weeks=this._get(this.LAB_WEEKS_KEY).map(w=>{if(w.weekKey!==previous.weekKey&&w.weekKey!==rows[i].weekKey)return w;const entries=(w.events||[]).filter(e=>e.id!==id);if(w.weekKey===rows[i].weekKey&&rows[i].type==='lab'&&rows[i].repeat==='once')entries.push(rows[i]);return {...w,events:entries};});this._set(this.LAB_WEEKS_KEY,weeks);}return rows[i]; },
   deleteAcademicEvent(id) { this._set(this.EVENTS_KEY,this._get(this.EVENTS_KEY).filter(e=>e.id!==id));this._set(this.LAB_WEEKS_KEY,this._get(this.LAB_WEEKS_KEY).map(w=>({...w,events:(w.events||[]).filter(e=>e.id!==id)}))); },
+  getSchedules(userId) { return this._get(this.SCHEDULES_KEY).filter(s=>s.userId===userId); },
+  addSchedule(userId, schedule) {
+    const rows=this._get(this.SCHEDULES_KEY), record={id:this._id(),userId,name:'Schedule',active:false,createdAt:Date.now(),...schedule};
+    rows.push(record);this._set(this.SCHEDULES_KEY,rows);return record;
+  },
+  updateSchedule(id, patch) {
+    const rows=this._get(this.SCHEDULES_KEY),i=rows.findIndex(s=>s.id===id);if(i<0)return null;
+    rows[i]={...rows[i],...patch,updatedAt:Date.now()};this._set(this.SCHEDULES_KEY,rows);return rows[i];
+  },
+  deleteSchedule(id) {
+    this._set(this.SCHEDULES_KEY,this._get(this.SCHEDULES_KEY).filter(s=>s.id!==id));
+    this._set(this.EVENTS_KEY,this._get(this.EVENTS_KEY).filter(e=>e.scheduleId!==id));
+  },
+  getActiveSchedule(userId) { return this.getSchedules(userId).find(s=>s.active)||this.getSchedules(userId)[0]||null; },
+  setActiveSchedule(userId,id) {
+    const rows=this._get(this.SCHEDULES_KEY).map(s=>s.userId===userId?{...s,active:s.id===id}:s);this._set(this.SCHEDULES_KEY,rows);return rows.find(s=>s.id===id)||null;
+  },
   getAvailability(userId) { return this._get(this.AVAILABILITY_KEY).find(a=>a.userId===userId)?.days || {}; },
   saveAvailability(userId, days) { const rows=this._get(this.AVAILABILITY_KEY),i=rows.findIndex(a=>a.userId===userId),value={userId,days,updatedAt:Date.now()};if(i<0)rows.push(value);else rows[i]=value;this._set(this.AVAILABILITY_KEY,rows);return days; },
   getLabWeek(userId, weekKey) { return this._get(this.LAB_WEEKS_KEY).find(w=>w.userId===userId&&w.weekKey===weekKey)||null; },

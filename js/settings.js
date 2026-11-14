@@ -72,7 +72,7 @@ async function doDeleteAccount() {
     if(!sync?.enabled)throw new Error('Firebase is not available. No account data was deleted.');
     await sync.deleteAccount(password);
   }
-  [DB.SESSIONS_KEY, DB.EXAMS_KEY, DB.ITEMS_KEY, DB.STATS_KEY, DB.COMPLETIONS_KEY, DB.COURSES_KEY, DB.TASKS_KEY, DB.EVENTS_KEY, DB.AVAILABILITY_KEY, DB.LAB_WEEKS_KEY, DB.PERIODS_KEY, DB.RESOURCES_KEY, 'sf_profiles'].forEach(key => {
+  [DB.SESSIONS_KEY, DB.EXAMS_KEY, DB.ITEMS_KEY, DB.STATS_KEY, DB.COMPLETIONS_KEY, DB.COURSES_KEY, DB.TASKS_KEY, DB.EVENTS_KEY, DB.AVAILABILITY_KEY, DB.LAB_WEEKS_KEY, DB.PERIODS_KEY, DB.RESOURCES_KEY, DB.SCHEDULES_KEY, 'sf_profiles'].forEach(key => {
     DB._set(key, DB._get(key).filter(r => r.userId !== currentUser.id));
   });
   DB._set(DB.USERS_KEY, DB.getUsers().filter(u => u.id !== currentUser.id));
@@ -98,6 +98,7 @@ function exportData() {
     courses:     DB.getCourses(currentUser.id),
     tasks:       DB.getTasks(currentUser.id),
     academicEvents: DB.getAcademicEvents(currentUser.id),
+    schedules: DB.getSchedules(currentUser.id),
     availability: DB._get(DB.AVAILABILITY_KEY).filter(x=>x.userId===currentUser.id),
     labWeeks: DB._get(DB.LAB_WEEKS_KEY).filter(x=>x.userId===currentUser.id),
     academicPeriods: DB.getPeriods(currentUser.id),
@@ -162,7 +163,7 @@ function doImport(data, mode) {
   const specs=[
     [DB.ITEMS_KEY,'items'],[DB.SESSIONS_KEY,'sessions'],[DB.COMPLETIONS_KEY,'completions'],
     [DB.COURSES_KEY,'courses'],[DB.TASKS_KEY,'tasks'],[DB.EVENTS_KEY,'academicEvents'],
-    [DB.AVAILABILITY_KEY,'availability'],[DB.LAB_WEEKS_KEY,'labWeeks'],[DB.PERIODS_KEY,'academicPeriods'],[DB.RESOURCES_KEY,'resources']
+    [DB.AVAILABILITY_KEY,'availability'],[DB.LAB_WEEKS_KEY,'labWeeks'],[DB.PERIODS_KEY,'academicPeriods'],[DB.RESOURCES_KEY,'resources'],[DB.SCHEDULES_KEY,'schedules']
   ];
   let count=0, skipped=0;
   specs.forEach(([key,field])=>{
