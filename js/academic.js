@@ -4,6 +4,77 @@ function weekStart(d=new Date()){const x=new Date(d),day=x.getDay();x.setDate(x.
 function dateKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 function currentWeekKey(){return dateKey(weekStart());}
 function courseName(id){return courses().find(c=>c.id===id)?.name||'Personal';}
+function normalizeName(value){return String(value||'').toLocaleLowerCase('hr-HR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();}
+function findCourse(name){const wanted=normalizeName(name);return courses().find(c=>normalizeName(c.name)===wanted);}
+function importTimetable(){
+  const source='studyflow-default-timetable-v1';
+  if(events().some(e=>e.source===source)){alert('Ovaj raspored je već unesen.');return;}
+  const courseDefinitions=[
+    {name:'Digitalna logika',lecturer:'Marko Čupić',ects:6,passPercent:50,semester:'Zimski semestar',assessments:[
+      {name:'Laboratorijske vježbe',weight:15,minimumPercent:50,maxPoints:100,mandatory:true},
+      {name:'Domaće zadaće',weight:10,minimumPercent:0,maxPoints:100},
+      {name:'Kratke provjere znanja',weight:5,minimumPercent:0,maxPoints:100},
+      {name:'Međuispit: Pismeni',weight:30,minimumPercent:0,maxPoints:100},
+      {name:'Završni ispit: Pismeni',weight:40,minimumPercent:40,maxPoints:100,mandatory:true}
+    ]},
+    {name:'Linearna algebra',lecturer:'Domagoj Vlah',ects:5,passPercent:45,semester:'Zimski semestar',assessments:[
+      {name:'Domaće zadaće',weight:0,minimumPercent:0,maxPoints:100},
+      {name:'Prisutnost',weight:0,minimumPercent:0,maxPoints:100},
+      {name:'Međuispit: Pismeni',weight:50,minimumPercent:0,maxPoints:100},
+      {name:'Završni ispit: Pismeni',weight:50,minimumPercent:0,maxPoints:100}
+    ]},
+    {name:'Uvod u programiranje',lecturer:'Igor Mekterović',ects:7,passPercent:50,semester:'Zimski semestar',assessments:[
+      {name:'Laboratorijske vježbe',weight:30,minimumPercent:0,maxPoints:100},
+      {name:'Međuispit: Pismeni',weight:30,minimumPercent:0,maxPoints:100},
+      {name:'Završni ispit: Pismeni',weight:40,minimumPercent:40,maxPoints:100,mandatory:true}
+    ]},
+    {name:'Vještine komuniciranja',lecturer:'Juraj Petrović',ects:4,passPercent:60,semester:'Zimski semestar',assessments:[
+      {name:'Domaće zadaće',weight:35,minimumPercent:50,maxPoints:100,mandatory:true},
+      {name:'Kratke provjere znanja',weight:10,minimumPercent:50,maxPoints:100,mandatory:true},
+      {name:'Sudjelovanje u nastavi',weight:10,minimumPercent:50,maxPoints:100,mandatory:true},
+      {name:'Seminar/Projekt',weight:25,minimumPercent:50,maxPoints:100,mandatory:true},
+      {name:'Međuispit: Pismeni',weight:1,minimumPercent:0,maxPoints:100},
+      {name:'Završni ispit: Pismeni',weight:19,minimumPercent:0,maxPoints:100}
+    ]},
+    {name:'Tjelesna i znanstvena kultura',ects:0,passPercent:12,description:'Za prolaz je potrebno ostvariti 12 dolazaka.'}
+  ];
+  const imported={};
+  courseDefinitions.forEach(def=>{
+    const existing=findCourse(def.name);
+    imported[normalizeName(def.name)]=existing||DB.addCourse(user.id,{...def,color:'#3978c5'});
+  });
+  const analysis=findCourse('Matematička analiza 1');
+  if(!analysis){alert('Raspored nije unesen jer kolegij Matematička analiza 1 nije pronađen.');return;}
+  imported[normalizeName(analysis.name)]=analysis;
+  const eventDefinitions=[
+    ['Matematička analiza 1',1,'08:00','10:00','D1','lecture'],
+    ['Matematička analiza 1',1,'10:00','11:00','D1','seminar'],
+    ['Uvod u programiranje',1,'11:00','13:00','D1','lecture'],
+    ['Linearna algebra',2,'08:00','10:00','D1','lecture'],
+    ['Digitalna logika',2,'10:00','12:00','D2','lecture'],
+    ['Digitalna logika',2,'12:00','13:00','D2','seminar'],
+    ['Matematička analiza 1',3,'08:00','10:00','D1','lecture'],
+    ['Uvod u programiranje',3,'10:00','12:00','D1','lecture'],
+    ['Tjelesna i znanstvena kultura',3,'13:00','14:00','Cedevita Velesajam','other'],
+    ['Vještine komuniciranja',4,'08:00','10:00','D1','lecture'],
+    ['Linearna algebra',4,'10:00','12:00','D1','lecture'],
+    ['Linearna algebra',4,'12:00','13:00','D1','seminar'],
+    ['Matematička analiza 1',5,'08:00','10:00','D1','lecture'],
+    ['Matematička analiza 1',5,'10:00','11:00','D1','seminar'],
+    ['Digitalna logika',5,'11:00','13:00','D2','lecture']
+  ];
+  eventDefinitions.forEach(([title,day,start,end,location,type])=>{
+    const course=imported[normalizeName(title)];
+    DB.addAcademicEvent(user.id,{source,title,courseId:course.id,type,repeat:'weekly',day,start,end,location,color:course.color,activeFrom:'2026-11-07',activeUntil:'2027-01-29'});
+  });
+  [
+    {title:'Nema nastave — 18.11.',startDate:'2026-11-18',endDate:'2026-11-18'},
+    {title:'Ispitni period',startDate:'2026-11-23',endDate:'2026-12-06'},
+    {title:'Božićni praznici',startDate:'2026-12-24',endDate:'2027-01-06'}
+  ].forEach(period=>DB.addPeriod(user.id,{...period,suspendClasses:true,studyStart:'09:00',studyEnd:'18:00',source}));
+  render();
+  alert('Raspored, kolegiji i periodi su uspješno uneseni.');
+}
 function render(){const wk=currentWeekKey(),answer=DB.getLabWeek(user.id,wk);const prompt=$('#labPrompt');prompt.hidden=false;prompt.innerHTML=answer?`<div><strong>Laboratory schedule confirmed for this week.</strong><p>${answer.events.length?`${answer.events.length} lab session${answer.events.length===1?'':'s'} saved.`:'You marked that there are no labs this week.'} Your response stays here until next week.</p></div><button class="btn-outline" id="answerLabs">Edit this week’s labs</button>`:`<div><strong>Kako izgledaju tvoje laboratorijske vježbe ovaj tjedan?</strong><p>Confirm this week’s lab times so the planner blocks the correct hours. Your regular timetable stays saved; this request stays pending until you answer.</p></div><button class="btn-primary" id="answerLabs">Set this week’s labs</button><button class="btn-outline" id="noLabs">No labs this week</button>`;
 const list=events().filter(e=>e.type!=='study');$('#eventList').innerHTML=list.length?list.map(e=>`<div class="task-row"><div><span class="task-title" style="border-left:3px solid ${color(e.color)};padding-left:.45rem">${esc(e.title)}</span><span class="task-meta">${esc(courseName(e.courseId))} · ${e.repeat==='weekly'?'Every '+days[((Number(e.day)+6)%7)]:new Date(e.date+'T12:00:00').toLocaleDateString()} ${e.weekKey?' · this week':''} · ${esc(e.location||e.type)}</span></div><span class="task-due">${esc(e.start)}–${esc(e.end)}</span><button class="tiny-btn" data-edit-event="${esc(e.id)}">Edit</button><button class="tiny-btn" data-delete-event="${esc(e.id)}">×</button></div>`).join(''):'<p class="empty">Add lectures and labs to make them unavailable to the study planner.</p>';
 const avail=DB.getAvailability(user.id);$('#availabilityForm').innerHTML=days.map((d,i)=>{const x=avail[i]||{};return `<label class="availability-day"><span>${d}</span><input aria-label="${d} available from" type="time" data-day="${i}" data-part="start" value="${esc(x.start||'16:00')}"><span>to</span><input aria-label="${d} available until" type="time" data-day="${i}" data-part="end" value="${esc(x.end||'20:00')}"><input aria-label="${d} study day enabled" type="checkbox" data-day="${i}" data-part="enabled" ${x.enabled===false?'':'checked'}></label>`}).join('');
@@ -21,5 +92,6 @@ const blocked=events().filter(e=>e.type!=='study'&&!(e.type==='lab'&&e.repeat===
 while(pointer+45<=max&&dailyStudyMinutes<dailyLimit){if(periods.length&&pointer<13*60&&pointer+45>12*60)pointer=13*60;if(pointer+45>max)break;const conflict=blocked.find(x=>overlaps(pointer,pointer+45,x.a,x.b));if(conflict){pointer=conflict.b+15;continue;}let pick=needs[0];if(!pick)break;const event={title:`Study · ${pick.course.name}`,courseId:pick.course.id,type:'study',repeat:'once',date:iso,start:`${String(Math.floor(pointer/60)).padStart(2,'0')}:${String(pointer%60).padStart(2,'0')}`,end:`${String(Math.floor((pointer+45)/60)).padStart(2,'0')}:${String((pointer+45)%60).padStart(2,'0')}`,color:pick.course.color,generatedWeek:currentWeekKey(),description:'Generated from ECTS, upcoming deadlines, remaining assessments, and your availability.'};blocks.push(event);pick.hours=(pick.hours||0)+.75;dailyStudyMinutes+=45;if(pick.hours>=Math.max(1,(Number(pick.course.ects)||1)*.4))needs.shift();pointer+=60;}}
 blocks.forEach(b=>DB.addAcademicEvent(user.id,b));render();}
 $('#generatePlan').onclick=generatePlan;
+$('#importTimetable').onclick=importTimetable;
 document.addEventListener('click',e=>{const edit=e.target.closest('[data-edit-event]');if(edit)openEvent(events().find(x=>x.id===edit.dataset.editEvent));const del=e.target.closest('[data-delete-event]');if(del){DB.deleteAcademicEvent(del.dataset.deleteEvent);render();}const p=e.target.closest('[data-delete-period]');if(p){DB.deletePeriod(p.dataset.deletePeriod);render();}const a=e.target.closest('[data-close]');if(a)document.getElementById(a.dataset.close).close();});$('#signOutBtn')?.addEventListener('click',async()=>{const sync=await window.FirebaseSyncReady;if(sync?.enabled)await sync.signOut();localStorage.removeItem('sf_current_user');location.href='auth.html?mode=signin';});
 render();}

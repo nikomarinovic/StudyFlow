@@ -165,6 +165,7 @@ function generateSchedule(items, sessions) {
     const labWeek = DB.getLabWeek?.(currentUser.id, weekKey);
     const period = DB.getPeriods?.(currentUser.id).find(p => p.suspendClasses && dayKey >= p.startDate && dayKey <= p.endDate);
     DB.getAcademicEvents?.(currentUser.id).forEach(event => {
+      if (event.activeFrom && dayKey < event.activeFrom || event.activeUntil && dayKey > event.activeUntil) return;
       if (event.type === 'lab' && event.weekKey === weekKey) return;
       if (event.repeat === 'weekly') {
         if ((event.type !== 'study' && period) || Number(event.day) !== weekday) return;
