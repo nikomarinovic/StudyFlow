@@ -35,8 +35,8 @@ function fmtDate(date, fmt) {
   const months  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const weekdays= ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const short   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  if (fmt==='MMM d')       return `${months[d.getMonth()]} ${d.getDate()}`;
-  if (fmt==='MMM d, yyyy') return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+  if (fmt==='MMM d')       return SFLocale.date(d);
+  if (fmt==='MMM d, yyyy') return SFLocale.date(d);
   if (fmt==='EEEE')        return weekdays[d.getDay()];
   if (fmt==='EEE')         return short[d.getDay()];
   if (fmt==='d')           return d.getDate().toString();
@@ -325,7 +325,7 @@ function renderTimeGrid(grid, scheduled) {
   grid.className = 'week-grid calendar-time-view';
   grid.innerHTML = `<div class="calendar-time-header"><span></span>${days.map(date=>`<button type="button" class="calendar-day-heading${isSameDay(date,new Date())?' is-today':''}" data-calendar-day="${calendarDateKey(date)}"><span>${fmtDate(date,'EEE')}</span><strong>${fmtDate(date,'d')}</strong></button>`).join('')}</div>
     <div class="calendar-time-body"><div class="calendar-time-labels">${Array.from({length:endHour-startHour},(_,i)=>`<span>${String(startHour+i).padStart(2,'0')}:00</span>`).join('')}</div>
-    ${days.map(date=>`<div class="calendar-time-column" data-date="${calendarDateKey(date)}">${Array.from({length:endHour-startHour},(_,i)=>`<button type="button" class="calendar-time-slot" data-hour="${startHour+i}" aria-label="Add event ${fmtDate(date,'EEEE')} ${startHour+i}:00"></button>`).join('')}${isSameDay(date,new Date())?`<div class="calendar-now-line" aria-label="Current time"><span>${new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',hour12:false})}</span></div>`:''}
+    ${days.map(date=>`<div class="calendar-time-column" data-date="${calendarDateKey(date)}">${Array.from({length:endHour-startHour},(_,i)=>`<button type="button" class="calendar-time-slot" data-hour="${startHour+i}" aria-label="Add event ${fmtDate(date,'EEEE')} ${startHour+i}:00"></button>`).join('')}${isSameDay(date,new Date())?`<div class="calendar-now-line" aria-label="Current time"><span>${SFLocale.time(new Date())}</span></div>`:''}
       ${scheduled.filter(event=>isSameDay(event.date,date)).map(event=>{
         const timed=/^\d{2}:\d{2}$/.test(event.time||'');
         if(!timed)return `<button type="button" class="calendar-all-day-event" data-calendar-event="${calendarEscape(event.eventId||'')}" data-date="${calendarDateKey(date)}" style="--event-color:${/^#[0-9a-f]{6}$/i.test(event.color||'')?event.color:'#4285f4'}">${calendarEscape(event.subject)}${event.eventId?'<span> · Edit</span>':''}</button>`;
@@ -335,7 +335,7 @@ function renderTimeGrid(grid, scheduled) {
         const top=(minutes-startHour*60)/60*hourHeight;
         const height=Math.max(26,duration/60*hourHeight);
         if(top+height<0||top>(endHour-startHour)*hourHeight)return '';
-        return `<button type="button" class="calendar-timed-event${event.completed?' is-completed':''}" data-calendar-event="${calendarEscape(event.eventId||'')}" data-date="${calendarDateKey(date)}" style="--event-color:${/^#[0-9a-f]{6}$/i.test(event.color||'')?event.color:event.type==='exam-day'?'#d93025':event.type==='scheduled'?'#188038':event.type==='assignment'?'#f9ab00':'#4285f4'};top:${Math.max(0,top)}px;height:${Math.min(height,(endHour-startHour)*hourHeight-Math.max(0,top))}px"><strong>${calendarEscape(event.subject)}</strong><span>${calendarEscape(event.time)}${event.end?' – '+calendarEscape(event.end):''}</span>${event.topic?`<small>${calendarEscape(event.topic)}</small>`:''}</button>`;
+        return `<button type="button" class="calendar-timed-event${event.completed?' is-completed':''}" data-calendar-event="${calendarEscape(event.eventId||'')}" data-date="${calendarDateKey(date)}" style="--event-color:${/^#[0-9a-f]{6}$/i.test(event.color||'')?event.color:event.type==='exam-day'?'#d93025':event.type==='scheduled'?'#188038':event.type==='assignment'?'#f9ab00':'#4285f4'};top:${Math.max(0,top)}px;height:${Math.min(height,(endHour-startHour)*hourHeight-Math.max(0,top))}px"><strong>${calendarEscape(event.subject)}</strong><span>${calendarEscape(SFLocale.time(event.time))}${event.end?' – '+calendarEscape(SFLocale.time(event.end)):''}</span>${event.topic?`<small>${calendarEscape(event.topic)}</small>`:''}</button>`;
       }).join('')}</div>`).join('')}</div>`;
   grid.style.setProperty('--calendar-hour-height',`${hourHeight}px`);
   grid.style.setProperty('--calendar-hours',String(endHour-startHour));
@@ -450,13 +450,13 @@ function renderDayDetails(items, sessions, scheduled) {
           </div>
           <div>
             <div class="exam-day-label">Exam Today</div>
-            <div>${calendarEscape(s.subject)}${s.topic ? ' — ' + calendarEscape(s.topic) : ''}${s.time&&s.time!=='—'?` · ${calendarEscape(s.time)}`:''}${s.location?` · ${calendarEscape(s.location)}`:''}</div>
+            <div>${calendarEscape(s.subject)}${s.topic ? ' — ' + calendarEscape(s.topic) : ''}${s.time&&s.time!=='—'?` · ${calendarEscape(SFLocale.time(s.time))}`:''}${s.location?` · ${calendarEscape(s.location)}`:''}</div>
           </div>
         </div>`;
     }
 
     if (s.type === 'academic') {
-      return `<article class="calendar-academic-event" style="--event-color:${/^#[0-9a-f]{6}$/i.test(s.color||'')?s.color:'#3978c5'}"><div class="calendar-academic-time">${calendarEscape(s.time)}${s.end?`–${calendarEscape(s.end)}`:''}</div><div class="calendar-academic-copy"><strong>${calendarEscape(s.subject)}</strong><p>${calendarEscape(s.topic||'Academic activity')}</p></div>${calendarEventActions(s)}</article>`;
+      return `<article class="calendar-academic-event" style="--event-color:${/^#[0-9a-f]{6}$/i.test(s.color||'')?s.color:'#3978c5'}"><div class="calendar-academic-time">${calendarEscape(SFLocale.time(s.time))}${s.end?`–${calendarEscape(SFLocale.time(s.end))}`:''}</div><div class="calendar-academic-copy"><strong>${calendarEscape(s.subject)}</strong><p>${calendarEscape(s.topic||'Academic activity')}</p></div>${calendarEventActions(s)}</article>`;
     }
     if (s.type === 'assignment') {
       return `<article class="calendar-assignment"><span>ASSIGNMENT DUE</span><strong>${calendarEscape(s.subject)}</strong><p>${calendarEscape(s.topic||'')}</p><a href="courses.html">Open coursework →</a></article>`;

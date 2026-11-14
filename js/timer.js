@@ -254,8 +254,8 @@ function renderRecent() {
   }
 
   list.innerHTML = recent.map((s, i) => {
-    const time  = new Date(s.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const date  = new Date(s.completedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const time  = SFLocale.time(new Date(s.completedAt));
+    const date  = SFLocale.date(new Date(s.completedAt));
     const today = new Date(s.completedAt).toDateString() === new Date().toDateString();
     return `<div class="session-row" style="animation-delay:${i * .04}s">
       <div class="session-dot"></div>

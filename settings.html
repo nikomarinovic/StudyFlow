@@ -81,6 +81,7 @@
     .s-row-dot { width:.35rem; height:.35rem; border-radius:50%; background:hsl(40,20%,80%); flex-shrink:0; }
     .s-row-label { font-size:.875rem; font-weight:500; }
     .s-row-sub { font-size:.74rem; color:var(--muted-foreground); margin-top:.1rem; }
+    .s-select { min-width:10.5rem; padding:.55rem .7rem; border:1px solid var(--border); border-radius:.6rem; background:var(--card); color:var(--foreground); font:inherit; font-size:.8rem; }
     .s-row-val { font-size:.82rem; color:var(--muted-foreground); font-family:'DM Mono',monospace; white-space:nowrap; }
 
     /* ── Buttons ──────────────────────────────────────────── */
@@ -226,6 +227,24 @@
     <div class="s-section" style="animation-delay:.1s">
       <div class="s-section-header"><div class="s-section-icon blue">◐</div><div><div class="s-section-title">Appearance</div><div class="s-section-sub">Choose a comfortable reading theme</div></div></div>
       <div class="s-row"><div class="s-row-left"><div class="s-row-dot"></div><div><div class="s-row-label">Color theme</div><div class="s-row-sub">A consistent light theme on every device</div></div></div><span aria-label="Color theme: Light" style="padding:.55rem .75rem;border:1px solid var(--border);border-radius:.6rem;background:var(--card);color:var(--foreground)">Light</span></div>
+    </div>
+
+    <div class="s-section" style="animation-delay:.12s">
+      <div class="s-section-header"><div class="s-section-icon purple">◷</div><div><div class="s-section-title">Regional format</div><div class="s-section-sub">Choose how dates and times appear throughout StudyFlow</div></div></div>
+      <div class="s-row">
+        <div class="s-row-left"><div class="s-row-dot"></div><div><div class="s-row-label">Date format</div><div class="s-row-sub">European format is used by default</div></div></div>
+        <select id="localeDateOrder" class="s-select" aria-label="Date format">
+          <option value="dmy">DD/MM/YYYY (European)</option>
+          <option value="mdy">MM/DD/YYYY (US)</option>
+        </select>
+      </div>
+      <div class="s-row">
+        <div class="s-row-left"><div class="s-row-dot"></div><div><div class="s-row-label">Time format</div><div class="s-row-sub">24-hour time is used by default</div></div></div>
+        <select id="localeTimeFormat" class="s-select" aria-label="Time format">
+          <option value="24">24-hour</option>
+          <option value="12">12-hour</option>
+        </select>
+      </div>
     </div>
 
     <!-- Stats -->

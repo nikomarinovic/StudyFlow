@@ -33,9 +33,7 @@ function formatDate(date) {
 }
 
 function formatDateReadable(dateStr) {
-  return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', {
-    year: 'numeric', month: 'short', day: 'numeric'
-  });
+  return SFLocale.date(dateStr);
 }
 
 // ── Core schedule generator (mirrors calendar.js logic exactly) ─
@@ -190,7 +188,7 @@ function updateSchedule(items, sessions) {
   sessions
     .filter(s => new Date(s.completedAt).toDateString() === todayStr)
     .forEach(s => todayItems.push({
-      time:     new Date(s.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      time:     SFLocale.time(new Date(s.completedAt)),
       subject:  s.subject || 'General Study',
       topic:    'Study session',
       duration: `${s.duration} min`,

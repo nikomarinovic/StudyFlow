@@ -30,6 +30,40 @@ const SITE_CONFIG = {
   ],
 };
 
+window.SFLocale = (() => {
+  const KEY = 'sf_locale_preferences';
+  const defaults = { dateOrder: 'dmy', time24: true };
+  function get() {
+    try { return { ...defaults, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; }
+    catch { return { ...defaults }; }
+  }
+  function save(patch) { const next={...get(),...patch};localStorage.setItem(KEY,JSON.stringify(next));return next; }
+  function pad(value) { return String(value).padStart(2,'0'); }
+  function date(value) {
+    const raw=String(value||'').slice(0,10), parts=raw.split('-');
+    if(parts.length===3&&parts.every(Boolean)) {
+      const [year,month,day]=parts;
+      return get().dateOrder==='mdy'?`${month}/${day}/${year}`:`${day}/${month}/${year}`;
+    }
+    const d=value instanceof Date?value:new Date(value);
+    if(Number.isNaN(d.getTime()))return '—';
+    const day=pad(d.getDate()),month=pad(d.getMonth()+1),year=d.getFullYear();
+    return get().dateOrder==='mdy'?`${month}/${day}/${year}`:`${day}/${month}/${year}`;
+  }
+  function time(value) {
+    if(value instanceof Date)return `${pad(value.getHours())}:${pad(value.getMinutes())}`;
+    const match=String(value||'').match(/(\d{1,2}):(\d{2})/);
+    if(!match)return '—';
+    const hour=Number(match[1]),minute=match[2];
+    if(get().time24)return `${pad(hour)}:${minute}`;
+    const suffix=hour>=12?'PM':'AM',display=hour%12||12;
+    return `${display}:${minute} ${suffix}`;
+  }
+  const preferences = get();
+  document.documentElement.lang = preferences.dateOrder === 'mdy' ? 'en-US' : 'en-GB';
+  return { defaults, get, save, date, time };
+})();
+
 /* ─────────────────────────────────────────
    DO NOT EDIT BELOW THIS LINE
 ───────────────────────────────────────── */

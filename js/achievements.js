@@ -359,7 +359,7 @@ function computeUserData() {
     const hrs = sessions
       .filter(s => { const d = new Date(s.completedAt); return d >= weekStart && d < weekEnd; })
       .reduce((sum, s) => sum + (s.duration || 0) / 60, 0);
-    weeklyData.push({ label: weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), hours: +hrs.toFixed(1) });
+    weeklyData.push({ label: SFLocale.date(weekStart), hours: +hrs.toFixed(1) });
   }
 
   return {
@@ -386,7 +386,7 @@ function renderPage() {
   // member since
   const ms = new Date(d.memberSince);
   document.getElementById('memberSince').textContent =
-    ms.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    SFLocale.date(ms);
 
   // ── Achievements ──────────────────
   const unlocked = ACHIEVEMENTS.filter(a => a.check(d));
@@ -522,7 +522,7 @@ function renderHeatmap(heatmap) {
     const d = new Date(startDay);
     d.setDate(startDay.getDate() + i);
     if (d.getMonth() !== lastMonth) {
-      monthLabels.push({ col: Math.floor(i / 7) + 1, label: d.toLocaleDateString('en-US', { month: 'short' }) });
+      monthLabels.push({ col: Math.floor(i / 7) + 1, label: SFLocale.date(d).slice(3, 10) });
       lastMonth = d.getMonth();
     }
   }

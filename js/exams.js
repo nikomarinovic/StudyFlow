@@ -231,7 +231,7 @@ function renderItems() {
     const daysText  = isPast   ? `${Math.abs(daysLeft)}d ago` : isToday ? 'Today!' : `${daysLeft}`;
     const daysLabel = isPast   ? 'days ago' : isToday ? 'due today' : 'days left';
 
-    const dateStr  = new Date(dateKey + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+    const dateStr  = SFLocale.date(dateKey);
     const safeName = item.subject.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
     const accentClass = item.type === 'exam' ? (item.difficulty || 'medium') : item.type;

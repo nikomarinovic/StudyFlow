@@ -104,6 +104,7 @@ function exportData() {
     academicPeriods: DB.getPeriods(currentUser.id),
     resources: DB.getResources(currentUser.id),
     profile: DB.getProfile(currentUser.id),
+    localePreferences: SFLocale.get(),
   };
 
   const json     = JSON.stringify(payload, null, 2);
@@ -138,14 +139,14 @@ function triggerImport(mode) {
         if (mode === 'override') {
           openDialog(
             'Override your data?',
-            `This will replace all your current exams, projects, reminders, sessions and stats with the backup from ${data.exportedAt ? new Date(data.exportedAt).toLocaleDateString() : 'unknown date'}. This cannot be undone.`,
+            `This will replace all your current exams, projects, reminders, sessions and stats with the backup from ${data.exportedAt ? SFLocale.date(data.exportedAt) : 'unknown date'}. This cannot be undone.`,
             'Yes, Override',
             () => doImport(data, 'override')
           );
         } else {
           openDialog(
             'Merge backup data?',
-            `This will add items from the backup that don't already exist in your account. Your current data won't be deleted. Backup from ${data.exportedAt ? new Date(data.exportedAt).toLocaleDateString() : 'unknown date'}.`,
+            `This will add items from the backup that don't already exist in your account. Your current data won't be deleted. Backup from ${data.exportedAt ? SFLocale.date(data.exportedAt) : 'unknown date'}.`,
             'Yes, Merge',
             () => doImport(data, 'merge')
           );
@@ -176,6 +177,7 @@ function doImport(data, mode) {
   });
   if(data.stats&&mode==='override')DB.updateStats(currentUser.id,{...data.stats,userId:currentUser.id});
   if(data.profile){if(mode==='override'||!Object.keys(DB.getProfile(currentUser.id)).length)DB.saveProfile(currentUser.id,data.profile);}
+  if(data.localePreferences && mode==='override') SFLocale.save(data.localePreferences);
   showToast(mode==='override'?`Override complete — ${count} records imported`:`Merged — ${count} new records added${skipped?`, ${skipped} duplicates skipped`:''}`);
 
   init();
@@ -214,7 +216,7 @@ function init() {
 
   const user = DB.getUserByEmail(currentUser.email);
   if (user?.createdAt) {
-    set('rowMember', new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }));
+    set('rowMember', SFLocale.date(user.createdAt));
   } else {
     set('rowMember', '—');
   }
@@ -239,6 +241,22 @@ function init() {
   updateExportPreview();
 }
 
+function initLocaleSettings() {
+  const preferences = SFLocale.get();
+  const dateOrder = document.getElementById('localeDateOrder');
+  const timeFormat = document.getElementById('localeTimeFormat');
+  if (!dateOrder || !timeFormat) return;
+  dateOrder.value = preferences.dateOrder;
+  timeFormat.value = preferences.time24 ? '24' : '12';
+  const update = () => {
+    const saved = SFLocale.save({ dateOrder: dateOrder.value, time24: timeFormat.value === '24' });
+    document.documentElement.lang = saved.dateOrder === 'mdy' ? 'en-US' : 'en-GB';
+    showToast('Regional format updated');
+  };
+  dateOrder.addEventListener('change', update);
+  timeFormat.addEventListener('change', update);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const profileDialog = document.getElementById('academicProfileDialog');
   document.getElementById('editAcademicProfile')?.addEventListener('click', () => {
@@ -259,6 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('confirmDialog')?.addEventListener('click', e => {
     if (e.target === document.getElementById('confirmDialog')) closeDialog();
   });
+  initLocaleSettings();
   init();
 });
 
