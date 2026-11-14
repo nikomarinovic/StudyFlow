@@ -62,7 +62,7 @@ export async function connect(config) {
             const all=localRows(store),others=all.filter(row=>row.userId!==uid),local=all.filter(row=>row.userId===uid),next=cloud[store];
             const migrating=localStorage.getItem('sf_pending_migration_uid')===uid;
             const preserveLocal=preSyncPending.has(store)||migrating||(store==='sf_completions'&&legacyCompletionDoc);
-            const merged=preserveLocal?[...new Map([...next,...local].map(row=>[idOf(store,row),row])).values()]:next;
+            const merged=preSyncPending.has(store)?local:preserveLocal?[...new Map([...next,...local].map(row=>[idOf(store,row),row])).values()]:next;
             const stable=rows=>JSON.stringify([...rows].sort((a,b)=>idOf(store,a).localeCompare(idOf(store,b))).map(canonical));
             if(stable(local)!==stable(merged))changed=true;
             safeWriteCache(store,[...others,...merged]);

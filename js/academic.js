@@ -132,36 +132,72 @@ for(let day=new Date(tomorrow);day<horizonEnd;day.setDate(day.getDate()+1)){cons
 const blocked=events().filter(e=>e.type!=='study'&&!(e.type==='lab'&&e.repeat==='weekly')&&(e.repeat==='weekly'&&Number(e.day)===dayOfWeek||e.repeat==='once'&&e.date===iso)&&(!periods.length||e.repeat!=='weekly')).concat((DB.getLabWeek(user.id,weekKey)?.events||[]).filter(e=>e.date===iso),blocks.filter(b=>b.date===iso)).map(e=>({a:+e.start.slice(0,2)*60+ +e.start.slice(3),b:+e.end.slice(0,2)*60+ +e.end.slice(3)})).sort((a,b)=>a.a-b.a);
 while(pointer+45<=max&&dailyStudyMinutes<dailyLimit){if(periods.length&&pointer<13*60&&pointer+45>12*60)pointer=13*60;if(pointer+45>max)break;const conflict=blocked.find(x=>overlaps(pointer,pointer+45,x.a,x.b));if(conflict){pointer=conflict.b+15;continue;}let pick=needs[0];if(!pick)break;const isTask=pick.task&&pick.hours<pick.taskHours;const event={title:isTask?`Task · ${pick.task.title}`:`Study · ${pick.course.name}`,courseId:pick.course.id,taskId:isTask?pick.task.id:'',type:'study',repeat:'once',date:iso,start:`${String(Math.floor(pointer/60)).padStart(2,'0')}:${String(pointer%60).padStart(2,'0')}`,end:`${String(Math.floor((pointer+45)/60)).padStart(2,'0')}:${String((pointer+45)%60).padStart(2,'0')}`,color:pick.course.color,generatedPlanId:'exam-horizon',generatedWeek:weekKey,description:isTask?'Scheduled time for your assignment.':'Generated from tomorrow through your last upcoming exam.'};blocks.push(event);pick.hours=(pick.hours||0)+.75;dailyStudyMinutes+=45;if(pick.hours>=pick.targetHours)needs.shift();pointer+=60;}}
 blocks.forEach(b=>DB.addAcademicEvent(user.id,b));render();}
-function parseAssistantRequest(input){
-  const text=String(input||'').trim();
+const assistantState={action:null,fields:{}};
+function assistantDate(text, fallback=''){
+  const lower=normalizeName(text),base=new Date();base.setHours(0,0,0,0);
+  if(/\b(sutra|tomorrow)\b/.test(lower)){base.setDate(base.getDate()+1);return dateKey(base);}
+  if(/\b(danas|today)\b/.test(lower))return dateKey(base);
+  const match=lower.match(/\b(\d{1,2})[./-](\d{1,2})(?:[./-](\d{2,4}))?\b/);
+  if(match){const year=Number(match[3]||base.getFullYear());return `${String(year<100?2000+year:year).padStart(4,'0')}-${String(Number(match[2])).padStart(2,'0')}-${String(Number(match[1])).padStart(2,'0')}`;}
+  return fallback;
+}
+function assistantCourse(text){
   const lower=normalizeName(text);
+  return courses().find(item=>normalizeName(item.name)===lower)||courses().find(item=>normalizeName(item.name).split(/\s+/).some(word=>word.length>3&&lower.includes(word)));
+}
+function assistantTime(text){
+  const matches=[...String(text).matchAll(/\b([01]?\d|2[0-3])(?::|[.h])([0-5]\d)\b/g)].map(match=>`${String(match[1]).padStart(2,'0')}:${match[2]}`);
+  return {start:matches[0]||'',end:matches[1]||''};
+}
+function assistantIntent(text){
+  const lower=normalizeName(text);
+  if(/\b(novi|new|create|make|add|dodaj|napravi|kreiraj)\b.*\b(course|kolegij|kolegija|predmet)\b|\b(course|kolegij|predmet)\b.*\b(novi|new|create|add|dodaj)\b/.test(lower))return 'course';
+  if(/\b(schedule|calendar|calendaru|raspored|termin|event|activity|blok|block|lecture|predavanje|lab|vjezbe)\b/.test(lower)&&!/\b(assignment|task|homework|project|priprem|zadatak|domacu|domaca)\b/.test(lower))return 'schedule';
+  if(/\b(assignment|task|homework|project|priprem|zadatak|domacu|domaca|labos)\b/.test(lower))return 'assignment';
+  return 'unknown';
+}
+function parseAssistantRequest(input){
+  const text=String(input||'').trim(),lower=normalizeName(text),intent=assistantIntent(text);
+  if(intent==='course'){
+    const name=text.replace(/^(ej|hej|bok)[,!.\s]*/i,'').replace(/\b(novi|new|create|make|add|dodaj|napravi|kreiraj)\b/ig,'').replace(/\b(course|kolegij|kolegija|predmet)\b/ig,'').replace(/^(a|an|the|novi|new)\s+/i,'').replace(/\s+/g,' ').trim();
+    return {action:'course',name:name.replace(/^(za|for)\s+/i,'').trim()};
+  }
   const durationMatch=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:h|hr|hrs|hour|hours|sat|sata|min|minute|minutes)/);
-  if(!durationMatch)return {error:'Napiši koliko vremena treba, na primjer “2h” ili “90 minuta”.'};
-  const rawDuration=Number(durationMatch[1].replace(',','.')),durationMinutes=/min|minute/.test(durationMatch[0])?Math.round(rawDuration):Math.round(rawDuration*60);
-  if(!durationMinutes||durationMinutes>24*60)return {error:'Vrijeme mora biti između 15 minuta i 24 sata.'};
-  const tomorrow=new Date();tomorrow.setHours(0,0,0,0);
-  let dueDate='';
-  if(/\b(sutra|tomorrow)\b/.test(lower)){tomorrow.setDate(tomorrow.getDate()+1);dueDate=dateKey(tomorrow);}
-  else if(/\b(danas|today)\b/.test(lower))dueDate=dateKey(tomorrow);
-  else {const dateMatch=lower.match(/\b(\d{1,2})[./-](\d{1,2})(?:[./-](\d{2,4}))?\b/);if(dateMatch){const year=Number(dateMatch[3]||tomorrow.getFullYear());dueDate=`${String(year<100?2000+year:year).padStart(4,'0')}-${String(Number(dateMatch[2])).padStart(2,'0')}-${String(Number(dateMatch[1])).padStart(2,'0')}`;}}
-  if(!dueDate)return {error:'Napiši rok, na primjer “sutra”, “danas” ili datum poput 18.11.'};
-  const course=courses().find(item=>normalizeName(item.name).split(/\s+/).some(word=>word.length>4&&lower.includes(word.slice(0,Math.min(8,word.length)))));
-  const cleaned=text.replace(/^(ej|hej|bok)[,!.\s]*/i,'').replace(/\b(?:sutra|tomorrow|danas|today)\b/ig,'').replace(/^(imam|trebam|moram|napravi|napraviti)\s+/i,'').replace(/\b\d+(?:[.,]\d+)?\s*(?:h|hr|hrs|hour|hours|sat|sata|min|minute|minutes)\b/ig,'').replace(/\s+za to\s+mi\s+trebati\s*$/i,'').replace(/\s+/g,' ').trim();
-  const title=cleaned.replace(/\s+za\s+(?:labos|laboratorij|laboratorijske vjezbe)\b/i,' za labos').trim()||'Novi assignment';
-  return {title:title.charAt(0).toUpperCase()+title.slice(1),course,dueDate,durationMinutes};
+  const durationMinutes=durationMatch?Math.round(Number(durationMatch[1].replace(',','.'))*(/min|minute/.test(durationMatch[0])?1:60)):0;
+  const date=assistantDate(text),time=assistantTime(text);
+  if(intent==='schedule'){
+    const title=text.replace(/^(ej|hej|bok)[,!.\s]*/i,'').replace(/\b(dodaj|add|schedule|put|stavi|napravi|create|u raspored|to my calendar|on my calendar|sutra|tomorrow|danas|today|raspored|calendar|kalendar|termin|event|activity)\b/ig,'').replace(/\b(?:[01]?\d|2[0-3])(?::|[.h])[0-5]\d\b/g,'').replace(/\s+/g,' ').trim();
+    return {action:'schedule',title:title.replace(/^(mi|me|a|an)\s+/i,'').trim(),date,start:time.start,end:time.end,course:assistantCourse(title)};
+  }
+  if(intent==='assignment'){
+    if(!durationMinutes)return {error:'Koliko vremena treba? / How long will it take? Napiši npr. 2h ili 90 minuta.'};
+    if(!date)return {error:'Koji je rok? / What is the due date? Napiši danas, sutra ili datum poput 18.11.'};
+    const course=assistantCourse(text),cleaned=text.replace(/^(ej|hej|bok)[,!.\s]*/i,'').replace(/\b(?:sutra|tomorrow|danas|today)\b/ig,'').replace(/\b\d+(?:[.,]\d+)?\s*(?:h|hr|hrs|hour|hours|sat|sata|min|minute|minutes)\b/ig,'').replace(/\b(assignment|task|homework|project|pripremu?|zadatak)\b/ig,'').replace(/^(imam|i have|trebam|i need|moram|i must|napravi|napraviti|make)\s+/i,'').replace(/\s+za to\s+mi\s+trebati\s*$/i,'').replace(/\s+/g,' ').trim();
+    const title=cleaned||'Novi assignment';
+    return {action:'assignment',title:title.charAt(0).toUpperCase()+title.slice(1),course,dueDate:date,durationMinutes};
+  }
+  return {error:'Mogu napraviti course, assignment ili dodati termin u raspored. / I can create a course, assignment, or schedule event. Reci što želiš.'};
 }
 function addAssistantMessage(text,type='bot'){const messages=$('#assistantMessages');if(!messages)return;const item=document.createElement('div');item.className=`assistant-message assistant-message-${type}`;item.textContent=text;messages.appendChild(item);messages.scrollTop=messages.scrollHeight;}
 function handleAssistantRequest(event){
-  event?.preventDefault();
-  const input=$('#assistantInput'),text=input.value.trim(),parsed=parseAssistantRequest(text);
-  if(!text)return;
-  addAssistantMessage(text,'user');
+  event?.preventDefault();const input=$('#assistantInput'),text=input.value.trim();if(!text)return;addAssistantMessage(text,'user');
+  let parsed;
+  if(assistantState.action==='course') parsed={action:'course',name:text};
+  else if(assistantState.action==='schedule'){
+    const time=assistantTime(text);
+    parsed={action:'schedule',...assistantState.fields,title:assistantState.fields.title||'',date:assistantDate(text,assistantState.fields.date||''),start:time.start||assistantState.fields.start||'',end:time.end||assistantState.fields.end||''};
+    if(!parsed.title&&!parsed.date&&!parsed.start)parsed.title=text;
+  } else parsed=parseAssistantRequest(text);
   if(parsed.error){addAssistantMessage(parsed.error);return;}
-  const task=DB.addTask(user.id,{title:parsed.title,courseId:parsed.course?.id||'',dueDate:parsed.dueDate,dueTime:'',status:'open',planningMinutes:parsed.durationMinutes,description:'Added by the StudyFlow assistant.'});
-  const hasAvailability=Object.keys(DB.getAvailability(user.id)).length>0;
-  if(hasAvailability)generatePlan();
-  input.value='';
-  addAssistantMessage(`Dodano: ${task.title} · ${SFLocale.date(task.dueDate)} · ${Math.round(task.planningMinutes/60*10)/10}h. ${hasAvailability?'Raspored je ponovno složen.':'Spremi prvo svoje dostupne sate da ga mogu ubaciti u raspored.'}`);
+  if(parsed.action==='course'&&!parsed.name){assistantState.action='course';assistantState.fields={};addAssistantMessage('Kako se zove course? / What is the course name?');return;}
+  if(parsed.action==='schedule'&&(!parsed.title||!parsed.date||!parsed.start||!parsed.end)){
+    assistantState.action='schedule';assistantState.fields={...parsed};const missing=!parsed.title?'naziv termina / event title':!parsed.date?'datum / date':!parsed.start||!parsed.end?'vrijeme od-do / start and end time':'';
+    addAssistantMessage(`Treba mi još: ${missing}.`);input.value='';return;
+  }
+  if(parsed.action==='course'){const course=DB.addCourse(user.id,{name:parsed.name.trim(),ects:0,assessments:[]});addAssistantMessage(`Course "${course.name}" je dodan. / Course "${course.name}" was created.`);}
+  else if(parsed.action==='schedule'){const schedule=ensureSchedule(),record=DB.addAcademicEvent(user.id,{title:parsed.title.trim(),courseId:parsed.course?.id||'',type:'other',repeat:'once',date:parsed.date,start:parsed.start,end:parsed.end,location:'',description:'Added by the StudyFlow assistant.',scheduleId:schedule?.id||''});addAssistantMessage(`Dodano u raspored: ${record.title} · ${SFLocale.date(record.date)} · ${record.start}–${record.end}.`);}
+  else if(parsed.action==='assignment'){const task=DB.addTask(user.id,{title:parsed.title,courseId:parsed.course?.id||'',dueDate:parsed.dueDate,dueTime:'',status:'open',planningMinutes:parsed.durationMinutes,description:'Added by the StudyFlow assistant.'});const hasAvailability=Object.keys(DB.getAvailability(user.id)).length>0;if(hasAvailability)generatePlan();addAssistantMessage(`Dodano: ${task.title} · ${SFLocale.date(task.dueDate)} · ${Math.round(task.planningMinutes/60*10)/10}h. ${hasAvailability?'Raspored je ponovno složen.':'Spremi prvo svoje dostupne sate da ga mogu ubaciti u raspored.'}`);}
+  assistantState.action=null;assistantState.fields={};input.value='';render();
 }
 $('#generatePlan').onclick=generatePlan;
 $('#assistantForm').addEventListener('submit',handleAssistantRequest);
