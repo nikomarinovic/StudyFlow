@@ -37,9 +37,12 @@
 :root[data-theme="dark"] .mob-nav-item{color:var(--muted-foreground)}
 :root[data-theme="dark"] .mob-nav-item.active{color:var(--primary)}
 :root[data-theme="dark"] .day-cell{background:#182525;border-color:var(--border);color:var(--foreground)}
-:root[data-theme="dark"] .day-cell.exam-day-cell{background:#000}
 :root[data-theme="dark"] .indicator-bar.exam-day{background:#fff}
 :root[data-theme="dark"] .toggle-thumb{background:#e9f0ee}
 :root[data-theme="dark"] .auth-container,:root[data-theme="dark"] .auth-card,:root[data-theme="dark"] .form-input{background:var(--card);color:var(--foreground);border-color:var(--border)}
 :root[data-theme="dark"] .footer,:root[data-theme="dark"] .features-section{background:#142120}
 :root[data-theme="dark"] img.logo,:root[data-theme="dark"] .ex-page-sub,:root[data-theme="dark"] .ex-sum-lbl{color:var(--muted-foreground)}
+
+/* ---- Exam colour: deep slate with a warm accent (stands out without being pure black) ---- */
+:root{--exam-bg:#2c3b44;--exam-bg-2:#3a4d58;--exam-accent:#f0735f;--exam-fg:#fff}
+:root[data-theme="dark"]{--exam-bg:#33454f;--exam-bg-2:#455c69;--exam-accent:#ff8a73}

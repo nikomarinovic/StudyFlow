@@ -325,7 +325,7 @@ function renderWeekGrid(items, sessions, scheduled) {
    minimum height, put overlapping events side by side, and mark tests/exams in black. */
 function renderDayEvents(events,date,startHour,endHour,hourHeight){
   const total=(endHour-startHour)*hourHeight;
-  const colorOf=event=>/^#[0-9a-f]{6}$/i.test(event.color||'')?event.color:event.type==='exam-day'?'#111111':event.type==='scheduled'?'#188038':event.type==='assignment'?'#f9ab00':'#4285f4';
+  const colorOf=event=>/^#[0-9a-f]{6}$/i.test(event.color||'')?event.color:event.type==='exam-day'?'#2c3b44':event.type==='scheduled'?'#188038':event.type==='assignment'?'#f9ab00':'#4285f4';
   let html='';
   const items=[];
   events.forEach(event=>{
