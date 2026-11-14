@@ -319,7 +319,7 @@
     .month-strip-day.ms-today .ms-num { color: #fff; }
     .month-strip-day.ms-selected { outline: 2px solid var(--primary); outline-offset: 1px; }
     .month-strip-day.ms-exam { }
-    .month-strip-day.ms-exam .ms-num { color: #fff; background: #111; border-radius: 50%; width: 22px; height: 22px; line-height: 22px; display: inline-block; }
+    .month-strip-day.ms-exam .ms-num { color: #fff; background: var(--exam-bg); border-radius: 50%; width: 22px; height: 22px; line-height: 22px; display: inline-block; }
 
     /* ── Day details header upgrade ────────────────────────── */
     .day-completion-ring {
@@ -401,7 +401,7 @@
       <div class="wss-item"><div class="wss-dot" style="background:var(--success)"></div><span><strong id="wssCompleted">0</strong> done</span></div>
       <div class="wss-item"><div class="wss-dot" style="background:var(--border)"></div><span><strong id="wssTotal">0</strong> sessions</span></div>
       <div class="wss-item"><div class="wss-dot" style="background:var(--primary)"></div><span><strong id="wssHours">0h</strong> study time</span></div>
-      <div class="wss-item"><div class="wss-dot" style="background:#111"></div><span><strong id="wssExams">0</strong> <span class="wss-exams-label">exams this week</span></span></div>
+      <div class="wss-item"><div class="wss-dot" style="background:var(--exam-accent)"></div><span><strong id="wssExams">0</strong> <span class="wss-exams-label">exams this week</span></span></div>
     </div>
 
     <!-- Info grid -->
@@ -495,7 +495,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>
         <span>Scheduled Study</span>
       </div>
-      <div class="legend-item exam" style="color:#111">
+      <div class="legend-item exam" style="color:var(--exam-bg)">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
         <span>Exam Day</span>
       </div>
