@@ -218,11 +218,11 @@ function updateSchedule(items, sessions) {
       return `
         <div class="schedule-item exam-day">
           <div class="schedule-time">Today</div>
-          <div class="schedule-indicator exam-day" style="background:#111"></div>
+          <div class="schedule-indicator exam-day" style="background:var(--exam-accent)"></div>
           <div class="schedule-content">
             <div class="schedule-subject">
               ${item.subject}
-              <span class="schedule-badge exam" style="background:#111;color:#fff;border-color:#111">EXAM DAY</span>
+              <span class="schedule-badge exam" style="background:var(--exam-bg);color:#fff;border-color:var(--exam-accent)">EXAM DAY</span>
             </div>
             <div class="schedule-topic">${item.topic}</div>
           </div>

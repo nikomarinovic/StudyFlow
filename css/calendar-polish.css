@@ -184,10 +184,6 @@
 .calendar-timed-event.is-compact small { display:none; }
 .calendar-all-day-event { white-space:normal; overflow-wrap:anywhere; line-height:1.25; }
 
-/* Tests / exams are black so they stand out from everything else */
-.calendar-timed-event.is-test, .calendar-all-day-event.is-test { background:#111; color:#fff; border-left-color:#000; box-shadow:0 0 0 1px #000; }
-.calendar-timed-event.is-test .calendar-event-time, .calendar-timed-event.is-test small, .calendar-all-day-event.is-test span { color:#e5e5e5; opacity:1; }
-:root[data-theme="dark"] .calendar-timed-event.is-test, :root[data-theme="dark"] .calendar-all-day-event.is-test { background:#000; box-shadow:0 0 0 1px #ffffff80; }
 
 @media(max-width:767px) {
   .calendar-time-view { min-width:700px; }
@@ -203,3 +199,22 @@
 /* dark mode: pastel event cards must not be white-mixed */
 :root[data-theme="dark"] .calendar-timed-event:not(.is-test) { background:color-mix(in srgb,var(--event-color) 38%,#101a1b); color:#f1f6f4; }
 :root[data-theme="dark"] .calendar-all-day-event:not(.is-test) { background:color-mix(in srgb,var(--event-color) 34%,#101a1b); color:#f1f6f4; }
+
+/* Tests / exams: slate card + warm accent bar */
+.calendar-timed-event.is-test, .calendar-all-day-event.is-test {
+  background:linear-gradient(135deg,var(--exam-bg),var(--exam-bg-2)); color:var(--exam-fg);
+  border-left:4px solid var(--exam-accent); box-shadow:0 2px 8px rgba(44,59,68,.28);
+}
+.calendar-timed-event.is-test .calendar-event-time, .calendar-timed-event.is-test small, .calendar-all-day-event.is-test span { color:#dbe5ea; opacity:1; }
+.calendar-timed-event.is-test strong::before { content:"EXAM"; display:inline-block; margin-right:.35rem; padding:.05rem .3rem; border-radius:4px; background:var(--exam-accent); color:#2c1410; font-size:.52rem; font-weight:800; letter-spacing:.06em; vertical-align:.08em; }
+
+/* General polish */
+.calendar-timed-event, .calendar-all-day-event { border-radius:7px; box-shadow:0 1px 2px rgba(20,40,36,.12); transition:box-shadow .15s, transform .15s; }
+.calendar-timed-event:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(20,40,36,.18); filter:none; }
+.calendar-timed-event { border-left-width:4px; }
+.calendar-time-column { border-left-color:color-mix(in srgb,var(--border) 70%,transparent); }
+.calendar-time-header { box-shadow:0 1px 0 var(--border),0 4px 10px -8px rgba(0,0,0,.25); }
+.calendar-day-heading.is-today strong { box-shadow:0 2px 8px rgba(26,115,232,.35); }
+.calendar-now-line { box-shadow:0 0 6px rgba(220,38,38,.35); }
+.calendar-event-dialog { border-radius:20px; box-shadow:0 30px 90px rgba(18,42,37,.28); }
+.calendar-event-dialog input:focus, .calendar-event-dialog select:focus, .calendar-event-dialog textarea:focus { outline:2px solid color-mix(in srgb,var(--primary) 45%,transparent); outline-offset:1px; border-color:var(--primary); }
