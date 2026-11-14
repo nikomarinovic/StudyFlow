@@ -30,7 +30,7 @@
     <section class="course-summary" id="courseSummary"></section>
     <section class="courses-grid" id="coursesGrid" aria-live="polite"></section>
     <section class="tasks-panel"><div class="section-head"><div><p class="eyebrow">COURSE MATERIALS</p><h2>Resources</h2></div><button class="btn-outline" id="addResource">＋ Add resource</button></div><div id="resourcesList"></div></section>
-    <section class="tasks-panel"><div class="section-head"><div><p class="eyebrow">UP NEXT</p><h2>Coursework</h2></div><div><button class="btn-outline" id="enableNotifications">Enable reminders</button> <button class="btn-outline" id="addTask">＋ Add assignment</button></div></div><div id="tasksList"></div></section>
+    <section class="tasks-panel"><div class="section-head"><div><p class="eyebrow">UP NEXT</p><h2>Coursework</h2></div><div class="coursework-actions"><button class="btn-outline" id="enableNotifications">Enable reminders</button><button class="btn-outline" id="importAssessments">Import assessments</button><button class="btn-outline" id="exportAssessments">Export assessments</button><input id="assessmentsFile" type="file" accept="application/json,.json" hidden><button class="btn-outline" id="addTask">＋ Add assignment</button></div></div><div id="tasksList"></div></section>
   </main>
 </div>
 <dialog id="courseDialog"><form id="courseForm" method="dialog"><div class="dialog-head"><div><p class="eyebrow">COURSE DETAILS</p><h2 id="courseDialogTitle">Add a course</h2></div><button type="button" class="close" data-close="courseDialog" aria-label="Close">×</button></div>
