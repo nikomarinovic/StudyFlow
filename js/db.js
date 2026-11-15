@@ -20,6 +20,7 @@ const DB = {
   PLANNER_SETTINGS_KEY: 'sf_planner_settings',
   PLANNER_PREFS_KEY: 'sf_planner_prefs',
   ACTIVITY_LOG_KEY: 'sf_activity_log',
+  ACTIVITY_DAYS_KEY: 'sf_activity_days',
 
   _get(key) {
     try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; }
@@ -75,7 +76,7 @@ const DB = {
   updateAcademicEvent(id, patch) { const rows=this._get(this.EVENTS_KEY),i=rows.findIndex(e=>e.id===id);if(i<0)return null;const previous=rows[i];rows[i]={...previous,...patch,updatedAt:Date.now()};this._set(this.EVENTS_KEY,rows);if(previous.weekKey||rows[i].weekKey){const weeks=this._get(this.LAB_WEEKS_KEY).map(w=>{if(w.weekKey!==previous.weekKey&&w.weekKey!==rows[i].weekKey)return w;const entries=(w.events||[]).filter(e=>e.id!==id);if(w.weekKey===rows[i].weekKey&&rows[i].type==='lab'&&rows[i].repeat==='once')entries.push(rows[i]);return {...w,events:entries};});this._set(this.LAB_WEEKS_KEY,weeks);}return rows[i]; },
   deleteAcademicEvent(id) { const rows=this._get(this.EVENTS_KEY),target=rows.find(e=>e.id===id),found=Boolean(target);if(!found)return false;
     // Removing a generated session means "I can't study then": remember the slot so the planner works around it.
-    if(target.type==='study'&&(target.generatedPlanId||target.generatedWeek)&&target.date&&target.date>=new Date().toISOString().slice(0,10)&&!this.isCompleted(target.userId,`acad-${target.id}-${target.date}`)){const prefs=this.getPlannerPrefs(target.userId);this.savePlannerPrefs(target.userId,{dismissed:[...(prefs.dismissed||[]),{date:target.date,start:target.start,end:target.end}]});}
+    if(target.type==='study'&&(target.generatedPlanId||target.generatedWeek)&&target.date&&target.date>=this._dayKey(Date.now())&&!this.isCompleted(target.userId,`acad-${target.id}-${target.date}`)){const prefs=this.getPlannerPrefs(target.userId);this.savePlannerPrefs(target.userId,{dismissed:[...(prefs.dismissed||[]),{date:target.date,start:target.start,end:target.end}]});}
     this._set(this.EVENTS_KEY,this._get(this.EVENTS_KEY).filter(e=>e.id!==id));this._set(this.LAB_WEEKS_KEY,this._get(this.LAB_WEEKS_KEY).map(w=>({...w,events:(w.events||[]).filter(e=>e.id!==id)})));return true; },
   getSchedules(userId) { return this._get(this.SCHEDULES_KEY).filter(s=>s.userId===userId); },
   addSchedule(userId, schedule) {
@@ -98,6 +99,39 @@ const DB = {
   saveAvailability(userId, days) { const rows=this._get(this.AVAILABILITY_KEY),i=rows.findIndex(a=>a.userId===userId),value={userId,days,updatedAt:Date.now()};if(i<0)rows.push(value);else rows[i]=value;this._set(this.AVAILABILITY_KEY,rows);return days; },
   getLabWeek(userId, weekKey) { return this._get(this.LAB_WEEKS_KEY).find(w=>w.userId===userId&&w.weekKey===weekKey)||null; },
   saveLabWeek(userId, weekKey, events) { const rows=this._get(this.LAB_WEEKS_KEY),i=rows.findIndex(w=>w.userId===userId&&w.weekKey===weekKey),value={id:this._id(),userId,weekKey,events,confirmedAt:Date.now()};if(i<0)rows.push(value);else rows[i]=value;this._set(this.LAB_WEEKS_KEY,rows);return value; },
+  // Everything on the calendar for one day (YYYY-MM-DD): classes, one-day activities, study sessions, lab-week overrides.
+  // Same rules as the calendar page, so the dashboard and the calendar can never disagree.
+  getDayAgenda(userId, dayKey) {
+    const day = new Date(`${dayKey}T12:00:00`), weekday = day.getDay();
+    const monday = new Date(day); monday.setDate(monday.getDate() - (weekday === 0 ? 6 : weekday - 1));
+    const weekKey = this._dayKey(monday.getTime());
+    const activeId = this.getActiveSchedule(userId)?.id;
+    const labWeek = this.getLabWeek(userId, weekKey);
+    const period = this.getPeriods(userId).find(p => p.suspendClasses && dayKey >= p.startDate && dayKey <= p.endDate);
+    const mins = t => { const m = /^(\d{1,2}):(\d{2})/.exec(t || ''); return m ? Number(m[1]) * 60 + Number(m[2]) : 0; };
+    const out = [];
+    this.getAcademicEvents(userId).forEach(event => {
+      if (event.scheduleId && event.scheduleId !== activeId) return;
+      if (event.activeFrom && dayKey < event.activeFrom || event.activeUntil && dayKey > event.activeUntil) return;
+      if (event.type === 'lab' && event.weekKey === weekKey) return;
+      if (event.repeat === 'weekly') {
+        if ((event.type !== 'study' && period) || Number(event.day) !== weekday) return;
+        if (event.type === 'lab' && labWeek) return;
+      } else if (event.date !== dayKey) return;
+      const blockId = `acad-${event.id}-${dayKey}`;
+      out.push({ blockId, title: event.title, type: event.type, start: event.start || '', end: event.end || '',
+        durationMinutes: event.start && event.end ? Math.max(0, mins(event.end) - mins(event.start)) : 0,
+        location: event.location || '', description: event.description || '', color: event.color || '', courseId: event.courseId || '',
+        temporary: Boolean(event.temporary), completed: event.type === 'study' && this.isCompleted(userId, blockId) });
+    });
+    if (labWeek) (labWeek.events || []).forEach((event, index) => {
+      if (event.date !== dayKey) return;
+      out.push({ blockId: `lab-${labWeek.id}-${index}`, title: event.title, type: event.type || 'lab', start: event.start || '', end: event.end || '',
+        durationMinutes: event.start && event.end ? Math.max(0, mins(event.end) - mins(event.start)) : 0,
+        location: event.location || '', description: event.description || '', color: event.color || '', courseId: event.courseId || '', completed: false });
+    });
+    return out.sort((a, b) => (a.start || '99:99').localeCompare(b.start || '99:99'));
+  },
   getPeriods(userId) { return this._get(this.PERIODS_KEY).filter(p=>p.userId===userId); },
   addPeriod(userId, period) { const rows=this._get(this.PERIODS_KEY),value={id:this._id(),userId,suspendClasses:false,...period};rows.push(value);this._set(this.PERIODS_KEY,rows);return value; },
   deletePeriod(id) { this._set(this.PERIODS_KEY,this._get(this.PERIODS_KEY).filter(p=>p.id!==id)); },
@@ -147,8 +181,11 @@ const DB = {
     }
   },
   getStats(userId) {
-    return this._get(this.STATS_KEY).find(s => s.userId === userId)
+    const row = this._get(this.STATS_KEY).find(s => s.userId === userId)
       || { userId, totalStudyHours: 0, streak: 0, lastStudyDate: null, studyScore: 0 };
+    // The streak is derived from per-day records that merge across devices, never from a counter
+    // that the last device to write would overwrite.
+    return { ...row, streak: this.computeStreak(userId) };
   },
   updateStats(userId, patch) {
     const all = this._get(this.STATS_KEY);
@@ -209,17 +246,71 @@ const DB = {
   getActivityLog(userId) {
     return this._get(this.ACTIVITY_LOG_KEY).filter(e => e.userId === userId).sort((a, b) => (b.date + b.start).localeCompare(a.date + a.start));
   },
+  // ── STREAK ─────────────────────────────────────────────────
+  // Every day the student was active is its own record (id = userId_YYYY-MM-DD), so two devices
+  // that both record "today" produce the same record, and records from both devices are merged.
+  _dayKey(ms) {
+    const d = new Date(ms);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  },
+  _resetAt(userId) {
+    return Number(this._get(this.ACTIVITY_DAYS_KEY).find(r => r.id === `${userId}_reset`)?.resetAt) || 0;
+  },
+  _activeDays(userId) {
+    const days = new Set();
+    const rows = this._get(this.ACTIVITY_DAYS_KEY).filter(r => r.userId === userId);
+    const resetAt = this._resetAt(userId);
+    rows.forEach(r => { if (r.date && (Number(r.at) || 0) >= resetAt) days.add(r.date); });
+    this._get(this.SESSIONS_KEY).forEach(r => { if (r.userId === userId && r.completedAt) days.add(this._dayKey(r.completedAt)); });
+    this._get(this.COMPLETIONS_KEY).forEach(r => { if (r.userId === userId && r.completedAt) days.add(this._dayKey(r.completedAt)); });
+    return days;
+  },
+  computeStreak(userId, now = Date.now()) {
+    const days = this._activeDays(userId);
+    const cursor = new Date(now); cursor.setHours(12, 0, 0, 0);
+    // Today not recorded yet: the streak is still alive if yesterday was active.
+    if (!days.has(this._dayKey(cursor.getTime()))) cursor.setDate(cursor.getDate() - 1);
+    let streak = 0;
+    while (days.has(this._dayKey(cursor.getTime()))) { streak++; cursor.setDate(cursor.getDate() - 1); }
+    return streak;
+  },
+  // One-time: turn the old stored counter (streak + lastStudyDate) into day records, so existing streaks survive.
+  _migrateLegacyStreak(userId) {
+    const flag = `sf_streak_days_${userId}`;
+    try { if (localStorage.getItem(flag)) return; } catch { return; }
+    const row = this._get(this.STATS_KEY).find(r => r.userId === userId);
+    const rows = this._get(this.ACTIVITY_DAYS_KEY);
+    const have = new Set(rows.filter(r => r.userId === userId).map(r => r.date));
+    let added = false;
+    if (row && row.lastStudyDate && Number(row.streak) > 0) {
+      const cursor = new Date(row.lastStudyDate); cursor.setHours(12, 0, 0, 0);
+      for (let i = 0; i < Math.min(Number(row.streak), 400); i++) {
+        const key = this._dayKey(cursor.getTime());
+        if (!have.has(key)) { rows.push({ id: `${userId}_${key}`, userId, date: key, at: cursor.getTime(), legacy: true }); added = true; }
+        cursor.setDate(cursor.getDate() - 1);
+      }
+    }
+    if (added) this._set(this.ACTIVITY_DAYS_KEY, rows);
+    try { localStorage.setItem(flag, '1'); } catch {}
+  },
+  // "Clear all sessions": days before this moment no longer count (the marker merges across devices like any day).
+  resetStreak(userId) {
+    const rows = this._get(this.ACTIVITY_DAYS_KEY).filter(r => !(r.userId === userId && r.id === `${userId}_reset`));
+    rows.push({ id: `${userId}_reset`, userId, resetAt: Date.now() });
+    this._set(this.ACTIVITY_DAYS_KEY, rows);
+  },
   recordActivity(userId) {
+    this._migrateLegacyStreak(userId);
+    const key = this._dayKey(Date.now());
+    const rows = this._get(this.ACTIVITY_DAYS_KEY);
+    const resetAt = this._resetAt(userId), existing = rows.find(r => r.userId === userId && r.date === key);
+    if (!existing) { rows.push({ id: `${userId}_${key}`, userId, date: key, at: Date.now() }); this._set(this.ACTIVITY_DAYS_KEY, rows); }
+    else if ((Number(existing.at) || 0) < resetAt) { existing.at = Date.now(); this._set(this.ACTIVITY_DAYS_KEY, rows); } // today again, after a reset
     const stats = this.getStats(userId);
-    const today = new Date();
-    const todayKey = today.toDateString();
-    const lastKey = stats.lastStudyDate ? new Date(stats.lastStudyDate).toDateString() : null;
-    if (lastKey === todayKey) return stats;
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const streak = lastKey === yesterday.toDateString() ? (stats.streak || 0) + 1 : 1;
-    this.updateStats(userId, { streak, lastStudyDate: Date.now() });
-    return this.getStats(userId);
+    const row = this._get(this.STATS_KEY).find(r => r.userId === userId);
+    // Keep the stored copy in step for older readers (export), but only write when it changed.
+    if (!row || row.streak !== stats.streak) this.updateStats(userId, { streak: stats.streak, lastStudyDate: Date.now() });
+    return stats;
   },
 
   // ── EXAMS (legacy — proxies to items) ──────────────────────

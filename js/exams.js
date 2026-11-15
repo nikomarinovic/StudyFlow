@@ -41,9 +41,16 @@ function getStudiedHours(item, sessions, completions) {
   return (sessionMins + completionMins) / 60;
 }
 
+// Hours needed for a difficulty. Settings store { min, max } per difficulty (older data: a plain number).
+function requiredHours(difficulty) {
+  const v = DIFF_HOURS[difficulty];
+  const n = typeof v === 'object' && v !== null ? Number(v.max ?? v.min) : Number(v);
+  return Number.isFinite(n) && n > 0 ? n : 10;
+}
+
 function getProgressPct(item, sessions, completions) {
   if (item.type !== 'exam') return null;
-  const req = DIFF_HOURS[item.difficulty]?.max || 10;
+  const req = requiredHours(item.difficulty);
   return Math.min(100, Math.round((getStudiedHours(item, sessions, completions) / req) * 100));
 }
 
@@ -174,13 +181,13 @@ function updateSummary(items, sessions, completions) {
   const upcoming  = items.filter(i => getDaysLeft(i.dueDate || i.examDate) >= 0);
   const urgent    = upcoming.filter(i => getDaysLeft(i.dueDate || i.examDate) <= 7);
   const hoursLeft = upcoming.filter(i => i.type === 'exam').reduce((sum, e) => {
-    return sum + Math.max(0, (DIFF_HOURS[e.difficulty] || 10) - getStudiedHours(e, sessions, completions));
+    return sum + Math.max(0, requiredHours(e.difficulty) - getStudiedHours(e, sessions, completions));
   }, 0);
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
   set('sumTotal',    items.length);
   set('sumUpcoming', upcoming.length);
   set('sumUrgent',   urgent.length);
-  set('sumHours',    Math.ceil(hoursLeft) + 'h');
+  set('sumHours',    (Number.isFinite(hoursLeft) ? Math.ceil(hoursLeft) : 0) + 'h');
 }
 
 // ── Render cards ──────────────────────────────────────────────
@@ -237,7 +244,7 @@ function renderItems() {
     const accentClass = item.type === 'exam' ? (item.difficulty || 'medium') : item.type;
     const pct         = getProgressPct(item, sessions, completions);
     const studiedH    = item.type === 'exam' ? getStudiedHours(item, sessions, completions) : 0;
-    const requiredH   = DIFF_HOURS[item.difficulty] || 10;
+    const requiredH   = requiredHours(item.difficulty);
     const typeIcon    = TYPE_ICONS[item.type] || TYPE_ICONS.exam;
     const typeLabel   = TYPE_LABELS[item.type] || 'Item';
 
