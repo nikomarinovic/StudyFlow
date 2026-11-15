@@ -369,7 +369,7 @@ function renderTimeGrid(grid, scheduled) {
   const firstDay = calendarView === 'day' ? new Date(selectedDate) : currentWeekStart;
   const count = calendarView === 'day' ? 1 : 7;
   const days = Array.from({length:count}, (_, index) => addDays(firstDay, index));
-  const startHour = 7, endHour = 22, hourHeight = window.innerWidth < 768 ? 72 : 60;
+  const startHour = 6, endHour = 22, hourHeight = window.innerWidth < 768 ? 72 : 60;
   grid.className = 'week-grid calendar-time-view' + (count === 1 ? ' is-day-view' : '');
   grid.innerHTML = `<div class="calendar-time-header"><span></span>${days.map(date=>`<button type="button" class="calendar-day-heading${isSameDay(date,new Date())?' is-today':''}" data-calendar-day="${calendarDateKey(date)}"><span>${fmtDate(date,'EEE')}</span><strong>${fmtDate(date,'d')}</strong></button>`).join('')}</div>
     <div class="calendar-time-body"><div class="calendar-time-labels">${Array.from({length:endHour-startHour},(_,i)=>`<span>${String(startHour+i).padStart(2,'0')}:00</span>`).join('')}</div>
