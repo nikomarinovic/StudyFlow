@@ -147,6 +147,7 @@ const DB = {
   deletePeriod(id) { this._set(this.PERIODS_KEY,this._get(this.PERIODS_KEY).filter(p=>p.id!==id)); },
   getResources(userId) { return this._get(this.RESOURCES_KEY).filter(r=>r.userId===userId); },
   addResource(userId, resource) { const rows=this._get(this.RESOURCES_KEY),value={id:this._id(),userId,category:'Additional resources',...resource,createdAt:Date.now()};rows.push(value);this._set(this.RESOURCES_KEY,rows);return value; },
+  updateResource(id, patch) { const rows=this._get(this.RESOURCES_KEY),i=rows.findIndex(r=>r.id===id);if(i<0)return null;rows[i]={...rows[i],...patch,updatedAt:Date.now()};this._set(this.RESOURCES_KEY,rows);return rows[i]; },
   deleteResource(id) { this._set(this.RESOURCES_KEY,this._get(this.RESOURCES_KEY).filter(r=>r.id!==id)); },
 
   // ── USERS ──────────────────────────────────────────────────
