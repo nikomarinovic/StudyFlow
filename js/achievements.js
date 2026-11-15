@@ -300,10 +300,13 @@ const COLOR_MAP = {
   teal:   { bg: 'rgba(20,184,166,.1)',  icon: 'hsl(175,60%,40%)',border: 'rgba(20,184,166,.2)' },
 };
 
+// Local calendar day (toISOString would shift days for anyone east of UTC)
+function dayKeyOf(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+
 // ── Compute user data from DB ──────────────────────────────────────────────
 function computeUserData() {
   const stats       = DB.getStats(currentUser.id);
-  const sessions    = DB.getSessions(currentUser.id);
+  const sessions    = DB.getStudyLog(currentUser.id);   // timer sessions + calendar blocks marked done
   const items       = DB.getItems(currentUser.id);
   const completions = DB.getCompletions(currentUser.id);
 
@@ -317,14 +320,14 @@ function computeUserData() {
   const totalCompletions = completions.length;
 
   const uniqueSubjects = new Set(sessions.map(s => (s.subject||'').toLowerCase().trim()).filter(Boolean)).size;
-  const longestSession = sessions.reduce((m, s) => Math.max(m, s.duration || 0), 0);
+  const longestSession = sessions.reduce((m, s) => Math.max(m, s.minutes || 0), 0);
 
   const hasEarlySession = sessions.some(s => {
-    const h = new Date(s.completedAt).getHours();
+    const h = new Date(s.at).getHours();
     return h < 8;
   });
   const hasLateSession = sessions.some(s => {
-    const h = new Date(s.completedAt).getHours();
+    const h = new Date(s.at).getHours();
     return h >= 22;
   });
 
@@ -332,7 +335,7 @@ function computeUserData() {
   const subjectMap = {};
   sessions.forEach(s => {
     const sub = (s.subject || 'General').trim();
-    subjectMap[sub] = (subjectMap[sub] || 0) + (s.duration || 0);
+    subjectMap[sub] = (subjectMap[sub] || 0) + (s.minutes || 0);
   });
   const subjectBreakdown = Object.entries(subjectMap)
     .map(([name, mins]) => ({ name, hours: +(mins / 60).toFixed(1) }))
@@ -342,23 +345,20 @@ function computeUserData() {
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const heatmap = {};
   sessions.forEach(s => {
-    const d = new Date(s.completedAt);
-    d.setHours(0, 0, 0, 0);
-    const key = d.toISOString().split('T')[0];
-    heatmap[key] = (heatmap[key] || 0) + (s.duration || 0);
+    heatmap[dayKeyOf(new Date(s.at))] = (heatmap[dayKeyOf(new Date(s.at))] || 0) + (s.minutes || 0);
   });
 
   // Weekly hours for last 8 weeks
   const weeklyData = [];
   for (let w = 7; w >= 0; w--) {
     const weekStart = new Date(today);
-    weekStart.setDate(today.getDate() - today.getDay() - w * 7 + 1);
+    weekStart.setDate(today.getDate() - ((today.getDay() + 6) % 7) - w * 7); // Monday of that week (Sunday belongs to the week before)
     weekStart.setHours(0, 0, 0, 0);
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 7);
     const hrs = sessions
-      .filter(s => { const d = new Date(s.completedAt); return d >= weekStart && d < weekEnd; })
-      .reduce((sum, s) => sum + (s.duration || 0) / 60, 0);
+      .filter(s => { const d = new Date(s.at); return d >= weekStart && d < weekEnd; })
+      .reduce((sum, s) => sum + (s.minutes || 0) / 60, 0);
     weeklyData.push({ label: SFLocale.date(weekStart), hours: +hrs.toFixed(1) });
   }
 
@@ -501,7 +501,7 @@ function renderHeatmap(heatmap) {
   for (let i = 0; i < days; i++) {
     const d = new Date(startDay);
     d.setDate(startDay.getDate() + i);
-    const key  = d.toISOString().split('T')[0];
+    const key  = dayKeyOf(d);
     const mins = heatmap[key] || 0;
     const hrs  = (mins / 60).toFixed(1);
     const intensity = mins > 0 ? Math.max(.2, mins / maxMins) : 0;

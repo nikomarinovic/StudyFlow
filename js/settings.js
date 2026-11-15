@@ -206,7 +206,7 @@ function updateExportPreview() {
   set('previewExams',      items.filter(i => i.type === 'exam').length);
   set('previewProjects',   items.filter(i => i.type === 'project').length);
   set('previewReminders',  items.filter(i => i.type === 'reminder').length);
-  set('previewSessions',   sessions.length);
+  set('previewSessions',   DB.getStudyLog(currentUser.id).length);
   set('previewCompletions',completions.length);
 
   // Rough file size estimate
@@ -246,7 +246,7 @@ function init() {
   set('sStreak',   streak);
   set('sScore',    score);
   set('sExams',    exams.length);
-  set('rowSessions', sessions.length);
+  set('rowSessions', DB.getStudyLog(currentUser.id).length);
   set('rowHours',    totalHrs + ' hrs');
   set('rowStreak',   streak + ' days');
   set('rowExams',    exams.length);

@@ -426,6 +426,22 @@ const DB = {
     });
   },
 
+  // Everything the student actually studied: timer sessions plus calendar blocks marked done.
+  // Every entry: { at (ms the work counts for), minutes, subject, source:'timer'|'calendar', ... }
+  getStudyLog(userId) {
+    const today = this._dayKey(Date.now());
+    const log = this._get(this.SESSIONS_KEY).filter(r => r.userId === userId)
+      .map(r => ({ id: r.id, at: Number(r.completedAt) || Date.now(), minutes: Number(r.duration) || 0, subject: r.subject || '', source: 'timer' }));
+    this._get(this.COMPLETIONS_KEY).filter(r => r.userId === userId).forEach(r => {
+      const m = /(\d{4}-\d{2}-\d{2})$/.exec(r.blockId || '');
+      // the day of the block itself, never in the future
+      let at = Number(r.completedAt) || Date.now();
+      if (m && m[1] <= today) at = new Date(`${m[1]}T12:00:00`).getTime();
+      log.push({ id: r.blockId, at, minutes: Number(r.durationMinutes) || 0, subject: String(r.subject || '').replace(/^(Study|Task) · /, ''), source: 'calendar' });
+    });
+    return log.sort((a, b) => a.at - b.at);
+  },
+
   // ── SESSIONS (timer sessions only — never written by completeBlock) ──
   getSessions(userId) {
     return this._get(this.SESSIONS_KEY).filter(s => s.userId === userId);
