@@ -60,6 +60,7 @@ function confirmDeleteAccount() {
 function doClearSessions() {
   DB._set(DB.SESSIONS_KEY, DB._get(DB.SESSIONS_KEY).filter(s => s.userId !== currentUser.id));
   DB._set(DB.COMPLETIONS_KEY, DB._get(DB.COMPLETIONS_KEY).filter(c => c.userId !== currentUser.id));
+  DB._set(DB.TASKS_KEY, DB._get(DB.TASKS_KEY).map(t => t.userId === currentUser.id && t.pointsAwarded ? { ...t, pointsAwarded: 0 } : t));
   DB.updateStats(currentUser.id, { totalStudyHours: 0, streak: 0, lastStudyDate: null, studyScore: 0 });
   DB.resetStreak(currentUser.id);
   showToast('All sessions cleared');

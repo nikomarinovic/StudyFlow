@@ -216,7 +216,14 @@ const DB = {
       || { userId, totalStudyHours: 0, streak: 0, lastStudyDate: null, studyScore: 0 };
     // The streak is derived from per-day records that merge across devices, never from a counter
     // that the last device to write would overwrite.
-    return { ...row, streak: this.computeStreak(userId) };
+    // Score and hours are derived the same way: from the records themselves (timer sessions, calendar blocks
+    // marked done, assignment points), which sync across devices. A stored counter can be overwritten by
+    // another device, which is how earned points used to vanish.
+    const timer = this._get(this.SESSIONS_KEY).filter(r => r.userId === userId);
+    const done = this._get(this.COMPLETIONS_KEY).filter(r => r.userId === userId);
+    const minutes = timer.reduce((m, r) => m + (Number(r.duration) || 0), 0) + done.reduce((m, r) => m + (Number(r.durationMinutes) || 0), 0);
+    const taskPoints = this._get(this.TASKS_KEY).filter(t => t.userId === userId).reduce((m, t) => m + (Number(t.pointsAwarded) || 0), 0);
+    return { ...row, streak: this.computeStreak(userId), totalStudyHours: minutes / 60, studyScore: Math.round(minutes * 1.5) + taskPoints };
   },
   updateStats(userId, patch) {
     const all = this._get(this.STATS_KEY);
