@@ -61,6 +61,7 @@ function doClearSessions() {
   DB._set(DB.SESSIONS_KEY, DB._get(DB.SESSIONS_KEY).filter(s => s.userId !== currentUser.id));
   DB._set(DB.COMPLETIONS_KEY, DB._get(DB.COMPLETIONS_KEY).filter(c => c.userId !== currentUser.id));
   DB.updateStats(currentUser.id, { totalStudyHours: 0, streak: 0, lastStudyDate: null, studyScore: 0 });
+  DB.resetStreak(currentUser.id);
   showToast('All sessions cleared');
   init();
 }
@@ -72,7 +73,7 @@ async function doDeleteAccount() {
     if(!sync?.enabled)throw new Error('Firebase is not available. No account data was deleted.');
     await sync.deleteAccount(password);
   }
-  [DB.SESSIONS_KEY, DB.EXAMS_KEY, DB.ITEMS_KEY, DB.STATS_KEY, DB.COMPLETIONS_KEY, DB.COURSES_KEY, DB.TASKS_KEY, DB.EVENTS_KEY, DB.AVAILABILITY_KEY, DB.LAB_WEEKS_KEY, DB.PERIODS_KEY, DB.RESOURCES_KEY, DB.SCHEDULES_KEY, DB.PLANNER_SETTINGS_KEY, DB.PLANNER_PREFS_KEY, DB.ACTIVITY_LOG_KEY, 'sf_profiles'].forEach(key => {
+  [DB.SESSIONS_KEY, DB.EXAMS_KEY, DB.ITEMS_KEY, DB.STATS_KEY, DB.COMPLETIONS_KEY, DB.COURSES_KEY, DB.TASKS_KEY, DB.EVENTS_KEY, DB.AVAILABILITY_KEY, DB.LAB_WEEKS_KEY, DB.PERIODS_KEY, DB.RESOURCES_KEY, DB.SCHEDULES_KEY, DB.PLANNER_SETTINGS_KEY, DB.PLANNER_PREFS_KEY, DB.ACTIVITY_LOG_KEY, DB.ACTIVITY_DAYS_KEY, 'sf_profiles'].forEach(key => {
     DB._set(key, DB._get(key).filter(r => r.userId !== currentUser.id));
   });
   DB._set(DB.USERS_KEY, DB.getUsers().filter(u => u.id !== currentUser.id));

@@ -6,7 +6,7 @@ const COLLECTIONS = {
   sf_sessions:'sessions',sf_exams:'exams',sf_items:'items',sf_stats:'stats',sf_completions:'completions',
   sf_courses:'courses',sf_tasks:'tasks',sf_academic_events:'academicEvents',sf_availability:'availability',
   sf_lab_weeks:'labWeeks',sf_academic_periods:'academicPeriods',sf_resources:'resources',sf_schedules:'schedules',sf_profiles:'profiles',
-  sf_planner_settings:'plannerSettings',sf_planner_prefs:'plannerPrefs',sf_activity_log:'activityLog'
+  sf_planner_settings:'plannerSettings',sf_planner_prefs:'plannerPrefs',sf_activity_log:'activityLog',sf_activity_days:'activityDays'
 };
 const idOf = (store,row) => String(row.id || row.blockId || row.userId || `${store}_${Math.random().toString(36).slice(2)}`);
 const canonical = value => {
@@ -34,7 +34,7 @@ export async function connect(config) {
     const local=localRows(store).filter(row=>row.userId===activeUid), keep=new Set(local.map(row=>docId(store,row)));
     const ops=[];
     local.forEach(row=>ops.push({type:'set',ref:doc(firestore,'users',activeUid,'records',docId(store,row)),data:{userId:activeUid,store,value:row}}));
-    existing.forEach((ref,id)=>{if(!keep.has(id))ops.push({type:'delete',ref});});
+    if(store!=='sf_activity_days')existing.forEach((ref,id)=>{if(!keep.has(id))ops.push({type:'delete',ref});});
     for(let offset=0;offset<ops.length;offset+=450){const batch=writeBatch(firestore);ops.slice(offset,offset+450).forEach(op=>op.type==='set'?batch.set(op.ref,op.data):batch.delete(op.ref));await batch.commit();}
     const pending=localRows('sf_pending_sync_stores').filter(key=>key!==store);
     safeWriteCache('sf_pending_sync_stores',pending);
@@ -62,16 +62,18 @@ export async function connect(config) {
           Object.keys(COLLECTIONS).forEach(store=>{
             const all=localRows(store),others=all.filter(row=>row.userId!==uid),local=all.filter(row=>row.userId===uid),next=cloud[store];
             const migrating=localStorage.getItem('sf_pending_migration_uid')===uid;
-            const preserveLocal=preSyncPending.has(store)||migrating||(store==='sf_completions'&&legacyCompletionDoc);
-            const merged=preSyncPending.has(store)?local:preserveLocal?[...new Map([...next,...local].map(row=>[idOf(store,row),row])).values()]:next;
+            const unionStore=store==='sf_activity_days'; // append-only: days from every device are kept
+            const preserveLocal=unionStore||preSyncPending.has(store)||migrating||(store==='sf_completions'&&legacyCompletionDoc);
+            const merged=preSyncPending.has(store)&&!unionStore?local:preserveLocal?[...new Map([...next,...local].map(row=>[idOf(store,row),row])).values()]:next;
             const stable=rows=>JSON.stringify([...rows].sort((a,b)=>idOf(store,a).localeCompare(idOf(store,b))).map(canonical));
             if(stable(local)!==stable(merged))changed=true;
             safeWriteCache(store,[...others,...merged]);
-            if(preSyncPending.has(store)||migrating||(store==='sf_completions'&&legacyCompletionDoc))pending.set(store,true);
+            if(preSyncPending.has(store)||migrating||(store==='sf_completions'&&legacyCompletionDoc)||(unionStore&&merged.length>next.length))pending.set(store,true);
           });
           const migrating=localStorage.getItem('sf_pending_migration_uid')===uid;
           if(migrating)localStorage.removeItem('sf_pending_migration_uid');
           initialSnapshot=true;
+          if(pending.has('sf_activity_days'))queueStore('sf_activity_days'); // days recorded before the first snapshot
           let migrationFailed=false;
           if(migrating||legacyCompletionDoc){const stores=[...pending.keys()];pending.clear();try{for(const store of stores)await flushStore(store);}catch(error){migrationFailed=true;sendStatus('Could not sync migrated data · changes remain on this device','error');}}
           if(!migrationFailed)sendStatus('Synced across devices','synced');

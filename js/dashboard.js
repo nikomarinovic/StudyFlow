@@ -16,6 +16,8 @@ function getTimeGreeting() {
   return 'Good evening';
 }
 
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
 function getWeekStart() {
   const now = new Date();
   const day = now.getDay();
@@ -60,7 +62,9 @@ function generateAllScheduled(items, sessions) {
         date:    new Date(examDate),
       });
 
-      if (daysUntil <= 0) return;
+      // Exams that belong to a course are planned by the adaptive planner and shown from the calendar.
+      const plannedByPlanner = window.Planner && Planner.courseForExam(exam, DB.getCourses(currentUser.id));
+      if (daysUntil <= 0 || plannedByPlanner) return;
 
       const totalH   = DIFFICULTY_HOURS[exam.difficulty]?.max || 10;
       const studiedH = sessions
@@ -173,15 +177,30 @@ function updateSchedule(items, sessions) {
       type:     'exam-day',
     }));
 
-  // 2. Generated study sessions for today
+  // 2. Everything that is on today's calendar: classes, one-day activities, study sessions
+  const typeLabel = { lecture: 'Lecture', seminar: 'Seminar', lab: 'Lab', study: 'Study', exam: 'Exam' };
+  DB.getDayAgenda(currentUser.id, formatDate(today)).forEach(e => todayItems.push({
+    time:     e.start || '—',
+    end:      e.end || '',
+    subject:  e.title,
+    topic:    [e.location, e.type === 'study' ? e.description : ''].filter(Boolean).join(' · '),
+    duration: e.durationMinutes ? `${e.durationMinutes} min` : '—',
+    type:     e.type === 'study' ? 'scheduled' : 'academic',
+    badge:    e.temporary ? 'One day' : (typeLabel[e.type] || ''),
+    color:    e.color,
+    done:     e.completed,
+  }));
+
+  // 2b. Assignments due today
+  DB.getTasks(currentUser.id).filter(t => t.status !== 'done' && t.dueDate === formatDate(today)).forEach(t => todayItems.push({
+    time: t.dueTime || '—', subject: t.title, topic: 'Due today', duration: '—', type: 'academic', badge: 'Due', color: '', done: false,
+  }));
+
+  // 2c. Exams without a course (older exams) still get their generated sessions
   allScheduled
     .filter(s => s.type === 'scheduled' && isSameDay(s.date, today))
     .forEach(s => todayItems.push({
-      time:     s.time,
-      subject:  s.subject,
-      topic:    s.topic,
-      duration: s.duration,
-      type:     'scheduled',
+      time: s.time, subject: s.subject, topic: s.topic, duration: s.duration, type: 'scheduled', badge: 'Study', color: '', done: false,
     }));
 
   // 3. Completed timer sessions from today
@@ -199,8 +218,8 @@ function updateSchedule(items, sessions) {
   todayItems.sort((a, b) => {
     if (a.type === 'exam-day') return -1;
     if (b.type === 'exam-day') return  1;
-    const ta = a.time === '—' ? '00:00' : a.time;
-    const tb = b.time === '—' ? '00:00' : b.time;
+    const ta = a.time === '—' ? '99:98' : a.time;
+    const tb = b.time === '—' ? '99:98' : b.time;
     return ta.localeCompare(tb);
   });
 
@@ -229,18 +248,21 @@ function updateSchedule(items, sessions) {
           <div class="schedule-duration">—</div>
         </div>`;
     }
+    const clock = /^\d{1,2}:\d{2}$/.test(item.time) ? SFLocale.time(item.time) : item.time;
+    const accent = item.type === 'academic' && item.color && /^#|^hsl|^rgb/.test(item.color) ? ` style="background:${esc(item.color)};opacity:1"` : '';
     return `
-      <div class="schedule-item ${item.type}">
-        <div class="schedule-time">${item.time}</div>
-        <div class="schedule-indicator ${item.type}"></div>
+      <div class="schedule-item ${item.type}${item.done ? ' completed' : ''}">
+        <div class="schedule-time">${esc(clock)}</div>
+        <div class="schedule-indicator ${item.type}"${accent}></div>
         <div class="schedule-content">
           <div class="schedule-subject">
-            ${item.subject}
-            ${item.type === 'scheduled' ? '<span class="schedule-badge scheduled">Study</span>' : ''}
+            ${esc(item.subject)}
+            ${item.badge ? `<span class="schedule-badge ${item.type === 'scheduled' ? 'scheduled' : ''}">${esc(item.badge)}</span>` : ''}
+            ${item.done ? '<span class="schedule-badge scheduled">Done</span>' : ''}
           </div>
-          <div class="schedule-topic">${item.topic}</div>
+          <div class="schedule-topic">${esc(item.topic)}</div>
         </div>
-        <div class="schedule-duration">${item.duration}</div>
+        <div class="schedule-duration">${esc(item.duration)}</div>
       </div>`;
   }).join('');
 }
@@ -357,6 +379,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   init();
+  // The plan rebuilds itself in the background; keep today's list in step with it.
+  window.addEventListener('sf:planner-updated', e => { if (e.detail?.changed) init(); });
 });
 
 } // end else
