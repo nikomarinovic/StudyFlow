@@ -91,7 +91,7 @@ function exportData() {
   const payload = {
     exportedAt:  new Date().toISOString(),
     exportedBy:  currentUser.email,
-    version:     4,
+    version:     5,
     items:       DB.getItems(currentUser.id),
     sessions:    DB.getSessions(currentUser.id),
     completions: DB.getCompletions(currentUser.id),
@@ -108,6 +108,8 @@ function exportData() {
     plannerSettings: DB.getPlannerSettings(currentUser.id),
     plannerPrefs: DB._get(DB.PLANNER_PREFS_KEY).filter(x=>x.userId===currentUser.id),
     activityLog: DB.getActivityLog(currentUser.id),
+    activityDays: DB._get(DB.ACTIVITY_DAYS_KEY).filter(x=>x.userId===currentUser.id),
+    legacyExams: DB._get(DB.EXAMS_KEY).filter(x=>x.userId===currentUser.id),
     localePreferences: SFLocale.get(),
   };
 
@@ -169,19 +171,25 @@ function doImport(data, mode) {
     [DB.ITEMS_KEY,'items'],[DB.SESSIONS_KEY,'sessions'],[DB.COMPLETIONS_KEY,'completions'],
     [DB.COURSES_KEY,'courses'],[DB.TASKS_KEY,'tasks'],[DB.EVENTS_KEY,'academicEvents'],
     [DB.AVAILABILITY_KEY,'availability'],[DB.LAB_WEEKS_KEY,'labWeeks'],[DB.PERIODS_KEY,'academicPeriods'],[DB.RESOURCES_KEY,'resources'],[DB.SCHEDULES_KEY,'schedules'],
-    [DB.PLANNER_PREFS_KEY,'plannerPrefs'],[DB.ACTIVITY_LOG_KEY,'activityLog']
+    [DB.PLANNER_PREFS_KEY,'plannerPrefs'],[DB.ACTIVITY_LOG_KEY,'activityLog'],[DB.ACTIVITY_DAYS_KEY,'activityDays'],[DB.EXAMS_KEY,'legacyExams']
   ];
   let count=0, skipped=0;
   specs.forEach(([key,field])=>{
-    const incoming=(data[field]||[]).map(row=>({...row,userId:currentUser.id}));
+    const incoming=(data[field]||[]).map(row=>{
+      const next={...row,userId:currentUser.id};
+      // per-day records are keyed "<userId>_<date>": re-key them for this account
+      if(key===DB.ACTIVITY_DAYS_KEY)next.id=`${currentUser.id}_${row.date||'reset'}`;
+      return next;
+    });
     const all=DB._get(key), others=all.filter(row=>row.userId!==currentUser.id), existing=all.filter(row=>row.userId===currentUser.id);
     if(mode==='override') { DB._set(key,[...others,...incoming]);count+=incoming.length;return; }
     const id=row=>row.id||row.blockId||row.userId;
     const ids=new Set(existing.map(id));const additions=incoming.filter(row=>!ids.has(id(row)));
     count+=additions.length;skipped+=incoming.length-additions.length;DB._set(key,[...all,...additions]);
   });
+  if(data.plannerSettings&&(mode==='override'||!DB._get(DB.PLANNER_SETTINGS_KEY).some(r=>r.userId===currentUser.id)))DB.savePlannerSettings(currentUser.id,data.plannerSettings);
   if(data.stats&&mode==='override')DB.updateStats(currentUser.id,{...data.stats,userId:currentUser.id});
-  if(data.profile){if(mode==='override'||!Object.keys(DB.getProfile(currentUser.id)).length)DB.saveProfile(currentUser.id,data.profile);}
+  if(data.profile){if(mode==='override'||!Object.keys(DB.getProfile(currentUser.id)).length)DB.saveProfile(currentUser.id,{...data.profile,userId:currentUser.id});}
   if(data.localePreferences && mode==='override') SFLocale.save(data.localePreferences);
   showToast(mode==='override'?`Override complete — ${count} records imported`:`Merged — ${count} new records added${skipped?`, ${skipped} duplicates skipped`:''}`);
 

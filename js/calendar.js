@@ -137,7 +137,7 @@ function generateSchedule(items, sessions) {
       const color = item.type === 'project' ? 'project' : 'reminder';
 
       scheduled.push({
-        id: `event-${item.id}-due`, blockId: `event-${item.id}-due`,
+        id: `event-${item.id}-due`, blockId: `event-${item.id}-due`, itemId: item.id,
         subject: item.subject, topic: item.topic,
         time: '—', durationMinutes: 0, duration: '—',
         color, type: item.type,
@@ -148,7 +148,7 @@ function generateSchedule(items, sessions) {
         const notifyDate = addDays(dueDate, -item.reminderDaysBefore);
         if (notifyDate >= today) {
           scheduled.push({
-            id: `event-${item.id}-notify`, blockId: `event-${item.id}-notify`,
+            id: `event-${item.id}-notify`, blockId: `event-${item.id}-notify`, itemId: item.id,
             subject: `Reminder: ${item.subject}`, topic: item.topic,
             time: '—', durationMinutes: 0, duration: '—',
             color: 'reminder-notify', type: 'reminder-notify',
@@ -173,6 +173,7 @@ function generateSchedule(items, sessions) {
       if (event.scheduleId && event.scheduleId !== activeScheduleId) return;
       if (event.activeFrom && dayKey < event.activeFrom || event.activeUntil && dayKey > event.activeUntil) return;
       if (event.type === 'lab' && event.weekKey === weekKey) return;
+      if (event.excludedDates?.includes(dayKey)) return;
       if (event.repeat === 'weekly') {
         if ((event.type !== 'study' && period) || Number(event.day) !== weekday) return;
         if (event.type === 'lab' && labWeek) return;
@@ -188,7 +189,7 @@ function generateSchedule(items, sessions) {
   }
   DB.getTasks?.(currentUser.id).filter(task => task.status !== 'done' && task.dueDate).forEach(task => {
     const due = new Date(`${task.dueDate}T12:00:00`);
-    scheduled.push({ id:`task-${task.id}`, blockId:`task-${task.id}`, subject:task.title, topic:[DB.getCourses?.(currentUser.id).find(c=>c.id===task.courseId)?.name,task.dueTime].filter(Boolean).join(' · '), time:task.dueTime||'—', durationMinutes:0, duration:'—', color:'assignment', type:'assignment', date:due, notes:task.description||'' });
+    scheduled.push({ id:`task-${task.id}`, blockId:`task-${task.id}`, taskId:task.id, subject:task.title, topic:[DB.getCourses?.(currentUser.id).find(c=>c.id===task.courseId)?.name,task.dueTime].filter(Boolean).join(' · '), time:task.dueTime||'—', durationMinutes:0, duration:'—', color:'assignment', type:'assignment', date:due, notes:task.description||'' });
   });
 
   return scheduled;
@@ -330,7 +331,7 @@ function renderDayEvents(events,date,startHour,endHour,hourHeight){
   const items=[];
   events.forEach(event=>{
     if(!/^\d{2}:\d{2}$/.test(event.time||'')){
-      html+=`<button type="button" class="calendar-all-day-event${event.type==='exam-day'?' is-test':''}" data-calendar-event="${calendarEscape(event.eventId||'')}" data-date="${calendarDateKey(date)}" style="--event-color:${colorOf(event)}">${calendarEscape(event.subject)}${event.eventId?'<span> · Edit</span>':''}</button>`;
+      html+=`<button type="button" class="calendar-all-day-event${event.type==='exam-day'?' is-test':''}" data-calendar-event="${calendarEscape(event.eventId||'')}" data-calendar-block="${calendarEscape(event.blockId||'')}" data-date="${calendarDateKey(date)}" style="--event-color:${colorOf(event)}">${calendarEscape(event.subject)}${event.eventId?'<span> · Edit</span>':''}</button>`;
       return;
     }
     const [hour,minute]=event.time.split(':').map(Number);
@@ -359,7 +360,7 @@ function renderDayEvents(events,date,startHour,endHour,hourHeight){
     const label=[event.subject,event.topic,time].filter(Boolean).join(' · ');
     const isTest=event.type==='exam-day';
     const roomy=height>=76;
-    html+=`<button type="button" title="${calendarEscape(label)}" class="calendar-timed-event${isTest?' is-test':''}${roomy?'':' is-compact'}${event.completed?' is-completed':''}" data-calendar-event="${calendarEscape(event.eventId||'')}" data-date="${calendarDateKey(date)}" style="--event-color:${colorOf(event)};top:${top}px;height:${height}px;left:calc(${lane}*100%/${lanes} + 2px);width:calc(100%/${lanes} - 4px);right:auto"><strong>${calendarEscape(event.subject)}</strong><span class="calendar-event-time">${calendarEscape(time)}</span>${event.topic&&roomy?`<small>${calendarEscape(event.topic)}</small>`:''}</button>`;
+    html+=`<button type="button" title="${calendarEscape(label)}" class="calendar-timed-event${isTest?' is-test':''}${roomy?'':' is-compact'}${event.completed?' is-completed':''}" data-calendar-event="${calendarEscape(event.eventId||'')}" data-calendar-block="${calendarEscape(event.blockId||'')}" data-date="${calendarDateKey(date)}" style="--event-color:${colorOf(event)};top:${top}px;height:${height}px;left:calc(${lane}*100%/${lanes} + 2px);width:calc(100%/${lanes} - 4px);right:auto"><strong>${calendarEscape(event.subject)}</strong><span class="calendar-event-time">${calendarEscape(time)}</span>${event.topic&&roomy?`<small>${calendarEscape(event.topic)}</small>`:''}</button>`;
   });
   return html;
 }
@@ -386,9 +387,12 @@ function renderTimeGrid(grid, scheduled) {
     openCalendarEvent(null,{date,start:`${hour}:00`,end:`${String(Number(hour)+1).padStart(2,'0')}:00`});
   }));
   grid.querySelectorAll('[data-calendar-event]').forEach(button=>button.addEventListener('click',()=>{
-    const id=button.dataset.calendarEvent;
-    if(id){const record=DB.getAcademicEvents(currentUser.id).find(item=>item.id===id);if(record)openCalendarEvent(record);return;}
-    selectedDate=new Date(`${button.dataset.date}T12:00:00`);refresh();
+    const block=lastScheduled.find(item=>item.blockId&&item.blockId===button.dataset.calendarBlock);
+    const occurrence=button.dataset.date;
+    const record=button.dataset.calendarEvent&&DB.getAcademicEvents(currentUser.id).find(item=>item.id===button.dataset.calendarEvent);
+    if(record){openCalendarEvent(record,{occurrence});return;}   // classes, activities, study sessions: edit or remove
+    if(block){openCalendarDetail(block);return;}                // exams, assignments, reminders, lab-week events
+    selectedDate=new Date(`${occurrence}T12:00:00`);refresh();
   }));
 }
 
@@ -642,6 +646,7 @@ function refresh() {
     return true;
   });
 
+  lastScheduled = scheduled;
   renderWeekNav();
   renderMiniCalendar();
   renderWeekProgress(scheduled);
@@ -649,6 +654,8 @@ function refresh() {
   renderDayDetails(allItems, sessions, scheduled);
 }
 
+let lastScheduled = [];
+let editingOccurrence = '';
 function calendarEventActions(event) {
   if (!event.eventId) return '';
   return `<div class="calendar-event-actions"><button type="button" data-calendar-edit="${calendarEscape(event.eventId)}" aria-label="Edit event">Edit</button><button type="button" data-calendar-delete="${calendarEscape(event.eventId)}" aria-label="Delete event">Delete</button></div>`;
@@ -676,8 +683,63 @@ function openCalendarEvent(event, defaults = {}) {
   form.elements.color.value = /^#[0-9a-f]{6}$/i.test(event?.color || '') ? event.color : '#3978c5';
   form.elements.description.value = event?.description || '';
   title.textContent = event ? 'Edit event' : 'Add event';
+  editingOccurrence = defaults.occurrence || calendarDateKey(selectedDate);
+  const removeButton = document.getElementById('calendarEventRemove');
+  if (removeButton) removeButton.hidden = !event?.id;
   form.elements.repeat.dispatchEvent(new Event('change'));
   document.getElementById('calendarEventDialog').showModal();
+}
+
+// ── Remove / details for any calendar event ────────────────────
+function removalPlanFor(block) {
+  const dateKey = calendarDateKey(block.date);
+  if (block.eventId) {
+    const rec = DB.getAcademicEvents(currentUser.id).find(item => item.id === block.eventId);
+    return { kind: 'event', id: block.eventId, rec, weekly: rec?.repeat === 'weekly', dateKey };
+  }
+  if (block.type === 'exam-day' && block.examId) return { kind: 'item', id: block.examId, label: 'exam', dateKey };
+  if (block.taskId) return { kind: 'task', id: block.taskId, label: 'assignment', dateKey };
+  if (block.itemId) return { kind: 'item', id: block.itemId, label: block.type === 'project' ? 'project' : 'reminder', dateKey };
+  return null;
+}
+
+function applyRemoval(plan, scope) {
+  if (plan.kind === 'event') {
+    if (plan.weekly && scope === 'day') DB.excludeEventDate(plan.id, plan.dateKey);
+    else DB.deleteAcademicEvent(plan.id);
+  } else if (plan.kind === 'task') DB.deleteTask(plan.id);
+  else DB.deleteItem(plan.id);
+  document.getElementById('calendarDetailDialog').close();
+  document.getElementById('calendarEventDialog').close?.();
+  refresh();
+}
+
+function openCalendarDetail(block, { confirm = false } = {}) {
+  const dialog = document.getElementById('calendarDetailDialog');
+  const plan = removalPlanFor(block);
+  const kindLabel = { 'exam-day': 'EXAM', assignment: 'ASSIGNMENT', project: 'PROJECT', reminder: 'REMINDER', 'reminder-notify': 'REMINDER', scheduled: 'STUDY SESSION' }[block.type] || String(block.topic || '').split(' · ')[0].toUpperCase() || 'EVENT';
+  const clock = /^\d{2}:\d{2}$/.test(block.time || '') ? `${SFLocale.time(block.time)}${block.end ? '–' + SFLocale.time(block.end) : ''}` : 'All day';
+  document.getElementById('calDetailKind').textContent = kindLabel;
+  document.getElementById('calDetailTitle').textContent = block.subject || 'Event';
+  document.getElementById('calDetailWhen').textContent = `${fmtDate(block.date, 'EEEE d MMMM')} · ${clock}`;
+  document.getElementById('calDetailNote').textContent = [block.topic, block.location, block.notes].filter(Boolean).join(' · ').replace(/\n/g, ' · ');
+  const actions = document.getElementById('calDetailActions'), ask = document.getElementById('calDetailConfirm');
+  const show = state => {
+    ask.hidden = state !== 'confirm'; actions.hidden = state === 'confirm';
+    if (state !== 'confirm') return;
+    const what = plan.label || 'event';
+    ask.innerHTML = plan.weekly
+      ? `<p>This event repeats every week. What should be removed?</p><div class="dialog-actions"><button type="button" class="btn-outline" data-remove-cancel>Cancel</button><button type="button" class="btn-outline danger" data-remove-scope="day">Only ${calendarEscape(fmtDate(block.date, 'EEE d MMM'))}</button><button type="button" class="btn-primary danger" data-remove-scope="all">Every week</button></div>`
+      : `<p>Remove this ${calendarEscape(what)}${plan.kind === 'item' && plan.label === 'exam' ? ' and the study plan built for it' : ''}?</p><div class="dialog-actions"><button type="button" class="btn-outline" data-remove-cancel>Keep it</button><button type="button" class="btn-primary danger" data-remove-scope="all">Remove ${calendarEscape(what)}</button></div>`;
+    ask.querySelector('[data-remove-cancel]').onclick = () => show('details');
+    ask.querySelectorAll('[data-remove-scope]').forEach(b => b.onclick = () => applyRemoval(plan, b.dataset.removeScope));
+  };
+  const removeButton = document.getElementById('calDetailRemove');
+  removeButton.hidden = !plan;
+  removeButton.onclick = () => show('confirm');
+  document.getElementById('calDetailNoRemove').hidden = Boolean(plan);
+  show(confirm && plan ? 'confirm' : 'details');
+  if (!dialog.open) dialog.showModal();
 }
 
 function calendarDateKey(date) {
@@ -763,6 +825,16 @@ function init() {
     refresh();
   });
   eventDialog.querySelectorAll('[data-calendar-close]').forEach(button => button.addEventListener('click', () => eventDialog.close()));
+  const detailDialog = document.getElementById('calendarDetailDialog');
+  detailDialog.querySelectorAll('[data-calendar-close]').forEach(button => button.addEventListener('click', () => detailDialog.close()));
+  detailDialog.addEventListener('click', event => { if (event.target === detailDialog) detailDialog.close(); });
+  document.getElementById('calendarEventRemove').addEventListener('click', () => {
+    const id = eventForm.elements.id.value, rec = DB.getAcademicEvents(currentUser.id).find(item => item.id === id);
+    if (!rec) return;
+    eventDialog.close();
+    const date = rec.repeat === 'weekly' ? (editingOccurrence || calendarDateKey(selectedDate)) : (rec.date || editingOccurrence);
+    openCalendarDetail({ subject: rec.title, eventId: rec.id, date: new Date(`${date}T12:00:00`), time: rec.start, end: rec.end, type: rec.type === 'study' ? 'scheduled' : 'academic', topic: [rec.type, rec.location].filter(Boolean).join(' · '), location: '' }, { confirm: true });
+  });
   eventDialog.addEventListener('click', event => {
     if (event.target === eventDialog) eventDialog.close();
   });
@@ -775,8 +847,9 @@ function init() {
     }
     const remove = event.target.closest('[data-calendar-delete]');
     if (remove) {
-      DB.deleteAcademicEvent(remove.dataset.calendarDelete);
-      refresh();
+      const id = remove.dataset.calendarDelete, dayKey = calendarDateKey(selectedDate);
+      const block = lastScheduled.find(item => item.eventId === id && calendarDateKey(item.date) === dayKey) || lastScheduled.find(item => item.eventId === id);
+      if (block) openCalendarDetail(block, { confirm: true }); else { DB.deleteAcademicEvent(id); refresh(); }
     }
   });
 }
