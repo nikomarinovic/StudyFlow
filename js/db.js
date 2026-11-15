@@ -74,10 +74,19 @@ const DB = {
   getAcademicEvents(userId) { return this._get(this.EVENTS_KEY).filter(e => e.userId === userId); },
   addAcademicEvent(userId, event) { const rows=this._get(this.EVENTS_KEY), record={id:this._id(),userId,type:'lecture',color:'#3978c5',...event,createdAt:Date.now()}; rows.push(record);this._set(this.EVENTS_KEY,rows);return record; },
   updateAcademicEvent(id, patch) { const rows=this._get(this.EVENTS_KEY),i=rows.findIndex(e=>e.id===id);if(i<0)return null;const previous=rows[i];rows[i]={...previous,...patch,updatedAt:Date.now()};this._set(this.EVENTS_KEY,rows);if(previous.weekKey||rows[i].weekKey){const weeks=this._get(this.LAB_WEEKS_KEY).map(w=>{if(w.weekKey!==previous.weekKey&&w.weekKey!==rows[i].weekKey)return w;const entries=(w.events||[]).filter(e=>e.id!==id);if(w.weekKey===rows[i].weekKey&&rows[i].type==='lab'&&rows[i].repeat==='once')entries.push(rows[i]);return {...w,events:entries};});this._set(this.LAB_WEEKS_KEY,weeks);}return rows[i]; },
-  deleteAcademicEvent(id) { const rows=this._get(this.EVENTS_KEY),target=rows.find(e=>e.id===id),found=Boolean(target);if(!found)return false;
+  deleteAcademicEvent(id) { const rows=this._get(this.EVENTS_KEY),target=rows.find(e=>e.id===id),found=Boolean(target);
+    if(!found){ // a copy that only lives in a confirmed lab week
+      let removed=false;const weeks=this._get(this.LAB_WEEKS_KEY).map(w=>{const kept=(w.events||[]).filter(e=>e.id!==id);if(kept.length!==(w.events||[]).length)removed=true;return {...w,events:kept};});
+      if(removed)this._set(this.LAB_WEEKS_KEY,weeks);return removed;}
     // Removing a generated session means "I can't study then": remember the slot so the planner works around it.
     if(target.type==='study'&&(target.generatedPlanId||target.generatedWeek)&&target.date&&target.date>=this._dayKey(Date.now())&&!this.isCompleted(target.userId,`acad-${target.id}-${target.date}`)){const prefs=this.getPlannerPrefs(target.userId);this.savePlannerPrefs(target.userId,{dismissed:[...(prefs.dismissed||[]),{date:target.date,start:target.start,end:target.end}]});}
     this._set(this.EVENTS_KEY,this._get(this.EVENTS_KEY).filter(e=>e.id!==id));this._set(this.LAB_WEEKS_KEY,this._get(this.LAB_WEEKS_KEY).map(w=>({...w,events:(w.events||[]).filter(e=>e.id!==id)})));return true; },
+  // Remove one occurrence of a weekly event and keep the rest of the series.
+  excludeEventDate(id, dayKey) {
+    const rows=this._get(this.EVENTS_KEY),i=rows.findIndex(e=>e.id===id);if(i<0)return false;
+    const excluded=[...new Set([...(rows[i].excludedDates||[]),dayKey])];
+    rows[i]={...rows[i],excludedDates:excluded,updatedAt:Date.now()};this._set(this.EVENTS_KEY,rows);return true;
+  },
   getSchedules(userId) { return this._get(this.SCHEDULES_KEY).filter(s=>s.userId===userId); },
   addSchedule(userId, schedule) {
     const rows=this._get(this.SCHEDULES_KEY), record={id:this._id(),userId,name:'Schedule',active:false,createdAt:Date.now(),...schedule};
@@ -114,6 +123,7 @@ const DB = {
       if (event.scheduleId && event.scheduleId !== activeId) return;
       if (event.activeFrom && dayKey < event.activeFrom || event.activeUntil && dayKey > event.activeUntil) return;
       if (event.type === 'lab' && event.weekKey === weekKey) return;
+      if (event.excludedDates?.includes(dayKey)) return;
       if (event.repeat === 'weekly') {
         if ((event.type !== 'study' && period) || Number(event.day) !== weekday) return;
         if (event.type === 'lab' && labWeek) return;

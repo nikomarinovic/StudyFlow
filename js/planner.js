@@ -252,7 +252,7 @@
         const a = toMin(e.start), b = toMin(e.end);
         if (!(b > a)) return;
         if (e.repeat === 'weekly') {
-          if (Number(e.day) !== dow || !inRange(e, key) || period) return;
+          if (Number(e.day) !== dow || !inRange(e, key) || period || (e.excludedDates || []).includes(key)) return;
           if (e.type === 'lab' && labWeek) return; // this week's labs were confirmed explicitly
           expand(a, b); day.hasClasses = true;
         } else if (e.date === key) {

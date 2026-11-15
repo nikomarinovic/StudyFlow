@@ -548,10 +548,28 @@
       </div>
       <label>Description<textarea name="description" rows="2" maxlength="300" placeholder="Optional notes"></textarea></label>
       <div class="dialog-actions">
+        <button type="button" class="btn-outline danger calendar-remove-left" id="calendarEventRemove" hidden>Remove event</button>
         <button type="button" class="btn-outline" data-calendar-close>Cancel</button>
         <button type="submit" class="btn-primary">Save event</button>
       </div>
     </form>
+  </dialog>
+
+  <dialog id="calendarDetailDialog" class="calendar-event-dialog calendar-detail-dialog">
+    <div class="calendar-detail">
+      <div class="dialog-head">
+        <div><p class="eyebrow" id="calDetailKind">EVENT</p><h2 id="calDetailTitle"></h2></div>
+        <button type="button" class="close" data-calendar-close aria-label="Close">×</button>
+      </div>
+      <p class="calendar-detail-line" id="calDetailWhen"></p>
+      <p class="calendar-detail-line is-muted" id="calDetailNote"></p>
+      <p class="calendar-detail-line is-muted" id="calDetailNoRemove" hidden>This session is planned automatically from your exam. Remove the exam to remove its sessions.</p>
+      <div id="calDetailConfirm" class="calendar-detail-confirm" hidden></div>
+      <div class="dialog-actions" id="calDetailActions">
+        <button type="button" class="btn-outline" data-calendar-close>Close</button>
+        <button type="button" class="btn-outline danger" id="calDetailRemove">Remove event</button>
+      </div>
+    </div>
   </dialog>
 
   <script src="js/config.js"></script>

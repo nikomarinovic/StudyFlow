@@ -218,3 +218,13 @@
 .calendar-now-line { box-shadow:0 0 6px rgba(220,38,38,.35); }
 .calendar-event-dialog { border-radius:20px; box-shadow:0 30px 90px rgba(18,42,37,.28); }
 .calendar-event-dialog input:focus, .calendar-event-dialog select:focus, .calendar-event-dialog textarea:focus { outline:2px solid color-mix(in srgb,var(--primary) 45%,transparent); outline-offset:1px; border-color:var(--primary); }
+
+/* Remove event / event details */
+.calendar-detail{display:flex;flex-direction:column;gap:.7rem}
+.calendar-detail-line{margin:0;font-size:.95rem}.calendar-detail-line.is-muted{color:var(--muted-foreground);font-size:.88rem}
+.calendar-detail-confirm p{margin:0 0 .6rem}
+.calendar-event-dialog .danger{color:#b4372f;border-color:rgba(180,55,47,.4)}
+.calendar-event-dialog .btn-primary.danger{background:#b4372f;border-color:#b4372f;color:#fff}
+.calendar-event-dialog .calendar-remove-left{margin-right:auto}
+:root[data-theme="dark"] .calendar-event-dialog .danger{color:#f08a82;border-color:rgba(240,138,130,.45)}
+:root[data-theme="dark"] .calendar-event-dialog .btn-primary.danger{background:#c2453c;color:#fff}
