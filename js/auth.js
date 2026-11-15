@@ -1,3 +1,5 @@
+// Already signed in on this device? Skip the form and go straight to the app.
+try { if (JSON.parse(localStorage.getItem('sf_current_user') || 'null')?.id) location.replace('dashboard.html'); } catch (e) {}
 let isSignUp = new URLSearchParams(window.location.search).get('mode') === 'signup';
 
 const nameGroup = document.getElementById('nameGroup');

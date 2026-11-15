@@ -1,5 +1,5 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as firebaseSignOut, sendPasswordResetEmail, updateProfile, onAuthStateChanged, reauthenticateWithCredential, EmailAuthProvider, deleteUser } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js';
+import { getAuth, initializeAuth, indexedDBLocalPersistence, browserLocalPersistence, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as firebaseSignOut, sendPasswordResetEmail, updateProfile, onAuthStateChanged, reauthenticateWithCredential, EmailAuthProvider, deleteUser } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js';
 import { getFirestore, collection, doc, onSnapshot, writeBatch, getDocs } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js';
 
 const COLLECTIONS = {
@@ -18,8 +18,16 @@ const event = (name,detail={}) => window.dispatchEvent(new CustomEvent(name,{det
 const current = () => { try{return JSON.parse(localStorage.getItem('sf_current_user')||'null')}catch{return null} };
 
 export async function connect(config) {
-  const app=initializeApp(config), auth=getAuth(app), firestore=getFirestore(app);
-  const firstAuth=await new Promise(resolve=>{const unsub=onAuthStateChanged(auth,user=>{unsub();resolve(user)});});
+  // Remember this device: ask the browser not to evict our storage and keep the Firebase session
+  // in IndexedDB, falling back to localStorage where IndexedDB is blocked (private tabs, strict Safari).
+  try { navigator.storage?.persist?.(); } catch {}
+  const app=initializeApp(config), firestore=getFirestore(app);
+  let auth; try { auth=initializeAuth(app,{persistence:[indexedDBLocalPersistence,browserLocalPersistence]}); } catch { auth=getAuth(app); }
+  // authStateReady() resolves only after the saved session has been restored, so a slow storage
+  // read can no longer look like "signed out".
+  const firstAuth=await (auth.authStateReady
+    ? auth.authStateReady().then(()=>auth.currentUser)
+    : new Promise(resolve=>{const unsub=onAuthStateChanged(auth,user=>{unsub();resolve(user)});}));
   let activeUid=null, unsubscribe=null, initialSnapshot=false, pending=new Map(), flushTimer=null;
   const sendStatus=(message,state='syncing')=>event('sf:sync-status',{message,state});
   const localRows=store=>{try{return JSON.parse(localStorage.getItem(store)||'[]')}catch{return []}};
