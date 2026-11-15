@@ -126,3 +126,9 @@ body.dark-mode { --course-surface:#202832;--course-ink:#eef3f7;--course-muted:#a
 :root[data-theme="dark"] .cw-row.is-soon .cw-due span { color:#f3c76b; }
 :root[data-theme="dark"] .cw-row.is-overdue .cw-due span { color:#ff8a80; }
 :root[data-theme="dark"] .cw-chip.cw-course { color:color-mix(in srgb,var(--course-color,#3978c5) 55%,#fff); }
+
+/* Study Score reward */
+.cw-chip.cw-score { background:color-mix(in srgb,#188038 14%,transparent); color:#188038; font-weight:700; }
+.cw-toast { position:fixed; left:50%; bottom:5.5rem; transform:translate(-50%,12px); padding:.6rem 1.1rem; border-radius:999px; background:#188038; color:#fff; font-size:.85rem; font-weight:700; box-shadow:0 10px 28px rgba(24,128,56,.35); opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; z-index:10001; }
+.cw-toast.show { opacity:1; transform:translate(-50%,0); }
+:root[data-theme="dark"] .cw-chip.cw-score { color:#7ddc9a; }

@@ -63,6 +63,26 @@ const DB = {
     if (index < 0) return null;
     rows[index] = { ...rows[index], ...patch, updatedAt: Date.now() }; this._set(this.TASKS_KEY, rows); return rows[index];
   },
+  // ── Coursework points: a small Study Score reward for every assignment you finish ──
+  // 20 base points + 1 per 5% of the final grade the assignment is worth (max +20), so 20-40 in total.
+  // The award is remembered on the task, so reopening takes it back and re-completing can't farm points.
+  taskPoints(task) { return 20 + Math.min(20, Math.round((Number(task?.percentageContribution) || 0) / 5)); },
+  awardTaskPoints(userId, taskId) {
+    const task = this._get(this.TASKS_KEY).find(t => t.id === taskId);
+    if (!task || task.pointsAwarded) return 0;
+    const points = this.taskPoints(task);
+    this.updateTask(taskId, { pointsAwarded: points });
+    this.updateStats(userId, { studyScore: (this.getStats(userId).studyScore || 0) + points });
+    return points;
+  },
+  revokeTaskPoints(userId, taskId) {
+    const task = this._get(this.TASKS_KEY).find(t => t.id === taskId);
+    if (!task || !task.pointsAwarded) return 0;
+    const points = task.pointsAwarded;
+    this.updateTask(taskId, { pointsAwarded: 0 });
+    this.updateStats(userId, { studyScore: Math.max(0, (this.getStats(userId).studyScore || 0) - points) });
+    return points;
+  },
   deleteTask(taskId) { this._set(this.TASKS_KEY, this._get(this.TASKS_KEY).filter(t => t.id !== taskId)); },
   getProfile(userId) { return this._get('sf_profiles').find(p => p.userId === userId) || {}; },
   saveProfile(userId, patch) {
