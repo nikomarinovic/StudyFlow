@@ -547,8 +547,20 @@
     const all = DB._get(DB.EVENTS_KEY);
     const stale = all.filter(e => e.userId === userId && e.type === 'study' && isGenerated(e) && e.date < staleKey && !DB.isCompleted(userId, `acad-${e.id}-${e.date}`));
     stale.forEach(e => dropIds.add(e.id));
-    if (!dropIds.size && !additions.length) return false;
-    DB._set(DB.EVENTS_KEY, [...all.filter(e => !dropIds.has(e.id)), ...additions]);
+    // Sessions that stay on the calendar follow renames of their course or assignment
+    // (a title the student typed into the calendar themselves is left alone).
+    const courses = DB.getCourses(userId), tasks = DB.getTasks(userId);
+    let renamed = false;
+    const kept = all.filter(e => !dropIds.has(e.id)).map(e => {
+      if (e.userId !== userId || e.type !== 'study' || !isGenerated(e) || e.customTitle) return e;
+      const course = courses.find(c => c.id === e.courseId), task = e.taskId && tasks.find(t => t.id === e.taskId);
+      const title = e.taskId ? (task ? `Task · ${task.title}` : e.title) : (course ? `Study · ${course.name}` : e.title);
+      const color = course?.color && !e.customColor ? course.color : e.color;
+      if (title === e.title && color === e.color) return e;
+      renamed = true; return { ...e, title, color, updatedAt: Date.now() };
+    });
+    if (!dropIds.size && !additions.length && !renamed) return false;
+    DB._set(DB.EVENTS_KEY, [...kept, ...additions]);
     return true;
   }
 
