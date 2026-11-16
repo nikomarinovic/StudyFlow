@@ -810,6 +810,16 @@ function init() {
     values.weekKey = values.type === 'lab' && values.repeat === 'once'
       ? calendarDateKey(getStartOfWeek(new Date(`${values.date}T12:00:00`)))
       : '';
+    // Renaming a class that carries its course's name renames the course itself, so its other classes,
+    // study sessions and stats follow instead of staying under the old name.
+    const before = id ? DB.getAcademicEvents(currentUser.id).find(item => item.id === id) : null;
+    const course = before?.courseId && DB.getCourses(currentUser.id).find(item => item.id === before.courseId);
+    const newName = String(values.title || '').trim();
+    if (before && course && before.type !== 'study' && newName && before.title === course.name && newName !== course.name) {
+      DB.updateCourse(course.id, { name: newName });
+      DB.getAcademicEvents(currentUser.id).filter(item => item.courseId === course.id && item.id !== id && item.type !== 'study' && item.title === before.title)
+        .forEach(item => DB.updateAcademicEvent(item.id, { title: newName }));
+    }
     const saved = id ? DB.updateAcademicEvent(id, values) : DB.addAcademicEvent(currentUser.id, values);
     if (!saved) {
       console.error(`Could not save calendar event${id ? ` ${id}` : ''}.`);
