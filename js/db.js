@@ -93,7 +93,8 @@ const DB = {
   },
   getAcademicEvents(userId) { return this._get(this.EVENTS_KEY).filter(e => e.userId === userId); },
   addAcademicEvent(userId, event) { const rows=this._get(this.EVENTS_KEY), record={id:this._id(),userId,type:'lecture',color:'#3978c5',...event,createdAt:Date.now()}; rows.push(record);this._set(this.EVENTS_KEY,rows);return record; },
-  updateAcademicEvent(id, patch) { const rows=this._get(this.EVENTS_KEY),i=rows.findIndex(e=>e.id===id);if(i<0)return null;const previous=rows[i];rows[i]={...previous,...patch,updatedAt:Date.now()};this._set(this.EVENTS_KEY,rows);if(previous.weekKey||rows[i].weekKey){const weeks=this._get(this.LAB_WEEKS_KEY).map(w=>{if(w.weekKey!==previous.weekKey&&w.weekKey!==rows[i].weekKey)return w;const entries=(w.events||[]).filter(e=>e.id!==id);if(w.weekKey===rows[i].weekKey&&rows[i].type==='lab'&&rows[i].repeat==='once')entries.push(rows[i]);return {...w,events:entries};});this._set(this.LAB_WEEKS_KEY,weeks);}return rows[i]; },
+  updateAcademicEvent(id, patch) { const rows=this._get(this.EVENTS_KEY),i=rows.findIndex(e=>e.id===id);if(i<0)return null;const previous=rows[i];rows[i]={...previous,...patch,updatedAt:Date.now()};if(previous.generatedPlanId&&patch.title&&patch.title!==previous.title)rows[i].customTitle=true; // the student's own name wins over the planner's
+    if(previous.generatedPlanId&&patch.color&&patch.color!==previous.color)rows[i].customColor=true;this._set(this.EVENTS_KEY,rows);if(previous.weekKey||rows[i].weekKey){const weeks=this._get(this.LAB_WEEKS_KEY).map(w=>{if(w.weekKey!==previous.weekKey&&w.weekKey!==rows[i].weekKey)return w;const entries=(w.events||[]).filter(e=>e.id!==id);if(w.weekKey===rows[i].weekKey&&rows[i].type==='lab'&&rows[i].repeat==='once')entries.push(rows[i]);return {...w,events:entries};});this._set(this.LAB_WEEKS_KEY,weeks);}return rows[i]; },
   deleteAcademicEvent(id) { const rows=this._get(this.EVENTS_KEY),target=rows.find(e=>e.id===id),found=Boolean(target);
     if(!found){ // a copy that only lives in a confirmed lab week
       let removed=false;const weeks=this._get(this.LAB_WEEKS_KEY).map(w=>{const kept=(w.events||[]).filter(e=>e.id!==id);if(kept.length!==(w.events||[]).length)removed=true;return {...w,events:kept};});
@@ -439,12 +440,13 @@ const DB = {
     const today = this._dayKey(Date.now());
     const log = this._get(this.SESSIONS_KEY).filter(r => r.userId === userId)
       .map(r => ({ id: r.id, at: Number(r.completedAt) || Date.now(), minutes: Number(r.duration) || 0, subject: r.subject || '', source: 'timer' }));
+    const events = new Map(this._get(this.EVENTS_KEY).filter(e => e.userId === userId).map(e => [e.id, e]));
     this._get(this.COMPLETIONS_KEY).filter(r => r.userId === userId).forEach(r => {
       const m = /(\d{4}-\d{2}-\d{2})$/.exec(r.blockId || '');
       // the day of the block itself, never in the future
       let at = Number(r.completedAt) || Date.now();
       if (m && m[1] <= today) at = new Date(`${m[1]}T12:00:00`).getTime();
-      log.push({ id: r.blockId, at, minutes: Number(r.durationMinutes) || 0, subject: String(r.subject || '').replace(/^(Study|Task) · /, ''), source: 'calendar' });
+      log.push({ id: r.blockId, at, minutes: Number(r.durationMinutes) || 0, subject: String((events.get((/^acad-(.+)-\d{4}-\d{2}-\d{2}$/.exec(r.blockId || '') || [])[1])?.title) || r.subject || '').replace(/^(Study|Task) · /, ''), source: 'calendar' });
     });
     return log.sort((a, b) => a.at - b.at);
   },
